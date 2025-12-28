@@ -327,7 +327,6 @@ if (DEBUG) {
 
 // begin core classes
 unset($_REQUEST);
-unset($_GET);
 
 spl_autoload_extensions('.php');
 spl_autoload_register(array(
