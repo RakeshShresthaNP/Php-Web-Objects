@@ -1,0 +1,157 @@
+<?php
+
+/**
+ # Copyright Rakesh Shrestha (rakesh.shrestha@gmail.com)
+ # All rights reserved.
+ #
+ # Redistribution and use in source and binary forms, with or without
+ # modification, are permitted provided that the following conditions are
+ # met:
+ #
+ # Redistributions must retain the above copyright notice.
+ */
+final class cAuth extends cController
+{
+
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    private function _generateToken(&$udata)
+    {
+        $header = json_encode([
+            'typ' => 'JWT',
+            'alg' => 'HS256'
+        ]);
+
+        // Create the token payload
+        $payload = json_encode($udata, JSON_UNESCAPED_SLASHES);
+
+        // Encode Header
+        $base64UrlHeader = base64_jwt_encode($header);
+
+        // Encode Payload
+        $base64UrlPayload = base64_jwt_encode($payload);
+
+        // Create Signature Hash
+        $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, SECRET_KEY, true);
+
+        // Encode Signature to Base64Url String
+        $base64UrlSignature = base64_jwt_encode($signature);
+
+        // Create JWT
+        $jwt = $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
+
+        return $jwt;
+    }
+
+    public function api_login()
+    {
+        $fdata = json_decode(file_get_contents('php://input'), true);
+
+        /* XSS Prevention */
+        $fdata = array_map_recursive($fdata, "cleanHtml");
+
+        if ($this->req->isPost()) {
+
+            // Validate input
+            if (empty($fdata['username']) || empty($fdata['password'])) {
+                throw new ApiException('Username and password are required');
+            }
+
+            $user = new user();
+
+            $username = $fdata['username'];
+            $password = $fdata['password'];
+
+            $user->select('*', 'username=?', array(
+                $username
+            ));
+
+            if ($user->exist()) {
+                // Check if password is hashed with password_hash or old md5
+                $passwordValid = false;
+                if (password_verify($password, $user->password)) {
+                    $passwordValid = true;
+                } elseif (md5($password) === $user->password) {
+                    // Legacy MD5 support
+                    $passwordValid = true;
+                }
+
+                if (! $passwordValid) {
+                    throw new ApiException('Error Login');
+                }
+
+                $udata = array(
+                    'id' => $user->id,
+                    'realName' => $user->firstname . ' ' . $user->lastname,
+                    'roles' => array(
+                        $user->perms
+                    ),
+                    'username' => $user->username,
+                    'exp' => time() + 24 * 3600
+                );
+
+                $udata['accessToken'] = $this->_generateToken($udata);
+
+                $data['code'] = 0;
+                $data['data'] = $udata;
+                $data['error'] = null;
+                $data['message'] = 'ok';
+
+                $this->res->json($data);
+            } else {
+                throw new ApiException('Error Login');
+            }
+        } else {
+            throw new ApiException('Invalid request method');
+        }
+    }
+
+    public function api_refresh()
+    {
+        $pdata = $this->req->getPayloadData();
+
+        $udata = array(
+            'id' => $pdata->id,
+            'realName' => $pdata->realName,
+            'roles' => $pdata->perms,
+            'username' => $pdata->username,
+            'exp' => time() + 24 * 3600
+        );
+
+        $udata['accessToken'] = $this->_generateToken($udata);
+
+        $data['code'] = 0;
+        $data['data'] = $udata;
+        $data['error'] = null;
+        $data['message'] = 'ok';
+
+        $this->res->json($data);
+    }
+
+    public function api_logout()
+    {
+        $data['code'] = 0;
+        $data['data'] = null;
+        $data['error'] = null;
+        $data['message'] = 'ok';
+
+        $this->res->json($data);
+    }
+
+    public function api_codes()
+    {
+        $data['code'] = 0;
+        $data['data'] = array(
+            'AC_100010',
+            'AC_100020',
+            'AC_100030'
+        );
+        $data['error'] = null;
+        $data['message'] = 'ok';
+
+        $this->res->json($data);
+    }
+}

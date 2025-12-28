@@ -1,0 +1,1 @@
+###2025-12-28 07:58:37### <div class='error' style='text-align:left'><b>Custom error:</b> [2] Undefined variable $response<br />Error on line 105 in D:\XAMPP\www\pwo\myapp\app\controllers\auth.php<br />Ending Script</div>
