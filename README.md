@@ -27,7 +27,7 @@ Password Values
 6. Uri to controller mapping
 7. Very lightweight template engine
 8. PHP native Views
-9. Zero dependencies, add extra libraries only when you need it
+9. Zero dependencies and extra libraries only when you need it and lazy loading of libraries using php native dependency injection
 10. Useful builtin libraries for mail, firebase messaging, smpp (smsc), amazon s3 storage, geometry classes and format conversion routines, memcached, SoapClient for NTLMStream, encryption, excelxlsx import, pagination, jwt api and QR code
 11. Builtin XSS security
 12. Builtin SQL injection security
@@ -35,4 +35,5 @@ Password Values
 ### Database Recommended Best Practises when using php web objects framework
 1. Use Views for querying information
 2. Use Stored Procedures for complex queries
-3. Use Triggers
+3. Use Trigger
+
