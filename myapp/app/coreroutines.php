@@ -308,22 +308,18 @@ if (! function_exists('array_map_recursive')) {
     }
 }
 
-if (DEBUG) {
-
-    function customError($errno, $errstr, $errfile, $errline)
-    {
-        $emsg = "";
-        $emsg .= "<div class='error' style='text-align:left'>";
-        $emsg .= "<b>Custom error:</b> [$errno] $errstr<br />";
-        $emsg .= "Error on line $errline in $errfile<br />";
-        $emsg .= "Ending Script";
-        $emsg .= "</div>";
-
-        writeLog('error', $emsg);
-    }
-
-    set_error_handler("customError");
+function customError($errno, $errstr, $errfile, $errline)
+{
+    $emsg = "";
+    $emsg .= "<div class='error' style='text-align:left'>";
+    $emsg .= "<b>Custom error:</b> [$errno] $errstr<br />";
+    $emsg .= "Error on line $errline in $errfile<br />";
+    $emsg .= "Ending Script";
+    $emsg .= "</div>";
+    writeLog('error_' . date('Y_m_d'), $emsg);
 }
+
+set_error_handler("customError");
 
 // begin core classes
 unset($_REQUEST);
@@ -356,6 +352,22 @@ final class ApiException extends Exception
 {
 }
 
+final class Cache
+{
+
+    private static $_context = null;
+
+    public static function getContext($cachetype)
+    {
+        if (self::$_context === null) {
+            $classname = 'Cache_' . $cachetype;
+            self::$_context = new $classname();
+        }
+
+        return self::$_context;
+    }
+}
+
 final class DB
 {
 
@@ -386,19 +398,59 @@ final class DB
     }
 }
 
-final class Cache
+final class Session
 {
 
     private static $_context = null;
 
-    public static function getContext($cachetype)
+    public static function getContext($sesstype)
     {
         if (self::$_context === null) {
-            $classname = 'Cache_' . $cachetype;
+            $classname = 'Session_' . $sesstype;
             self::$_context = new $classname();
         }
 
         return self::$_context;
+    }
+}
+
+final class View
+{
+
+    public static function assign(array &$vars = array(), $viewname = null)
+    {
+        $req = req();
+        if (is_array($vars)) {
+            extract($vars);
+        }
+        ob_start();
+        if ($viewname == null) {
+            $viewname = mb_strtolower($req->getController() . '/' . $req->getMethod());
+        }
+        include VIEW_DIR . mb_strtolower($viewname) . '.php';
+        return ob_get_clean();
+    }
+
+    public static function display(array &$vars = array(), $viewname = null)
+    {
+        $req = req();
+        if ($viewname == null) {
+            $viewname = mb_strtolower($req->getController() . '/' . $req->getMethod());
+        }
+        if (! isset($vars['layout'])) {
+            $playout = 'layouts/' . $req->getPathPrefix() . 'layout';
+            $vars['mainregion'] = self::assign($vars, $viewname);
+        } else {
+            if ($vars['layout']) {
+                $playout = $vars['layout'];
+            } else {
+                $playout = $viewname;
+            }
+        }
+        if (is_array($vars)) {
+            extract($vars);
+        }
+        include VIEW_DIR . mb_strtolower($playout) . '.php';
     }
 }
 
@@ -451,16 +503,9 @@ final class Request
     {
         $headers = array();
 
-        foreach ($_SERVER as $param => $value) {
-            if (strpos($param, 'HTTP_') === 0) {
-                $headerName = mb_substr($param, 5);
-                $headerName = mb_str_replace('_', ' ', mb_strtolower($headerName));
-                $headerName = mb_str_replace(' ', '-', mb_ucwords($headerName));
-                $headers[$headerName] = $value;
-            }
-        }
+        $Browser = new DeviceInfo();
+        $headers = (object) $Browser->getAll($_SERVER['HTTP_USER_AGENT']);
 
-        $headers['IP'] = getRequestIP();
         return $headers;
     }
 
@@ -489,13 +534,13 @@ final class Request
         $jwt = $this->getToken();
 
         if (! $jwt) {
-            throw new ApiException('Invalid Access.');
+            throw new ApiException('Invalid Access.', 403);
         }
 
         // split the token
         $tokenParts = explode('.', $jwt);
         if (count($tokenParts) !== 3) {
-            throw new ApiException('Invalid token format.');
+            throw new ApiException('Invalid token format.', 403);
         }
 
         $header = $tokenParts[0];
@@ -508,14 +553,14 @@ final class Request
 
         // verify it matches the signature provided in the token
         if (! hash_equals($base64UrlSignature, $signatureProvided)) {
-            throw new ApiException('Signature is not valid.');
+            throw new ApiException('Signature is not valid.', 403);
         }
 
         // decode and check the expiration time
         $payloadDecoded = base64_jwt_decode($payload);
         $payloadData = json_decode($payloadDecoded);
         if (! $payloadData || ! isset($payloadData->exp)) {
-            throw new ApiException('Invalid token payload.');
+            throw new ApiException('Invalid token payload.', 403);
         }
 
         return $payloadData;
@@ -556,11 +601,6 @@ final class Response
         503 => "503 Service Unavailable"
     );
 
-    private $_page_messages = array(
-        405 => "Try HTTP GET.",
-        500 => "Something went horribly wrong."
-    );
-
     public static function getContext()
     {
         if (self::$_context === null) {
@@ -570,9 +610,14 @@ final class Response
         return self::$_context;
     }
 
-    public function setStatus($status)
+    public function setHeader($type = '')
     {
-        header("HTTP/1.0 " . $this->_get_status_message($status));
+        header($type);
+    }
+
+    public function setStatus($status = 200)
+    {
+        http_response_code($status);
     }
 
     public function redirect($path = null, $alertmsg = null)
@@ -594,7 +639,31 @@ final class Response
 
     public function json(array &$data = array())
     {
-        header('Content-Type: application/json');
+        if (! isset($data['code'])) {
+            $data['code'] = 200;
+        }
+
+        $this->setStatus($data['code']);
+
+        if (! isset($data['data'])) {
+            $data['data'] = null;
+        }
+
+        if (! isset($data['error'])) {
+            $data['error'] = null;
+        }
+
+        if (! isset($data['message'])) {
+            if ($data['code'] == 200) {
+                $data['message'] = 'ok';
+            } else if ($data['code'] >= 400 && $data['code'] <= 500) {
+                $data['message'] = 'apiexception';
+            } else {
+                $data['message'] = 'error';
+            }
+        }
+
+        $this->setHeader('Content-Type: application/json; charset=utf-8');
 
         echo json_encode($data, JSON_UNESCAPED_SLASHES);
     }
@@ -623,46 +692,6 @@ final class Response
             return $this->_statusCode[500];
         }
         return $this->_statusCode[$code];
-    }
-}
-
-final class View
-{
-
-    public static function assign(array &$vars = array(), $viewname = null)
-    {
-        $req = req();
-        if (is_array($vars)) {
-            extract($vars);
-        }
-        ob_start();
-        if ($viewname == null) {
-            $viewname = mb_strtolower($req->getController() . '/' . $req->getMethod());
-        }
-        include VIEW_DIR . mb_strtolower($viewname) . '.php';
-        return ob_get_clean();
-    }
-
-    public static function display(array &$vars = array(), $viewname = null)
-    {
-        $req = req();
-        if ($viewname == null) {
-            $viewname = mb_strtolower($req->getController() . '/' . $req->getMethod());
-        }
-        if (! isset($vars['layout'])) {
-            $playout = 'layouts/' . $req->getPathPrefix() . 'layout';
-            $vars['mainregion'] = self::assign($vars, $viewname);
-        } else {
-            if ($vars['layout']) {
-                $playout = $vars['layout'];
-            } else {
-                $playout = $viewname;
-            }
-        }
-        if (is_array($vars)) {
-            extract($vars);
-        }
-        include VIEW_DIR . mb_strtolower($playout) . '.php';
     }
 }
 
@@ -725,166 +754,6 @@ abstract class cAdminController extends cController
 
         if ($pathprefix == 'dashboard' && (empty($cusertype) || $cusertype == 'superadmin')) {
             $this->res->redirect('login', 'Invalid Access');
-        }
-    }
-}
-
-// begin model class
-class model
-{
-
-    protected $db = null;
-
-    private $_rs = array();
-
-    private $_pk;
-
-    private $_table;
-
-    public function __construct($table = null, $pk = 'id')
-    {
-        $this->_pk = $pk;
-        $this->_table = $table;
-        $this->db = db();
-    }
-
-    public function __set($key, $val)
-    {
-        $this->_rs[$key] = $val;
-    }
-
-    public function __get($key)
-    {
-        return isset($this->_rs[$key]) ? $this->_rs[$key] : '';
-    }
-
-    public function select($selectwhat = '*', $wherewhat = null, $bindings = null)
-    {
-        if (is_scalar($bindings)) {
-            $bindings = mb_trim($bindings) ? array(
-                $bindings
-            ) : array();
-        }
-        $sql = 'SELECT ' . $selectwhat . ' FROM ' . $this->_table;
-        if ($wherewhat) {
-            $sql .= ' WHERE ' . $wherewhat;
-        }
-
-        $stmt = $this->db->prepare($sql);
-
-        $i = 0;
-        if ($wherewhat) {
-            foreach ($bindings as $v) {
-                $stmt->bindValue(++ $i, $v);
-            }
-        }
-
-        $stmt->execute();
-
-        if ($stmt->rowCount() == 1) {
-            $this->_rs = $stmt->fetch(PDO::FETCH_ASSOC);
-        } else {
-            return $stmt->fetchAll();
-        }
-    }
-
-    public function insert()
-    {
-        $_pk = $this->_pk;
-
-        $s1 = $s2 = '';
-
-        foreach ($this->_rs as $k => $v) {
-            if ($k != $_pk || $v) {
-                $s1 .= ',' . $k;
-                $s2 .= ',?';
-            }
-        }
-
-        $sql = 'INSERT INTO ' . $this->_table . ' (' . mb_substr($s1, 1) . ') VALUES (' . mb_substr($s2, 1) . ')';
-
-        $stmt = $this->db->prepare($sql);
-
-        $i = 0;
-
-        foreach ($this->_rs as $k => $v) {
-            if ($k != $_pk || $v) {
-                $stmt->bindValue(++ $i, is_scalar($v) ? $v : serialize($v));
-            }
-        }
-
-        $stmt->execute();
-
-        return $this->db->lastInsertId();
-    }
-
-    public function update()
-    {
-        $s = '';
-
-        foreach ($this->_rs as $k => $v) {
-            $s .= ',' . $k . '=?';
-        }
-
-        $s = mb_substr($s, 1);
-
-        $sql = 'UPDATE ' . $this->_table . ' SET ' . $s . ' WHERE ' . $this->_pk . '=?';
-
-        $stmt = $this->db->prepare($sql);
-
-        $i = 0;
-
-        foreach ($this->_rs as $k => $v) {
-            $stmt->bindValue(++ $i, is_scalar($v) ? $v : serialize($v));
-        }
-
-        $stmt->bindValue(++ $i, $this->_rs[$this->_pk]);
-
-        return $stmt->execute();
-    }
-
-    public function delete()
-    {
-        $sql = 'DELETE FROM ' . $this->_table . ' WHERE ' . $this->_pk . '=?';
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(1, $this->_rs[$this->_pk]);
-
-        return $stmt->execute();
-    }
-
-    public function exist($checkdb = false)
-    {
-        if ((int) $this->{$this->_pk} >= 1) {
-            return 1;
-        }
-
-        if ($checkdb) {
-            $sql = 'SELECT 1 FROM ' . $this->_table . ' WHERE ' . $this->_pk . '=?';
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([
-                $this->{$this->_pk}
-            ]);
-            return $stmt->rowCount();
-        }
-
-        return 0;
-    }
-
-    public function get()
-    {
-        return $this->_rs;
-    }
-
-    public function assign(array &$arr = array(), $checkfield = false)
-    {
-        foreach ($arr as $key => $val) {
-            if ($checkfield) {
-                if (isset($this->$key)) {
-                    $this->$key = cleanHtml($val);
-                }
-            } else {
-                $this->$key = cleanHtml($val);
-            }
         }
     }
 }

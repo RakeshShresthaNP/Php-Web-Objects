@@ -22,6 +22,8 @@ final class cHome extends cController
     {
         $data['pagetitle'] = SITE_TITLE;
 
+        //print_r($this->headers);
+
         $this->res->display($data);
     }
 

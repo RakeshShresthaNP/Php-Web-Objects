@@ -21,7 +21,7 @@ final class cLogin extends cController
     public function index()
     {
         $data = array();
-
+        
         $data['username'] = '';
         $data['user'] = '';
 

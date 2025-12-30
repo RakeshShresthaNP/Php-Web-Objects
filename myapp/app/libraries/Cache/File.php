@@ -21,7 +21,7 @@ final class Cache_File
 
     public function __construct()
     {
-        $cachedir = APP_DIR . 'logs/';
+        $cachedir = APP_DIR . 'cache/';
         if (is_dir($cachedir) && is_writable($cachedir)) {
             $this->_validdir = true;
         }

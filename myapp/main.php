@@ -28,10 +28,10 @@ $response = res();
 try {
     Application::run($request, $response);
 } catch (ApiException $e) {
-    $data['code'] = 404;
-    $data['data'] = null;
+    $data['code'] = $e->getCode();
     $data['error'] = $e->getMessage();
-    $data['message'] = 'apiexception';
+
+    writeLog('apiexception_' . date('Y_m_d'), $data);
 
     $response->json($data);
 } catch (Exception $e) {
@@ -40,6 +40,8 @@ try {
     if ($request->isAjax()) {
         $data['layout'] = false;
     }
+
+    writeLog('exception_' . date('Y_m_d'), $data);
 
     $response->display($data, 'errors/exception');
 }

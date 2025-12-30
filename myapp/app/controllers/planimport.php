@@ -113,7 +113,7 @@ final class cPlanImport extends cAuthController
                                     $exec_query = $i_stmt->execute();
                                 } catch (Exception $e) {
                                     $db->rollBack();
-                                    throw new ApiException($e);
+                                    throw new ApiException($e->getMessage(), $e->getCode());
                                 }
                             }
                         }
@@ -144,39 +144,17 @@ final class cPlanImport extends cAuthController
                 $db->commit();
 
                 if ($exec_query) {
-                    $this->res->json(array(
-                        'code' => 0,
-                        'data' => null,
-                        'error' => null,
-                        'message' => 'Successfully Imported Sheet'
-                    ));
-                    echo json_encode(array(
-                        'code' => 20000,
-                        'message' => 'Successfully Imported Sheet'
-                    ));
+                    $data['message'] = 'Successfully Imported Sheet';
+
+                    $this->res->json($data);
                 } else {
-                    $this->res->json(array(
-                        'code' => 0,
-                        'data' => null,
-                        'error' => 'Year or month is missing',
-                        'message' => 'error'
-                    ));
+                    throw new ApiException('Year or month is missing.', 405);
                 }
             } else {
-                $this->res->json(array(
-                    'code' => 405,
-                    'data' => null,
-                    'error' => 'Year or month is missing',
-                    'message' => 'error'
-                ));
+                throw new ApiException('Year or month is missing.', 405);
             }
         } else {
-            $this->res->json(array(
-                'code' => 405,
-                'data' => null,
-                'error' => 'xlsx error: ' . $xlsx->error(),
-                'message' => 'error'
-            ));
+            throw new ApiException('xlsx error: ' . $xlsx->error(), 405);
         }
     }
 }

@@ -20,10 +20,7 @@ final class cTimezone extends cAuthController
 
     public function api_getTimezone()
     {
-        $data['code'] = 0;
         $data['data'] = null;
-        $data['error'] = null;
-        $data['message'] = 'ok';
 
         $this->res->json($data);
     }

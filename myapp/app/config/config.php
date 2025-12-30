@@ -43,6 +43,8 @@ define('PATH_URI', dirname($_SERVER["SCRIPT_NAME"]));
 
 define('SITE_TITLE', 'PWO');
 
+define('GEOIP_API_KEY', '');
+
 define('PATH_PREFIX', serialize(array(
     'dashboard',
     'manage',
@@ -58,8 +60,9 @@ define('MAIN_CONTROLLER', 'home');
 define('MAIN_METHOD', 'index');
 
 define('CACHE_TYPE', 'Memcached');
+
 define('SESS_TIMEOUT', 1800);
-define('SESS_TYPE', 'Native');
+define('SESS_TYPE', 'Database');
 
 define('PAGINATE_PUBLICLIMIT', '1500');
 define('PAGINATE_LIMIT', '10');

@@ -57,7 +57,7 @@ final class cAuth extends cController
 
             // Validate input
             if (empty($fdata['username']) || empty($fdata['password'])) {
-                throw new ApiException('Username and password are required');
+                throw new ApiException('Username and password are required', 405);
             }
 
             $user = new user();
@@ -80,7 +80,7 @@ final class cAuth extends cController
                 }
 
                 if (! $passwordValid) {
-                    throw new ApiException('Error Login');
+                    throw new ApiException('Error Login', 405);
                 }
 
                 $udata = array(
@@ -93,19 +93,16 @@ final class cAuth extends cController
                     'exp' => time() + 24 * 3600
                 );
 
-                $udata['accessToken'] = $this->_generateToken($udata);
+                $tdata['accessToken'] = $this->_generateToken($udata);
 
-                $data['code'] = 0;
-                $data['data'] = $udata;
-                $data['error'] = null;
-                $data['message'] = 'ok';
+                $data['data'] = $tdata;
 
                 $this->res->json($data);
             } else {
-                throw new ApiException('Error Login');
+                throw new ApiException('Error Login', 405);
             }
         } else {
-            throw new ApiException('Invalid request method');
+            throw new ApiException('Invalid request method', 400);
         }
     }
 
@@ -121,36 +118,27 @@ final class cAuth extends cController
             'exp' => time() + 24 * 3600
         );
 
-        $udata['accessToken'] = $this->_generateToken($udata);
+        $tdata['accessToken'] = $this->_generateToken($udata);
 
-        $data['code'] = 0;
-        $data['data'] = $udata;
-        $data['error'] = null;
-        $data['message'] = 'ok';
+        $data['data'] = $tdata;
 
         $this->res->json($data);
     }
 
     public function api_logout()
     {
-        $data['code'] = 0;
         $data['data'] = null;
-        $data['error'] = null;
-        $data['message'] = 'ok';
 
         $this->res->json($data);
     }
 
     public function api_codes()
     {
-        $data['code'] = 0;
         $data['data'] = array(
             'AC_100010',
             'AC_100020',
             'AC_100030'
         );
-        $data['error'] = null;
-        $data['message'] = 'ok';
 
         $this->res->json($data);
     }

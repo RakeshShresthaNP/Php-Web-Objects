@@ -20,7 +20,6 @@ final class cUser extends cAuthController
 
     public function api_info()
     {
-        $data['code'] = 0;
         $data['data'] = array(
             'id' => 0,
             'realName' => $this->user->realName,
@@ -28,8 +27,6 @@ final class cUser extends cAuthController
             'username' => $this->user->username,
             'homePath' => '/workspace'
         );
-        $data['error'] = null;
-        $data['message'] = 'ok';
 
         $this->res->json($data);
     }

@@ -2,7 +2,7 @@
 <IfModule mod_headers.c>
     Header set Access-Control-Allow-Origin "*"
     Header set Access-Control-Allow-Headers "Accept, HTTP_AUTHORIZATION, Authorization, Content-Length, Content-Type, If-Match, If-Modified-Since, If-None-Match, If-Unmodified-Since, X-CSRF-TOKEN, X-Requested-With"
-    Header set Access-Control-Allow-Methods "COOKIE,GET,HEAD,PUT,PATCH,POST,DELETE"
+    Header set Access-Control-Allow-Methods "GET,HEAD,PUT,PATCH,POST,DELETE"
     Header set Access-Control-Expose-Headers "*"
     Header set Access-Control-Allow-Credentials "true"
 </IfModule>
