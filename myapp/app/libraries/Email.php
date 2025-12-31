@@ -53,7 +53,7 @@ final class Email
         return $this;
     }
 
-    public function setTo($email, $name)
+    public function setTo(string $email, string $name)
     {
         $this->_to[] = $this->formatHeader($email, $name);
 
@@ -65,21 +65,21 @@ final class Email
         return $this->_to;
     }
 
-    public function setCC($email, $name = '')
+    public function setCC(string $email, string $name = '')
     {
         $this->addMailHeader('Cc', $email, $name);
 
         return $this;
     }
 
-    public function setBCC($email, $name = '')
+    public function setBCC(string $email, string $name = '')
     {
         $this->addMailHeader('Bcc', $email, $name);
 
         return $this;
     }
 
-    public function setSubject($subject)
+    public function setSubject(string $subject)
     {
         $this->_subject = $this->filterOther($subject);
 
@@ -91,7 +91,7 @@ final class Email
         return $this->_subject;
     }
 
-    public function setMessage($message)
+    public function setMessage(string $message)
     {
         $this->_message = mb_str_replace("\n.", "\n..", $message);
 
@@ -103,7 +103,7 @@ final class Email
         return $this->_message;
     }
 
-    public function addAttachment($path, $filename = null)
+    public function addAttachment(string $path, string $filename = null)
     {
         $filename = empty($filename) ? basename($path) : $filename;
 
@@ -115,21 +115,21 @@ final class Email
         return $this;
     }
 
-    public function addAttachmentPath($path)
+    public function addAttachmentPath(string $path)
     {
         $this->_attachmentsPath[] = $path;
 
         return $this;
     }
 
-    public function addAttachmentFilename($filename)
+    public function addAttachmentFilename(string $filename)
     {
         $this->_attachmentsFilename[] = $filename;
 
         return $this;
     }
 
-    public function getAttachmentData($path)
+    public function getAttachmentData(string $path)
     {
         $filesize = filesize($path);
         $handle = fopen($path, "r");
@@ -139,14 +139,14 @@ final class Email
         return chunk_split(base64_encode($attachment));
     }
 
-    public function setFrom($email, $name)
+    public function setFrom(string $email, string $name)
     {
         $this->addMailHeader('From', $email, $name);
 
         return $this;
     }
 
-    public function addMailHeader($header, $email = null, $name = null)
+    public function addMailHeader(string $header, string $email = null, string $name = null)
     {
         $address = $this->formatHeader($email, $name);
 
@@ -155,7 +155,7 @@ final class Email
         return $this;
     }
 
-    public function addGenericHeader($header, $value)
+    public function addGenericHeader(string $header, string $value)
     {
         $this->_headers[] = "$header: $value";
 
@@ -167,7 +167,7 @@ final class Email
         return $this->_headers;
     }
 
-    public function setParameters($additionalParameters)
+    public function setParameters(string $additionalParameters)
     {
         $this->_parameters = $additionalParameters;
 
@@ -179,7 +179,7 @@ final class Email
         return $this->_parameters;
     }
 
-    public function setWrap($wrap = 78)
+    public function setWrap(int $wrap = 78)
     {
         $this->_wrap = $wrap;
 
@@ -191,7 +191,7 @@ final class Email
         return $this->_wrap;
     }
 
-    public function hasAttachments()
+    public function hasAttachments(): bool
     {
         return ! empty($this->_attachments);
     }
@@ -221,7 +221,7 @@ final class Email
         return $h;
     }
 
-    public function send()
+    public function send(): bool
     {
         $headers = (! empty($this->_headers)) ? join($this->_crlf, $this->_headers) : array();
         $to = (is_array($this->_to) && ! empty($this->_to)) ? join(", ", $this->_to) : false;
@@ -237,7 +237,7 @@ final class Email
         return mail($to, $this->_subject, $message, $headers, $this->_parameters);
     }
 
-    public function formatHeader($email, $name = null)
+    public function formatHeader(string $email, string $name = null)
     {
         $email = $this->filterEmail($email);
 
@@ -250,7 +250,7 @@ final class Email
         return sprintf('%s <%s>', $name, $email);
     }
 
-    public function filterEmail($email)
+    public function filterEmail(string $email)
     {
         $rule = array(
             "\r" => '',
@@ -268,7 +268,7 @@ final class Email
         return $email;
     }
 
-    public function filterName($name)
+    public function filterName(string $name)
     {
         $rule = array(
             "\r" => '',
@@ -284,7 +284,7 @@ final class Email
         return mb_trim(strtr($sanitized, $rule));
     }
 
-    public function filterOther($data)
+    public function filterOther(string $data)
     {
         $rule = array(
             "\r" => '',

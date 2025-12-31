@@ -23,7 +23,7 @@ final class QRGenerate
 
     private $_marginInRows;
 
-    public function __construct($data = '', $size = '300', $encoding = 'UTF-8', $errorCorrectionLevel = 'L', $marginInRows = 4, $debug = false)
+    public function __construct(string $data = '', int $size = 300, string $encoding = 'UTF-8', strimg $errorCorrectionLevel = 'L', int $marginInRows = 4, bool $debug = false)
     {
         $this->_data = url_encode($data);
         $this->_size = ($size > 100 && $size < 800) ? $size : 300;

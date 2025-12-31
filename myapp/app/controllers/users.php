@@ -21,6 +21,7 @@ final class cUsers extends cAdminController
     public function index()
     {
         $data['pagetitle'] = SITE_TITLE;
+        
         $this->res->display($data);
     }
 

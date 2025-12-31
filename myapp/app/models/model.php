@@ -21,24 +21,24 @@ class model
 
     private $_table;
 
-    public function __construct($table = null, $pk = 'id')
+    public function __construct(string $table = '', string $pk = 'id')
     {
         $this->_pk = $pk;
         $this->_table = $table;
         $this->db = db();
     }
 
-    public function __set($key, $val)
+    public function __set(string $key, $val)
     {
         $this->_rs[$key] = $val;
     }
 
-    public function __get($key)
+    public function __get(string $key)
     {
         return isset($this->_rs[$key]) ? $this->_rs[$key] : '';
     }
 
-    public function select($selectwhat = '*', $wherewhat = null, $bindings = null)
+    public function select(string $selectwhat = '*', string $wherewhat = '', $bindings = null)
     {
         if (is_scalar($bindings)) {
             $bindings = mb_trim($bindings) ? array(
@@ -132,7 +132,7 @@ class model
         return $stmt->execute();
     }
 
-    public function exist($checkdb = false)
+    public function exist(bool $checkdb = false): int
     {
         if ((int) $this->{$this->_pk} >= 1) {
             return 1;
@@ -155,7 +155,7 @@ class model
         return $this->_rs;
     }
 
-    public function assign(array &$arr = array(), $checkfield = false)
+    public function assign(array &$arr = array(), bool $checkfield = false)
     {
         foreach ($arr as $key => $val) {
             if ($checkfield) {

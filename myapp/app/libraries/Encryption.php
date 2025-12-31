@@ -13,16 +13,16 @@
 final class Encryption
 {
 
-    private $_skey = "ThisIsCOOL";
+    private string $_skey = "ThisIsCOOL";
 
     private const CIPHER_METHOD = 'AES-256-CBC';
 
     private const IV_LENGTH = 16;
 
-    public function encode($value)
+    public function encode(string $value): string
     {
         if (! $value) {
-            return false;
+            return '';
         }
         $text = $value;
 
@@ -38,10 +38,10 @@ final class Encryption
         return mb_trim(base64_url_encode($encrypted));
     }
 
-    public function decode($value)
+    public function decode(string $value): string
     {
         if (! $value) {
-            return false;
+            return '';
         }
         $encrypted = base64_url_decode($value);
         $data = base64_decode($encrypted);

@@ -21,6 +21,7 @@ final class cPlanImport extends cAuthController
     public function index()
     {
         $data['pagetitle'] = SITE_TITLE;
+
         $this->res->display($data);
     }
 
@@ -28,13 +29,7 @@ final class cPlanImport extends cAuthController
     {
         // Validate file upload
         if (! isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
-            $this->res->json(array(
-                'code' => 403,
-                'data' => null,
-                'error' => 'File upload error',
-                'message' => 'error'
-            ));
-            return;
+            throw new ApiException('Year or month is missing.', 405);
         }
 
         $db = db();

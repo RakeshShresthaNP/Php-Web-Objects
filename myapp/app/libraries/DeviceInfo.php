@@ -74,7 +74,7 @@ final class DeviceInfo
      *            Determines if we do a case-sensitive search (false) or a case insensitive (true)
      * @return boolean Returns true if $data found in $useragent property, false otherwise.
      */
-    private function match_ua($data, $case_s = FALSE)
+    private function match_ua(string $data, $case_s = FALSE)
     {
         if (empty($data))
             return FALSE;
@@ -116,7 +116,7 @@ final class DeviceInfo
      *            The string to data search for
      * @return boolean Returns true if case insensitive $data found in $useragent property, false otherwise.
      */
-    private function matchi_ua($data)
+    private function matchi_ua(string $data)
     {
         return $this->match_ua($data, TRUE);
     }
@@ -128,7 +128,7 @@ final class DeviceInfo
      *
      * @return bool
      */
-    private function match_ios()
+    private function match_ios(): bool
     {
         if ($this->match_ua('iPhone|iphone|iPad|iPod') && ! $this->match_ua('x86_64|i386')) {
             $this->result_ios = TRUE;
@@ -194,7 +194,7 @@ final class DeviceInfo
      *            The given MacOS version
      * @return string Returns MacOS codename string
      */
-    private function macos_codename($version)
+    private function macos_codename(int $version): string
     {
         switch ($version) {
             case 0:
@@ -2905,7 +2905,7 @@ final class DeviceInfo
      *            If specified, method returns result as JSON
      * @return mixed Returns User-Agent parsing result as array or JSON string (optional)
      */
-    public function getAll($ua, $result_format = '')
+    public function getAll(string $ua, string $result_format = ''): array
     {
         $this->useragent = trim($ua);
         $this->get_mode = 'all';

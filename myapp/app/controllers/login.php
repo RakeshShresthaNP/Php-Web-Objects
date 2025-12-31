@@ -21,7 +21,7 @@ final class cLogin extends cController
     public function index()
     {
         $data = array();
-        
+
         $data['username'] = '';
         $data['user'] = '';
 
@@ -76,7 +76,9 @@ final class cLogin extends cController
                 return;
             }
 
-            setCurrentUser($user->get());
+            $cuser = $user->get();
+
+            setCurrentUser($cuser);
 
             $cutype = getCurrentUserType();
 

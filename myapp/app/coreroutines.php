@@ -13,27 +13,27 @@
 require_once APP_DIR . 'config/config.php';
 
 // begin core functions
-function req()
+function req(): object
 {
     return Request::getContext();
 }
 
-function res()
+function res(): object
 {
     return Response::getContext();
 }
 
-function db()
+function db(): object
 {
     return DB::getContext();
 }
 
-function cache()
+function cache(): object
 {
     return Cache::getContext(CACHE_TYPE);
 }
 
-function setCurrentUser(array $userdata = array())
+function setCurrentUser(array &$userdata = array())
 {
     Session::getContext(SESS_TYPE)->set('authUser', $userdata);
 }
@@ -43,19 +43,19 @@ function getCurrentUser()
     return Session::getContext(SESS_TYPE)->get('authUser');
 }
 
-function getCurrentUserID()
+function getCurrentUserID(): string
 {
     $authUser = getCurrentUser();
     return isset($authUser['id']) ? $authUser['id'] : '';
 }
 
-function getCurrentUserType()
+function getCurrentUserType(): string
 {
     $authUser = getCurrentUser();
     return isset($authUser['perms']) ? $authUser['perms'] : '';
 }
 
-function getUrl($path = null)
+function getUrl(string $path = null): string
 {
     if (PATH_URI != '/') {
         return SITE_URI . PATH_URI . '/' . $path;
@@ -64,12 +64,12 @@ function getUrl($path = null)
     }
 }
 
-function clean($string = null)
+function clean(string $string = null): string
 {
     return strip_tags(mb_trim($string));
 }
 
-function cleanHtml($html = null)
+function cleanHtml(string $html = null): string
 {
     static $allowed_tags = array(
         'a',
@@ -99,7 +99,7 @@ function cleanHtml($html = null)
     }, $html);
 }
 
-function getRequestIP()
+function getRequestIP(): string
 {
     $ip = null;
 
@@ -114,14 +114,14 @@ function getRequestIP()
     return $ip;
 }
 
-function genUID()
+function genUID(): string
 {
     $bytes = random_bytes(16);
     $hex = bin2hex($bytes);
     return mb_substr($hex, 0, 12);
 }
 
-function genGUID()
+function genGUID(): string
 {
     $data = random_bytes(16);
     $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
@@ -129,7 +129,7 @@ function genGUID()
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
 
-function createDir($path, $mode = 0777, $rec = true)
+function createDir(string $path, $mode = 0777, bool $rec = true): bool
 {
     if (! is_dir($path)) {
         $oldumask = umask(0);
@@ -142,7 +142,7 @@ function createDir($path, $mode = 0777, $rec = true)
     return true;
 }
 
-function writeLog($type = 'mylog', $msg = null)
+function writeLog(string $type = 'mylog', string $msg = null)
 {
     $file = APP_DIR . 'logs/' . $type . '.txt';
     $datetime = date('Y-m-d H:i:s');
@@ -156,7 +156,7 @@ mb_regex_encoding('UTF-8');
 
 if (! function_exists('bool_array_search')) {
 
-    function bool_array_search($string = '', array $aval = array())
+    function bool_array_search(string $string = '', array &$aval = array()): bool
     {
         foreach ($aval as $val) {
             if (strstr($val, "'" . $string . "'")) {
@@ -169,7 +169,7 @@ if (! function_exists('bool_array_search')) {
 
 if (! function_exists('mb_ucwords')) {
 
-    function mb_ucwords($str = null)
+    function mb_ucwords(string $str = null): string
     {
         return mb_convert_case($str, MB_CASE_TITLE, "UTF-8");
     }
@@ -177,7 +177,7 @@ if (! function_exists('mb_ucwords')) {
 
 if (! function_exists('mb_str_replace')) {
 
-    function mb_str_replace($needle, $replacement, $haystack)
+    function mb_str_replace($needle, $replacement, $haystack): string
     {
         return str_replace($needle, $replacement, $haystack);
     }
@@ -185,15 +185,13 @@ if (! function_exists('mb_str_replace')) {
 
 if (! function_exists('mb_trim')) {
 
-    function mb_trim($string)
+    function mb_trim(string $string): string
     {
-        $string = preg_replace("/(^\s+)|(\s+$)/us", "", $string);
-
-        return $string;
+        return preg_replace("/(^\s+)|(\s+$)/us", "", $string);
     }
 }
 
-function base64_jwt_encode($text)
+function base64_jwt_encode(string $text): string
 {
     return mb_str_replace([
         '+',
@@ -206,7 +204,7 @@ function base64_jwt_encode($text)
     ], base64_encode($text));
 }
 
-function base64_jwt_decode($text)
+function base64_jwt_decode(string $text): string
 {
     $data = mb_str_replace([
         '-',
@@ -222,17 +220,17 @@ function base64_jwt_decode($text)
     return base64_decode($data);
 }
 
-function url_encode($string = null)
+function url_encode(string $string = null): string
 {
     return urlencode($string);
 }
 
-function url_decode($string = null)
+function url_decode(string $string = null): string
 {
     return urldecode($string);
 }
 
-function my_mime_content_type($filename)
+function my_mime_content_type(string $filename): string
 {
     $mime_types = array(
         'txt' => 'text/plain',
@@ -298,7 +296,7 @@ function my_mime_content_type($filename)
 
 if (! function_exists('array_map_recursive')) {
 
-    function array_map_recursive($arr, $fn)
+    function array_map_recursive(array &$arr, string $fn): array
     {
         $rarr = array();
         foreach ($arr as $k => $v) {
@@ -333,7 +331,7 @@ spl_autoload_register(array(
 final class Loader
 {
 
-    public static function load($classname)
+    public static function load(string $classname)
     {
         $a = $classname[0];
 
@@ -357,7 +355,7 @@ final class Cache
 
     private static $_context = null;
 
-    public static function getContext($cachetype)
+    public static function getContext(string $cachetype): object
     {
         if (self::$_context === null) {
             $classname = 'Cache_' . $cachetype;
@@ -373,7 +371,7 @@ final class DB
 
     private static $_context = null;
 
-    public static function getContext()
+    public static function getContext(): object
     {
         if (self::$_context) {
             return self::$_context;
@@ -403,7 +401,7 @@ final class Session
 
     private static $_context = null;
 
-    public static function getContext($sesstype)
+    public static function getContext(string $sesstype): object
     {
         if (self::$_context === null) {
             $classname = 'Session_' . $sesstype;
@@ -417,7 +415,7 @@ final class Session
 final class View
 {
 
-    public static function assign(array &$vars = array(), $viewname = null)
+    public static function assign(array &$vars = array(), string $viewname = null)
     {
         $req = req();
         if (is_array($vars)) {
@@ -431,7 +429,7 @@ final class View
         return ob_get_clean();
     }
 
-    public static function display(array &$vars = array(), $viewname = null)
+    public static function display(array &$vars = array(), string $viewname = null)
     {
         $req = req();
         if ($viewname == null) {
@@ -457,15 +455,15 @@ final class View
 final class Request
 {
 
-    private $_pathprefix = null;
+    private string $_pathprefix = '';
 
-    private $_controller = null;
+    private string $_controller = '';
 
-    private $_method = null;
+    private string $_method = '';
 
     private static $_context = null;
 
-    public static function getContext()
+    public static function getContext(): object
     {
         if (self::$_context === null) {
             self::$_context = new self();
@@ -474,32 +472,48 @@ final class Request
         return self::$_context;
     }
 
-    public function isAjax()
+    public function isAjax(): bool
     {
         return ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strcasecmp($_SERVER['HTTP_X_REQUESTED_WITH'], 'xmlhttprequest') === 0;
     }
 
-    public function isPost()
+    public function isPost(): bool
     {
         return ($_SERVER['REQUEST_METHOD'] === 'POST');
     }
 
-    public function getPathPrefix()
+    public function getPathPrefix(): string
     {
         return $this->_pathprefix;
     }
 
-    public function getController()
+    public function getController(): string
     {
         return mb_strtolower($this->_controller);
     }
 
-    public function getMethod()
+    public function getMethod(): string
     {
         return mb_strtolower($this->_method);
     }
 
-    public function getHeaders()
+    public function getHeaders(): object
+    {
+        $headers = array();
+
+        foreach ($_SERVER as $param => $value) {
+            if (strpos($param, 'HTTP_') === 0) {
+                $headerName = mb_substr($param, 5);
+                $headerName = mb_str_replace('_', ' ', mb_strtolower($headerName));
+                $headerName = mb_str_replace(' ', '-', mb_ucwords($headerName));
+                $headers[$headerName] = $value;
+            }
+        }
+
+        return (object) $headers;
+    }
+
+    public function getDeviceInfo(): object
     {
         $headers = array();
 
@@ -509,7 +523,7 @@ final class Request
         return $headers;
     }
 
-    public function getToken()
+    public function getToken(): string
     {
         $tokenheader = null;
 
@@ -529,7 +543,7 @@ final class Request
         return $tokenheader;
     }
 
-    public function getPayloadData()
+    public function getPayloadData(): object
     {
         $jwt = $this->getToken();
 
@@ -566,19 +580,33 @@ final class Request
         return $payloadData;
     }
 
-    public function setPathPrefix($pathprefix = null)
+    public function setController(string $pathprefix = '', string $controllername = ''): object
     {
-        $this->_pathprefix = $pathprefix;
-    }
-
-    public function setController($controllername = null)
-    {
+        $this->_pathprefix = mb_strtolower(mb_substr($pathprefix, 0, - 1));
         $this->_controller = mb_strtolower($controllername);
+
+        $controllerfile = CONT_DIR . mb_strtolower($this->_controller) . '.php';
+        if (! preg_match('#^[A-Za-z0-9_-]+$#', $this->_controller) || ! is_readable($controllerfile)) {
+            $controller = MAIN_CONTROLLER;
+            $controllerfile = CONT_DIR . MAIN_CONTROLLER . '.php';
+        }
+
+        $cont = 'c' . $this->_controller;
+
+        require_once $controllerfile;
+
+        return new $cont();
     }
 
-    public function setMethod($methodname = null)
+    public function setMethod(string $methodname = ''): string
     {
-        $this->_method = mb_strtolower($methodname);
+        if ($this->_pathprefix == '') {
+            $this->_method = mb_str_replace('_', '', mb_strtolower($methodname));
+        } else {
+            $this->_method = mb_strtolower($methodname);
+        }
+
+        return $this->_method;
     }
 }
 
@@ -587,7 +615,7 @@ final class Response
 
     private static $_context = null;
 
-    private $_statusCode = array(
+    private array $_statusCode = array(
         200 => "200 OK",
         301 => "301 Moved Permanently",
         302 => "302 Found",
@@ -601,7 +629,7 @@ final class Response
         503 => "503 Service Unavailable"
     );
 
-    public static function getContext()
+    public static function getContext(): object
     {
         if (self::$_context === null) {
             self::$_context = new self();
@@ -610,17 +638,17 @@ final class Response
         return self::$_context;
     }
 
-    public function setHeader($type = '')
+    public function setHeader(string $type = '')
     {
         header($type);
     }
 
-    public function setStatus($status = 200)
+    public function setStatus(int $status = 200)
     {
         http_response_code($status);
     }
 
-    public function redirect($path = null, $alertmsg = null)
+    public function redirect(string $path = null, string $alertmsg = null)
     {
         if ($alertmsg) {
             $this->addSplashMsg($alertmsg);
@@ -632,7 +660,7 @@ final class Response
         exit();
     }
 
-    public function display(array &$data = array(), $viewname = null)
+    public function display(array &$data = array(), string $viewname = null)
     {
         View::display($data, $viewname);
     }
@@ -655,6 +683,7 @@ final class Response
 
         if (! isset($data['message'])) {
             if ($data['code'] == 200) {
+                $data['code'] = 0;
                 $data['message'] = 'ok';
             } else if ($data['code'] >= 400 && $data['code'] <= 500) {
                 $data['message'] = 'apiexception';
@@ -668,17 +697,17 @@ final class Response
         echo json_encode($data, JSON_UNESCAPED_SLASHES);
     }
 
-    public function assign(array &$data = array(), $viewname = null)
+    public function assign(array &$data = array(), string $viewname = null)
     {
         return View::assign($data, $viewname);
     }
 
-    public static function addSplashMsg($msg = null)
+    public static function addSplashMsg(string $msg = null)
     {
         Session::getContext(SESS_TYPE)->set('splashmessage', $msg);
     }
 
-    public static function getSplashMsg()
+    public static function getSplashMsg(): string
     {
         $sess = Session::getContext(SESS_TYPE);
         $msg = $sess->get('splashmessage');
@@ -686,7 +715,7 @@ final class Response
         return $msg;
     }
 
-    private function _get_status_message($code)
+    private function _get_status_message(int $code = 200): string
     {
         if (! isset($this->_statusCode[$code])) {
             return $this->_statusCode[500];
@@ -703,7 +732,9 @@ abstract class cController
 
     public $res = null;
 
-    public $headers = null;
+    public $headers = array();
+
+    public $deviceinfo = array();
 
     public function __construct()
     {
@@ -711,6 +742,7 @@ abstract class cController
         $this->res = res();
 
         $this->headers = $this->req->getHeaders();
+        $this->deviceinfo = $this->req->getDeviceInfo();
     }
 }
 
@@ -736,23 +768,19 @@ abstract class cAuthController extends cController
 abstract class cAdminController extends cController
 {
 
-    public $user = null;
+    public $user = array();
+
+    public $cusertype = '';
 
     public function __construct()
     {
         parent::__construct();
 
-        $pathprefix = $this->req->getPathPrefix();
-
         $this->user = getCurrentUser();
 
-        $cusertype = getCurrentUserType();
+        $this->cusertype = getCurrentUserType();
 
-        if ($pathprefix == 'manage' && $cusertype != 'superadmin') {
-            $this->res->redirect('login', 'Invalid Access');
-        }
-
-        if ($pathprefix == 'dashboard' && (empty($cusertype) || $cusertype == 'superadmin')) {
+        if (empty($this->user)) {
             $this->res->redirect('login', 'Invalid Access');
         }
     }
@@ -762,7 +790,7 @@ abstract class cAdminController extends cController
 final class Application
 {
 
-    public static function run(Request &$request, Response &$response)
+    public static function process(Request &$request, Response &$response)
     {
         $uriparts = explode('/', mb_str_replace(SITE_URI . PATH_URI, '', SITE_URI . $_SERVER['REQUEST_URI']));
         $uriparts = array_filter($uriparts);
@@ -775,32 +803,32 @@ final class Application
             $controller = ($c = array_shift($uriparts)) ? $c : MAIN_CONTROLLER;
         }
 
-        $controllerfile = CONT_DIR . mb_strtolower($controller) . '.php';
-        if (! preg_match('#^[A-Za-z0-9_-]+$#', $controller) || ! is_readable($controllerfile)) {
-            $controller = MAIN_CONTROLLER;
-            $controllerfile = CONT_DIR . MAIN_CONTROLLER . '.php';
-        }
-
-        $cont = 'c' . $controller;
         $pathPrefixes = unserialize(PATH_PREFIX);
         $method = ($c = array_shift($uriparts)) ? $pathprefix . mb_str_replace($pathPrefixes, '', $c) : $pathprefix . MAIN_METHOD;
-        $args = (isset($uriparts[0])) ? $uriparts : array();
 
-        require_once $controllerfile;
+        $con = $request->setController($pathprefix, $controller);
 
-        $cont = new $cont();
-
-        if (! method_exists($cont, $method)) {
+        if (! method_exists($con, $method)) {
             $method = MAIN_METHOD;
         }
 
-        $request->setPathPrefix(mb_substr($pathprefix, 0, - 1));
-        $request->setController($controller);
-        $request->setMethod($method);
+        $met = $request->setMethod($method);
+
+        $cusertype = getCurrentUserType();
+
+        if ($request->getPathPrefix() == 'manage' && $cusertype != 'superadmin') {
+            $response->redirect('login', 'Invalid Access');
+        }
+
+        if ($request->getPathPrefix() == 'dashboard' && $cusertype != 'user') {
+            $response->redirect('login', 'Invalid Access');
+        }
+
+        $args = (isset($uriparts[0])) ? $uriparts : array();
 
         call_user_func_array(array(
-            $cont,
-            $method
+            $con,
+            $met
         ), $args);
     }
 }

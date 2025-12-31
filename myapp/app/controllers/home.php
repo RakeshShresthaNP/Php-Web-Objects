@@ -13,41 +13,41 @@
 final class cHome extends cController
 {
 
+    private $cusertype = '';
+
     public function __construct()
     {
         parent::__construct();
+
+        $this->cusertype = getCurrentUserType();
     }
 
     public function index()
     {
         $data['pagetitle'] = SITE_TITLE;
 
-        //print_r($this->headers);
-
         $this->res->display($data);
     }
 
     public function manage_index()
     {
-        $cutype = getCurrentUserType();
-
-        if ($cutype != 'superadmin') {
+        if ($this->cusertype != 'superadmin') {
             $this->res->redirect('login', 'Invalid Access');
         }
 
         $data['pagetitle'] = SITE_TITLE;
+
         $this->res->display($data);
     }
 
     public function dashboard_index()
     {
-        $cutype = getCurrentUserType();
-
-        if (empty($cutype) || $cutype == 'superadmin') {
+        if ($this->cusertype != 'user') {
             $this->res->redirect('login', 'Invalid Access');
         }
 
         $data['pagetitle'] = SITE_TITLE;
+
         $this->res->display($data);
     }
 }

@@ -29,7 +29,7 @@ final class Csv
         $this->numfields = 0;
     }
 
-    public function load($file, $headersonly = false)
+    public function load(string $file, bool $headersonly = false)
     {
         $ext = mb_strtolower(mb_strrchr($file, '.'));
 
@@ -73,7 +73,7 @@ final class Csv
         return $this->rows;
     }
 
-    public function write($csv_delimiter, array $csv_headers_array, array $csv_write_res)
+    public function write(string $csv_delimiter, array &$csv_headers_array = array(), array &$csv_write_res = array())
     {
         if (! isset($csv_delimiter)) {
             $csv_delimiter = $this->delimiter;

@@ -21,15 +21,13 @@ final class cProfile extends cAuthController
     public function index()
     {
         $data['pagetitle'] = SITE_TITLE;
+
         $this->res->display($data);
     }
 
     public function api_search()
     {
-        $data['code'] = 0;
         $data['data'] = null;
-        $data['error'] = null;
-        $data['message'] = 'ok';
 
         $this->res->json($data);
     }

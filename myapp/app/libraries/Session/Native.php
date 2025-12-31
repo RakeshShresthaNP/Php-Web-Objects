@@ -41,6 +41,11 @@ final class Session_Native
         unset($_SESSION[$key]);
     }
 
+    public function destroy()
+    {
+        session_destroy();
+    }
+
     private function _verifyInactivity($maxtime)
     {
         if (! $this->get('activity_time')) {

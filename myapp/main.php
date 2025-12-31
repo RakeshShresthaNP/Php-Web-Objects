@@ -26,12 +26,12 @@ $request = req();
 $response = res();
 
 try {
-    Application::run($request, $response);
+    Application::process($request, $response);
 } catch (ApiException $e) {
     $data['code'] = $e->getCode();
     $data['error'] = $e->getMessage();
 
-    writeLog('apiexception_' . date('Y_m_d'), $data);
+    writeLog('apiexception_' . date('Y_m_d'), $data['error']);
 
     $response->json($data);
 } catch (Exception $e) {

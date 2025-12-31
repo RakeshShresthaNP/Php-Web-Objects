@@ -122,6 +122,11 @@ final class Session_Database
         unset($_SESSION[$key]);
     }
 
+    public function destroy()
+    {
+        session_destroy();
+    }
+
     private function _verifyInactivity($maxtime = 0)
     {
         if (! $this->get('activity_time')) {
