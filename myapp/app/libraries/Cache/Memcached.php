@@ -13,11 +13,11 @@
 final class Cache_Memcached
 {
 
-    private $_memcached = null;
+    private ?stdClass $_memcached = null;
 
-    private $_memcached_enabled = null;
+    private bool $_memcached_enabled = false;
 
-    private $_lkeydata = array();
+    private array $_lkeydata = array();
 
     public function __construct()
     {
@@ -28,7 +28,7 @@ final class Cache_Memcached
         }
     }
 
-    public function set($key, $data, $ttl = 3600)
+    public function set(string $key, $data, int $ttl = 3600): bool
     {
         if ($this->_memcached_enabled) {
             // Memcached::set() signature: set(string $key, mixed $value, int $expiration = 0)
@@ -42,13 +42,13 @@ final class Cache_Memcached
         return false;
     }
 
-    public function get($key)
+    public function get(string $key)
     {
         $hashedKey = sha1($key);
         return isset($this->_lkeydata[$hashedKey]) ? $this->_lkeydata[$hashedKey] : null;
     }
 
-    public function valid($key)
+    public function valid(string $key): bool
     {
         if ($this->_memcached_enabled) {
             $data = $this->_memcached->get(sha1($key));

@@ -21,32 +21,32 @@ final class Session_Native
             $this->_verifyInactivity(SESS_TIMEOUT);
     }
 
-    public function set($key, $value)
+    public function set(string $key, $value)
     {
         $_SESSION[$key] = $value;
     }
 
-    public function get($key)
+    public function get(string $key)
     {
         return isset($_SESSION[$key]) ? $_SESSION[$key] : '';
     }
 
-    public function getId()
+    public function getId(): string
     {
         return session_id();
     }
 
-    public function delete($key)
+    public function delete(string $key): void
     {
         unset($_SESSION[$key]);
     }
 
-    public function destroy()
+    public function destroy(): void
     {
         session_destroy();
     }
 
-    private function _verifyInactivity($maxtime)
+    private function _verifyInactivity(int $maxtime): void
     {
         if (! $this->get('activity_time')) {
             $this->set('activity_time', time());

@@ -13,11 +13,11 @@
 final class Cache_File
 {
 
-    private $_cachedir = '';
+    private string $_cachedir = '';
 
-    private $_validdir = false;
+    private bool $_validdir = false;
 
-    private $_lkeydata = array();
+    private array $_lkeydata = array();
 
     public function __construct()
     {
@@ -28,7 +28,7 @@ final class Cache_File
         $this->_cachedir = $cachedir;
     }
 
-    public function set($key, $data, $ttl = 180)
+    public function set(string $key, $data, int $ttl = 180): bool
     {
         if ($this->_validdir) {
             $data = serialize(array(
@@ -42,14 +42,15 @@ final class Cache_File
 
             @file_put_contents($file, $data);
         }
+        return $this->_validdir;
     }
 
-    public function get($key)
+    public function get(string $key)
     {
         return isset($this->_lkeydata[sha1($key)]) ? $this->_lkeydata[sha1($key)] : null;
     }
 
-    public function valid($key)
+    public function valid(string $key): bool
     {
         if ($this->_validdir) {
             $file1 = glob($this->_cachedir . sha1($key));

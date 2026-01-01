@@ -64,7 +64,6 @@ final class FCM
     private function headers()
     {
         $this->headers = [
-
             'Content-Type:' . $this->content_type,
             'Authorization:key=' . FIREBASE_API_KEY
         ];
@@ -108,6 +107,7 @@ final class FCM
         if ($this->collapse_key != null) {
             $this->message['collapse_key'] = $this->collapse_key;
         }
+
         $this->send();
     }
 

@@ -13,8 +13,6 @@
 final class cHome extends cController
 {
 
-    private $cusertype = '';
-
     public function __construct()
     {
         parent::__construct();

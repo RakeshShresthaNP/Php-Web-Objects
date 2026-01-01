@@ -13,32 +13,32 @@
 final class Email
 {
 
-    private $_crlf = "\r\n";
+    private string $_crlf = "\r\n";
 
-    private $_wrap = 78;
+    private int $_wrap = 78;
 
-    private $_to = array();
+    private array $_to = array();
 
-    private $_subject;
+    private string $_subject;
 
-    private $_message;
+    private string $_message;
 
-    private $_headers = array();
+    private array $_headers = array();
 
-    private $_parameters = '-f';
+    private string $_parameters = '-f';
 
-    private $_attachments = array();
+    private array $_attachments = array();
 
-    private $_attachmentsPath = array();
+    private array $_attachmentsPath = array();
 
-    private $_attachmentsFilename = array();
+    private array $_attachmentsFilename = array();
 
     public function __construct()
     {
         $this->reset();
     }
 
-    public function reset()
+    public function reset(): object
     {
         $this->_to = array();
         $this->_headers = array();
@@ -53,57 +53,57 @@ final class Email
         return $this;
     }
 
-    public function setTo(string $email, string $name)
+    public function setTo(string $email, string $name): object
     {
         $this->_to[] = $this->formatHeader($email, $name);
 
         return $this;
     }
 
-    public function getTo()
+    public function getTo(): array
     {
         return $this->_to;
     }
 
-    public function setCC(string $email, string $name = '')
+    public function setCC(string $email, string $name = ''): object
     {
         $this->addMailHeader('Cc', $email, $name);
 
         return $this;
     }
 
-    public function setBCC(string $email, string $name = '')
+    public function setBCC(string $email, string $name = ''): object
     {
         $this->addMailHeader('Bcc', $email, $name);
 
         return $this;
     }
 
-    public function setSubject(string $subject)
+    public function setSubject(string $subject): object
     {
         $this->_subject = $this->filterOther($subject);
 
         return $this;
     }
 
-    public function getSubject()
+    public function getSubject(): string
     {
         return $this->_subject;
     }
 
-    public function setMessage(string $message)
+    public function setMessage(string $message): object
     {
         $this->_message = mb_str_replace("\n.", "\n..", $message);
 
         return $this;
     }
 
-    public function getMessage()
+    public function getMessage(): string
     {
         return $this->_message;
     }
 
-    public function addAttachment(string $path, string $filename = null)
+    public function addAttachment(string $path, string $filename = ''): object
     {
         $filename = empty($filename) ? basename($path) : $filename;
 
@@ -115,14 +115,14 @@ final class Email
         return $this;
     }
 
-    public function addAttachmentPath(string $path)
+    public function addAttachmentPath(string $path): object
     {
         $this->_attachmentsPath[] = $path;
 
         return $this;
     }
 
-    public function addAttachmentFilename(string $filename)
+    public function addAttachmentFilename(string $filename): object
     {
         $this->_attachmentsFilename[] = $filename;
 
@@ -139,14 +139,14 @@ final class Email
         return chunk_split(base64_encode($attachment));
     }
 
-    public function setFrom(string $email, string $name)
+    public function setFrom(string $email, string $name): object
     {
         $this->addMailHeader('From', $email, $name);
 
         return $this;
     }
 
-    public function addMailHeader(string $header, string $email = null, string $name = null)
+    public function addMailHeader(string $header, string $email = '', string $name = ''): object
     {
         $address = $this->formatHeader($email, $name);
 
@@ -155,38 +155,38 @@ final class Email
         return $this;
     }
 
-    public function addGenericHeader(string $header, string $value)
+    public function addGenericHeader(string $header, string $value): object
     {
         $this->_headers[] = "$header: $value";
 
         return $this;
     }
 
-    public function getHeaders()
+    public function getHeaders(): array
     {
         return $this->_headers;
     }
 
-    public function setParameters(string $additionalParameters)
+    public function setParameters(string $additionalParameters): object
     {
         $this->_parameters = $additionalParameters;
 
         return $this;
     }
 
-    public function getParameters()
+    public function getParameters(): string
     {
         return $this->_parameters;
     }
 
-    public function setWrap(int $wrap = 78)
+    public function setWrap(int $wrap = 78): object
     {
         $this->_wrap = $wrap;
 
         return $this;
     }
 
-    public function getWrap()
+    public function getWrap(): int
     {
         return $this->_wrap;
     }
@@ -196,7 +196,7 @@ final class Email
         return ! empty($this->_attachments);
     }
 
-    public function assembleAttachmentHeaders()
+    public function assembleAttachmentHeaders(): string
     {
         $u = md5(uniqid(time()));
 
@@ -237,7 +237,7 @@ final class Email
         return mail($to, $this->_subject, $message, $headers, $this->_parameters);
     }
 
-    public function formatHeader(string $email, string $name = null)
+    public function formatHeader(string $email, string $name = ''): string
     {
         $email = $this->filterEmail($email);
 
@@ -250,7 +250,7 @@ final class Email
         return sprintf('%s <%s>', $name, $email);
     }
 
-    public function filterEmail(string $email)
+    public function filterEmail(string $email): string
     {
         $rule = array(
             "\r" => '',
@@ -268,7 +268,7 @@ final class Email
         return $email;
     }
 
-    public function filterName(string $name)
+    public function filterName(string $name): string
     {
         $rule = array(
             "\r" => '',
@@ -284,7 +284,7 @@ final class Email
         return mb_trim(strtr($sanitized, $rule));
     }
 
-    public function filterOther(string $data)
+    public function filterOther(string $data): string
     {
         $rule = array(
             "\r" => '',

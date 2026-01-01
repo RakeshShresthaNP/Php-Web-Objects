@@ -13,20 +13,18 @@
 final class Csv
 {
 
-    private $enclosure;
+    private ?string $enclosure = null;
 
-    private $delimiter;
+    private ?string $delimiter = null;
 
-    private $rows;
+    private array $rows = array();
 
-    private $numfields;
+    private int $numfields = 0;
 
     public function __construct()
     {
         $this->enclosure = "\"";
         $this->delimiter = ",";
-        $this->rows = array();
-        $this->numfields = 0;
     }
 
     public function load(string $file, bool $headersonly = false)
@@ -73,7 +71,7 @@ final class Csv
         return $this->rows;
     }
 
-    public function write(string $csv_delimiter, array &$csv_headers_array = array(), array &$csv_write_res = array())
+    public function write(string $csv_delimiter, array &$csv_headers_array = array(), array &$csv_write_res = array()): void
     {
         if (! isset($csv_delimiter)) {
             $csv_delimiter = $this->delimiter;

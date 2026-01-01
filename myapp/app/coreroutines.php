@@ -33,7 +33,7 @@ function cache(): object
     return Cache::getContext(CACHE_TYPE);
 }
 
-function setCurrentUser(array &$userdata = array())
+function setCurrentUser(array &$userdata = array()): void
 {
     Session::getContext(SESS_TYPE)->set('authUser', $userdata);
 }
@@ -52,7 +52,7 @@ function getCurrentUserID(): string
 function getCurrentUserType(): string
 {
     $authUser = getCurrentUser();
-    return isset($authUser['perms']) ? $authUser['perms'] : '';
+    return isset($authUser['perms']) ? $authUser['perms'] : 'none';
 }
 
 function getUrl(string $path = null): string
@@ -142,7 +142,7 @@ function createDir(string $path, $mode = 0777, bool $rec = true): bool
     return true;
 }
 
-function writeLog(string $type = 'mylog', string $msg = null)
+function writeLog(string $type = 'mylog', string $msg = null): void
 {
     $file = APP_DIR . 'logs/' . $type . '.txt';
     $datetime = date('Y-m-d H:i:s');
@@ -220,12 +220,12 @@ function base64_jwt_decode(string $text): string
     return base64_decode($data);
 }
 
-function url_encode(string $string = null): string
+function url_encode(string $string = ''): string
 {
     return urlencode($string);
 }
 
-function url_decode(string $string = null): string
+function url_decode(string $string = ''): string
 {
     return urldecode($string);
 }
@@ -306,7 +306,7 @@ if (! function_exists('array_map_recursive')) {
     }
 }
 
-function customError($errno, $errstr, $errfile, $errline)
+function customError($errno, $errstr, $errfile, $errline): void
 {
     $emsg = "";
     $emsg .= "<div class='error' style='text-align:left'>";
@@ -331,7 +331,7 @@ spl_autoload_register(array(
 final class Loader
 {
 
-    public static function load(string $classname)
+    public static function load(string $classname): void
     {
         $a = $classname[0];
 
@@ -415,7 +415,7 @@ final class Session
 final class View
 {
 
-    public static function assign(array &$vars = array(), string $viewname = null)
+    public static function assign(array &$vars = array(), string $viewname = null): string
     {
         $req = req();
         if (is_array($vars)) {
@@ -429,7 +429,7 @@ final class View
         return ob_get_clean();
     }
 
-    public static function display(array &$vars = array(), string $viewname = null)
+    public static function display(array &$vars = array(), string $viewname = null): void
     {
         $req = req();
         if ($viewname == null) {
@@ -638,17 +638,17 @@ final class Response
         return self::$_context;
     }
 
-    public function setHeader(string $type = '')
+    public function setHeader(string $type = ''): void
     {
         header($type);
     }
 
-    public function setStatus(int $status = 200)
+    public function setStatus(int $status = 200): void
     {
         http_response_code($status);
     }
 
-    public function redirect(string $path = null, string $alertmsg = null)
+    public function redirect(string $path = null, string $alertmsg = null): void
     {
         if ($alertmsg) {
             $this->addSplashMsg($alertmsg);
@@ -660,12 +660,12 @@ final class Response
         exit();
     }
 
-    public function display(array &$data = array(), string $viewname = null)
+    public function display(array &$data = array(), string $viewname = null): void
     {
         View::display($data, $viewname);
     }
 
-    public function json(array &$data = array())
+    public function json(array &$data = array()): void
     {
         if (! isset($data['code'])) {
             $data['code'] = 200;
@@ -697,12 +697,12 @@ final class Response
         echo json_encode($data, JSON_UNESCAPED_SLASHES);
     }
 
-    public function assign(array &$data = array(), string $viewname = null)
+    public function assign(array &$data = array(), string $viewname = null): string
     {
         return View::assign($data, $viewname);
     }
 
-    public static function addSplashMsg(string $msg = null)
+    public static function addSplashMsg(string $msg = null): void
     {
         Session::getContext(SESS_TYPE)->set('splashmessage', $msg);
     }
@@ -728,13 +728,21 @@ final class Response
 abstract class cController
 {
 
-    public $req = null;
+    public ?Request $req = null;
 
-    public $res = null;
+    public ?Response $res = null;
 
-    public $headers = array();
+    public ?stdClass $headers = null;
 
-    public $deviceinfo = array();
+    public ?stdClass $deviceinfo = null;
+
+    public ?stdClass $user = null;
+
+    public string $cusertype = 'none';
+
+    public string $currenthost = '';
+
+    public string $currentuserip = '';
 
     public function __construct()
     {
@@ -743,13 +751,14 @@ abstract class cController
 
         $this->headers = $this->req->getHeaders();
         $this->deviceinfo = $this->req->getDeviceInfo();
+
+        $this->currenthost = $this->headers->Host;
+        $this->currentuserip = getRequestIP();
     }
 }
 
 abstract class cAuthController extends cController
 {
-
-    public $user = null;
 
     public function __construct()
     {
@@ -762,27 +771,25 @@ abstract class cAuthController extends cController
         }
 
         $this->user = $payloadData;
+
+        $this->cusertype = $this->user->perms;
     }
 }
 
 abstract class cAdminController extends cController
 {
 
-    public $user = array();
-
-    public $cusertype = '';
-
     public function __construct()
     {
         parent::__construct();
 
-        $this->user = getCurrentUser();
+        $this->user = (object) getCurrentUser();
 
-        $this->cusertype = getCurrentUserType();
-
-        if (empty($this->user)) {
+        if (! $this->user) {
             $this->res->redirect('login', 'Invalid Access');
         }
+
+        $this->cusertype = $this->user->perms ? $this->user->perms : 'none';
     }
 }
 
@@ -790,7 +797,7 @@ abstract class cAdminController extends cController
 final class Application
 {
 
-    public static function process(Request &$request, Response &$response)
+    public static function process(Request &$request, Response &$response): void
     {
         $uriparts = explode('/', mb_str_replace(SITE_URI . PATH_URI, '', SITE_URI . $_SERVER['REQUEST_URI']));
         $uriparts = array_filter($uriparts);

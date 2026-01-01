@@ -13,15 +13,15 @@
 final class QRGenerate
 {
 
-    private $_size;
+    private int $_size;
 
-    private $_data;
+    private string $_data;
 
-    private $_encoding;
+    private string $_encoding;
 
-    private $_errorCorrectionLevel;
+    private string $_errorCorrectionLevel;
 
-    private $_marginInRows;
+    private int $_marginInRows;
 
     public function __construct(string $data = '', int $size = 300, string $encoding = 'UTF-8', strimg $errorCorrectionLevel = 'L', int $marginInRows = 4, bool $debug = false)
     {
@@ -32,7 +32,7 @@ final class QRGenerate
         $this->_marginInRows = ($marginInRows > 0 && $marginInRows < 10) ? $marginInRows : 4;
     }
 
-    public function generate()
+    public function generate(): string
     {
         $QRLink = "https://chart.googleapis.com/chart?cht=qr&chs=" . $this->_size . "x" . $this->_size . "&chl=" . $this->_data . "&choe=" . $this->_encoding . "&chld=" . $this->_errorCorrectionLevel . "|" . $this->_marginInRows;
         return $QRLink;

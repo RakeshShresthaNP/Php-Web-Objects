@@ -83,10 +83,10 @@ AddDefaultCharset utf-8
     RewriteRule ^ %1 [L,R=301]
 
     # Send Requests To Front Controller...
-    RewriteRule ^main\.php$ - [L]
+    RewriteRule ^index\.php$ - [L]
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^ main.php [L]
+    RewriteRule ^ index.php [L]
 </IfModule>
 
 SetOutputFilter DEFLATE	

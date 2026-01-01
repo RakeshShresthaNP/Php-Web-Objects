@@ -10,22 +10,23 @@
  #
  # Redistributions must retain the above copyright notice.
  */
-final class PdoSessionHandler implements SessionHandlerInterface
+final class RedisSessionHandler implements SessionHandlerInterface
 {
 
-    private $_db = null;
+    private ?Redis $_redis = null;
 
-    public function __construct()
+    private int $_ttl = 0;
+
+    public function __construct(string $host = '127.0.0.1', int $port = 6379)
     {
-        $this->_db = db();
+        $this->_redis = new Redis();
+        $this->_redis->connect($host, $part);
+        $this->_ttl = dSESS_TIMEOUT;
     }
 
     public function open(string $path = '', string $name = ''): bool
     {
-        if ($this->_db) {
-            return true;
-        }
-        return false;
+        return true;
     }
 
     public function close(): bool
@@ -35,69 +36,32 @@ final class PdoSessionHandler implements SessionHandlerInterface
 
     public function read(string $id): string
     {
-        $stmt = $this->_db->prepare('SELECT sdata FROM sys_sessions WHERE id = ? ');
-        $stmt->bindValue(1, $id);
-        $stmt->execute();
-
-        if ($stmt->rowCount() == 1) {
-            $row = $stmt->fetch();
-            return $row->sdata;
-        } else {
-            return '';
-        }
+        return $this->_redis->get("session:$id");
     }
 
     public function write(string $id, $data): bool
     {
-        $access = time();
-
-        $stmt = $this->_db->prepare('REPLACE INTO sys_sessions VALUES (?, ?, ?) ');
-        $stmt->bindValue(1, $id);
-        $stmt->bindValue(2, $data);
-        $stmt->bindValue(3, $access);
-
-        if ($stmt->execute()) {
-            return true;
-        }
-        return false;
+        return $this->_redis->setex("session:$id", $this->_ttl, $data);
     }
 
     public function destroy(string $id): bool
     {
-        $stmt = $this->_db->prepare('DELETE FROM sys_sessions WHERE id = ? ');
-        $stmt->bindValue(1, $id);
-
-        session_regenerate_id(TRUE);
-
-        $_SESSION = array();
-
-        if ($stmt->execute()) {
-            return true;
-        }
-        return false;
+        return $this->_redis->del("session:$id") > 0;
     }
 
     public function gc(int $max = 0): int|false
     {
-        $old = time() - $max;
-
-        // Fixed SQL syntax: DELETE doesn't use * (that's SELECT syntax)
-        $stmt = $this->_db->prepare('DELETE FROM sys_sessions WHERE last_accessed < ? ');
-        $stmt->bindValue(1, $old);
-
-        if ($stmt->execute()) {
-            return true;
-        }
-        return false;
+        // Redis handles garbase collection automatically so nothing to be done
+        return true;
     }
 }
 
-final class Session_Database
+final class Session_Redis
 {
 
     public function __construct()
     {
-        $handler = new PdoSessionHandler();
+        $handler = new RedisSessionHandler();
         session_set_save_handler($handler, true);
         @session_start();
     }

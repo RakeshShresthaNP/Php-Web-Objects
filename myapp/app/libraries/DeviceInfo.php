@@ -13,57 +13,57 @@
 final class DeviceInfo
 {
 
-    public $useragent;
+    public string $useragent;
 
-    private $get_mode;
+    private string $get_mode;
 
-    private $touch_support_mode;
+    private bool $touch_support_mode = FALSE;
 
-    private $real_os_name;
+    private string $real_os_name;
 
-    private $macos_version_minor;
+    private string $macos_version_minor;
 
-    private $result_ios;
+    private string $result_ios;
 
-    private $result_mobile;
+    private int $result_mobile = 0;
 
-    private $result_os_type;
+    private string $result_os_type;
 
-    private $result_os_family;
+    private string $result_os_family;
 
-    private $result_os_name;
+    private string $result_os_name;
 
-    private $result_os_version;
+    private string $result_os_version;
 
-    private $result_os_title;
+    private string $result_os_title;
 
-    private $result_device_type;
+    private string $result_device_type;
 
-    private $result_browser_name;
+    private string $result_browser_name;
 
-    private $result_browser_version;
+    private string $result_browser_version;
 
-    private $result_browser_title;
+    private string $result_browser_title;
 
-    private $result_browser_chromium_version;
+    private int $result_browser_chromium_version = 0;
 
-    private $result_browser_gecko_version;
+    private int $result_browser_gecko_version = 0;
 
-    private $result_browser_webkit_version;
+    private int $result_browser_webkit_version = 0;
 
-    private $result_browser_chrome_original;
+    private int $result_browser_chrome_original = 0;
 
-    private $result_browser_firefox_original;
+    private int $result_browser_firefox_original = 0;
 
-    private $result_browser_safari_original;
+    private int $result_browser_safari_original = 0;
 
-    private $result_browser_android_webview;
+    private int $result_browser_android_webview = 0;
 
-    private $result_browser_ios_webview;
+    private int $result_browser_ios_webview = 0;
 
-    private $result_browser_desktop_mode;
+    private int $result_browser_desktop_mode = 0;
 
-    private $result_64bits_mode;
+    private int $result_64bits_mode;
 
     /**
      * Common User-Agent matching
