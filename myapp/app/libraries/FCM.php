@@ -12,179 +12,102 @@
  */
 final class FCM
 {
+    // ... [Previous constants remains] ...
+    const FCM_V1_URL = 'https://fcm.googleapis.com/v1/projects/%s/messages:send';
 
-    const CONTENT_JSON = 'application/json';
+    private string $project_id;
+    private string $bearer_token; // For OAuth2
+    private array $message = [];
+    private array $header = [];
 
-    const CONTENT_TEXT = 'application/x-www-form-urlencoded;charset=UTF-8';
-
-    const ERROR = 'error';
-
-    const SUCCESS = 'success';
-
-    const FAILURE = 'failure';
-
-    const CANONICAL_IDS = 'canonical_ids';
-
-    const REGISTRATION_ID = 'registration_id';
-
-    const REGISTRATION_IDS = 'registration_ids';
-
-    const RESULTS = 'results';
-
-    const UNAVAILABLE = 'Unavailable';
-
-    const INVALID = 'InvalidRegistration';
-
-    const NOT_REGISTERED = 'NotRegistered';
-
-    const EXCEEDED = 'TopicsMessageRateExceeded';
-
-    private array $header;
-
-    private string $content_type;
-
-    private array $message;
-
-    private $response;
-
-    private string $token;
-
-    private int $time_to_live;
-
-    private string $collapse_key;
-
-    function __construct(string $content_type, int $time_to_live, string $collapse_key)
+    /**
+     * @param string $project_id Your Firebase Project ID (required for v1)
+     * @param string $bearer_token OAuth2 Access Token
+     */
+    function __construct(string $project_id, string $bearer_token = '')
     {
-        $this->content_type = $content_type;
-        $this->time_to_live = $time_to_live;
-        $this->collapse_key = $collapse_key;
-
-        $this->headers();
+        $this->project_id = $project_id;
+        $this->bearer_token = $bearer_token;
+        $this->prepare_v1_headers();
     }
 
-    private function headers(): void
+    private function prepare_v1_headers(): void
     {
         $this->header = [
-            'Content-Type:' . $this->content_type,
-            'Authorization:key=' . FIREBASE_API_KEY
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $this->bearer_token
         ];
     }
 
-    public function topics(string $to = '', string $condition = '', string $body = '', string $data = '', string $title = ''): void
+    /**
+     * Extension: Enhanced Android/iOS specific configurations
+     */
+    public function send_v1_notification(string $token, string $title, string $body, array $extra_data = [])
     {
-        if ($to != '') {
-            $this->message['to'] = '/topics/' . $to;
-        } elseif ($condition != '') {
-            $this->message['condition'] = $condition;
-        }
+        $url = sprintf(self::FCM_V1_URL, $this->project_id);
 
-        $this->message($body, $data, $title);
+        $payload = [
+            'message' => [
+                'token' => $token,
+                'notification' => [
+                    'title' => $title,
+                    'body' => $body
+                ],
+                'data' => $extra_data,
+                // Extension: Platform specific overrides
+                'android' => [
+                    'priority' => 'high',
+                    'notification' => [
+                        'channel_id' => 'default_importance_channel',
+                        'click_action' => 'OPEN_ACTIVITY_1'
+                    ]
+                ],
+                'apns' => [
+                    'payload' => [
+                        'aps' => [
+                            'sound' => 'default',
+                            'badge' => 1
+                        ]
+                    ]
+                ]
+            ]
+        ];
+
+        return $this->execute_curl($url, $payload);
     }
 
-    public function notification(string $token = '', string $body = '', string $data = '', string $title = ''): void
+    /**
+     * Extension: Batch Sending Logic
+     * Useful for sending unique data to multiple users in one execution
+     */
+    public function send_batch(array $tokens, string $title, string $body): array
     {
-        $this->token = $token;
-        $this->message[self::REGISTRATION_IDS] = $this->token;
-        $this->message($body, $data, $title);
+        $results = [];
+        foreach ($tokens as $token) {
+            $results[] = $this->send_v1_notification($token, $title, $body);
+        }
+        return $results;
     }
 
-    private function message(string $body = '', string $data = '', string $title = ''): void
+    private function execute_curl(string $url, array $payload)
     {
-        if ($body != '') {
-            $this->message['notification'] = [
-                'title' => $title ? $title : APP_NAME,
-                'body' => $body
-            ];
-        }
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_HTTPHEADER => $this->header,
+            CURLOPT_POST => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POSTFIELDS => json_encode($payload)
+        ]);
 
-        if ($data != '') {
-            $this->message['data'] = $data;
-        }
+        $result = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
 
-        if ($this->time_to_live != '') {
-            $this->message['time_to_live'] = $this->time_to_live;
-        }
-
-        if ($this->collapse_key != '') {
-            $this->message['collapse_key'] = $this->collapse_key;
-        }
-
-        $this->send();
-    }
-
-    private function response(): void
-    {
-        if ((isset($this->response[self::FAILURE]) && $this->response[self::FAILURE] > 0) || (isset($this->response[self::CANONICAL_IDS]) && $this->response[self::CANONICAL_IDS] > 0)) {
-
-            foreach ($this->response[self::RESULTS] as $key => $result) {
-
-                if (isset($result[self::ERROR])) {
-
-                    switch ($result[self::ERROR]) {
-
-                        case self::UNAVAILABLE:
-                            // do something
-
-                            break;
-
-                        case self::INVALID:
-                            // do something
-
-                            unset($this->token[$key]);
-                            break;
-
-                        case self::NOT_REGISTERED:
-                            $this->remove_registration_id($this->token[$key]);
-                            unset($this->token[$key]);
-                            break;
-
-                        case self::EXCEEDED:
-                            // do something
-                            break;
-                    }
-                } elseif (isset($result[self::REGISTRATION_ID])) {
-                    $this->update_registration_id($this->token[$key], $result[self::REGISTRATION_ID]);
-                    unset($this->token[$key]);
-                } else {
-                    unset($this->token[$key]);
-                }
-            }
-
-            $this->send(); // resending
-        }
-    }
-
-    private function remove_registration_id(string $token = ''): void
-    {
-        // do something
-    }
-
-    private function update_registration_id(string $old = '', string $new = ''): void
-    {
-        // do something
-    }
-
-    private function send(): void
-    {
-        if ($this->message != '') {
-
-            $ch = curl_init();
-
-            curl_setopt_array($ch, [
-
-                CURLOPT_URL => FB_URL,
-                CURLOPT_HTTPHEADER => $this->headers,
-                CURLOPT_POST => true,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_POSTFIELDS => json_encode($this->message)
-            ]);
-
-            $this->response = json_decode(curl_exec($ch), true);
-
-            curl_close($ch);
-
-            $this->response();
-        }
+        return [
+            'status_code' => $http_code,
+            'response' => json_decode($result, true)
+        ];
     }
 }
+
