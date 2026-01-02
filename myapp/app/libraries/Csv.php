@@ -1,105 +1,89 @@
 <?php
 
 /**
- # Copyright Rakesh Shrestha (rakesh.shrestha@gmail.com)
- # All rights reserved.
- #
- # Redistribution and use in source and binary forms, with or without
- # modification, are permitted provided that the following conditions are
- # met:
- #
- # Redistributions must retain the above copyright notice.
+ * Modernized CSV Handler
  */
 final class Csv
 {
+    private string $enclosure = '"';
+    private string $delimiter = ',';
+    private string $escape = '\\';
+    private int $numFields = 0;
 
-    private ?string $enclosure = null;
-
-    private ?string $delimiter = null;
-
-    private ?string $escape = null;
-
-    private array $rows = array();
-
-    private int $numfields = 0;
-
-    public function __construct()
+    /**
+     * @param string $file Path to the file
+     * @param bool $headersOnly If true, returns only the header array
+     * @return Generator|array|int Returns a Generator for rows, array for headers, or 0 on failure
+     */
+    public function load(string $file, bool $headersOnly = false): mixed
     {
-        $this->enclosure = "\"";
-        $this->delimiter = ",";
-        $this->escape = "\\";
-    }
+        if (!is_readable($file)) {
+            return 0;
+        }
 
-    public function load(string $file, bool $headersonly = false)
-    {
-        $ext = mb_strtolower(mb_strrchr($file, '.'));
+        $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        
+        // Auto-detect delimiter based on extension
+        if ($ext === 'txt') {
+            $this->delimiter = "\t";
+        }
 
-        if ($ext == '.csv' || $ext == '.txt') {
-            $row = 1;
-            $handle = fopen($file, 'r');
+        $handle = fopen($file, 'r');
+        $rowIdx = 1;
+        $headers = [];
 
-            if ($ext == '.txt')
-                $this->delimiter = "\t";
+        try {
+            while (($data = fgetcsv($handle, 0, $this->delimiter, $this->enclosure, $this->escape)) !== false) {
+                // Process Headers
+                if ($rowIdx === 1) {
+                    $headers = array_map(fn($v) => mb_strtolower(trim($v)), $data);
+                    $this->numFields = count($headers);
 
-            while (($data = fgetcsv($handle, 1000, $this->delimiter, $this->enclosure, $this->escape)) !== FALSE) {
-                if ($row == 1) {
-                    foreach ($data as $key => $val)
-                        $headingTexts[] = mb_strtolower(mb_trim($val));
-
-                    $this->numfields = count($headingTexts);
-                }
-
-                if ($this->numfields < 2) {
-                    fclose($handle);
-                    return 0;
-                }
-
-                if ($headersonly) {
-                    fclose($handle);
-                    return $headingTexts;
-                }
-
-                if ($row > 1) {
-                    foreach ($data as $key => $value) {
-                        unset($data[$key]);
-                        $data[mb_strtolower($headingTexts[$key])] = $value;
+                    if ($this->numFields < 2) {
+                        return 0;
                     }
-                    $this->rows[] = $data;
+
+                    if ($headersOnly) {
+                        return $headers;
+                    }
+
+                    $rowIdx++;
+                    continue;
                 }
-                $row ++;
+
+                // Combine headers with current row data
+                if (count($data) === $this->numFields) {
+                    yield array_combine($headers, $data);
+                }
+
+                $rowIdx++;
             }
+        } finally {
             fclose($handle);
         }
-
-        return $this->rows;
     }
 
-    public function write(string $csv_delimiter, array &$csv_headers_array = array(), array &$csv_write_res = array()): void
+    /**
+     * Writes CSV data directly to the output stream
+     */
+    public function write(array $headers = [], array $rows = [], ?string $delimiter = null): void
     {
-        if (! isset($csv_delimiter)) {
-            $csv_delimiter = $this->delimiter;
+        $delimiter ??= $this->delimiter;
+        
+        // Open php://output to write directly to the buffer
+        $handle = fopen('php://output', 'w');
+
+        // Write Headers
+        if (!empty($headers)) {
+            $cleanHeaders = array_map(fn($v) => mb_strtolower($v), $headers);
+            fputcsv($handle, $cleanHeaders, $delimiter, $this->enclosure, $this->escape);
         }
 
-        $data = "";
-        $data_temp = '';
-        foreach ($csv_headers_array as $val) {
-            $data_temp .= $this->enclosure . mb_strtolower($val) . $this->enclosure . $csv_delimiter;
-        }
-        $data .= rtrim($data_temp, $csv_delimiter) . "\r\n";
-
-        echo $data;
-
-        $data = "";
-        $data_temp = '';
-        foreach ($csv_write_res as $val) {
-            $data_temp = '';
-            foreach ($val as $val2) {
-                $data_temp .= $this->enclosure . $val2 . $this->enclosure . $csv_delimiter;
-            }
-
-            $data .= rtrim($data_temp, $csv_delimiter) . "\r\n";
+        // Write Rows
+        foreach ($rows as $row) {
+            fputcsv($handle, $row, $delimiter, $this->enclosure, $this->escape);
         }
 
-        echo $data;
+        fclose($handle);
     }
 }
