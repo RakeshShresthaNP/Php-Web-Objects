@@ -311,15 +311,43 @@ if (! function_exists('array_map_recursive')) {
     }
 }
 
-function customError($errno, $errstr, $errfile, $errline): void
+function customError(int $errno, string $errstr, string $errfile, int $errline): void
 {
-    $emsg = "";
-    $emsg .= "<div class='error' style='text-align:left'>";
-    $emsg .= "<b>Custom error:</b> [$errno] $errstr<br />";
-    $emsg .= "Error on line $errline in $errfile<br />";
-    $emsg .= "Ending Script";
-    $emsg .= "</div>";
-    writeLog('error_' . date('Y_m_d'), $emsg);
+    // Respect the error suppression operator (@)
+    if (!(error_reporting() & $errno)) {
+        return;
+    }
+
+    // Build the log data as an array for cleaner writeLog handling
+    $logData = [
+        'errno'   => $errno,
+        'message' => $errstr,
+        'file'    => $errfile,
+        'line'    => $errline,
+        'context' => 'Execution Terminated'
+    ];
+
+    // Write to the log file (using your existing writeLog function)
+    writeLog('error_' . date('Y_m_d'), $logData);
+
+    // Clear any existing output buffers to prevent a "messy" page
+    if (ob_get_length()) {
+        ob_clean();
+    }
+
+    // Modern status code for errors
+    http_response_code(500);
+
+    // Display the error
+    echo "<div class='error' style='text-align:left; border:1px solid #cc0000; padding:15px; background:#fff5f5; font-family:sans-serif;'>";
+    echo "<b style='color:#cc0000;'>Custom error:</b> [{$errno}] " . htmlspecialchars($errstr) . "<br />";
+    echo "Error on line <b>{$errline}</b> in <code>" . htmlspecialchars($errfile) . "</code><br />";
+    echo "<hr />";
+    echo "<i>Script execution terminated.</i>";
+    echo "</div>";
+
+    // Stop execution completely
+    exit(1);
 }
 
 set_error_handler("customError");
@@ -846,3 +874,4 @@ final class Application
         ), $args);
     }
 }
+
