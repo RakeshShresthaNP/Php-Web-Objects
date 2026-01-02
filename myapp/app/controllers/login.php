@@ -112,7 +112,7 @@ final class cLogin extends cController
             $this->res->redirect('manage');
         }
 
-        if ($cutype && $cutype != 'superadmin') {
+        if ($cutype == 'user') {
             $this->res->redirect('dashboard');
         }
 

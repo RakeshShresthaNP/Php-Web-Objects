@@ -38,21 +38,26 @@ function setCurrentUser(array &$userdata = array()): void
     Session::getContext(SESS_TYPE)->set('authUser', $userdata);
 }
 
-function getCurrentUser()
+function getCurrentUser(): object|null
 {
-    return Session::getContext(SESS_TYPE)->get('authUser');
+    $authUser = Session::getContext(SESS_TYPE)->get('authUser');
+    if ($authUser) {
+        return (object) $authUser;
+    } else {
+        return null;
+    }
 }
 
 function getCurrentUserID(): string
 {
     $authUser = getCurrentUser();
-    return isset($authUser['id']) ? $authUser['id'] : '';
+    return isset($authUser->id) ? $authUser->id : '';
 }
 
 function getCurrentUserType(): string
 {
     $authUser = getCurrentUser();
-    return isset($authUser['perms']) ? $authUser['perms'] : 'none';
+    return isset($authUser->perms) ? $authUser->perms : 'none';
 }
 
 function getUrl(string $path = null): string
@@ -423,7 +428,7 @@ final class View
         }
         ob_start();
         if ($viewname == null) {
-            $viewname = mb_strtolower($req->getController() . '/' . $req->getMethod());
+            $viewname = $req->controller . '/' . $req->method;
         }
         include VIEW_DIR . mb_strtolower($viewname) . '.php';
         return ob_get_clean();
@@ -433,10 +438,10 @@ final class View
     {
         $req = req();
         if ($viewname == null) {
-            $viewname = mb_strtolower($req->getController() . '/' . $req->getMethod());
+            $viewname = mb_strtolower($req->controller . '/' . $req->method);
         }
         if (! isset($vars['layout'])) {
-            $playout = 'layouts/' . $req->getPathPrefix() . 'layout';
+            $playout = 'layouts/' . $req->pathprefix . 'layout';
             $vars['mainregion'] = self::assign($vars, $viewname);
         } else {
             if ($vars['layout']) {
@@ -455,11 +460,11 @@ final class View
 final class Request
 {
 
-    private string $_pathprefix = '';
+    public string $pathprefix = '';
 
-    private string $_controller = '';
+    public string $controller = '';
 
-    private string $_method = '';
+    public string $method = '';
 
     private static $_context = null;
 
@@ -480,21 +485,6 @@ final class Request
     public function isPost(): bool
     {
         return ($_SERVER['REQUEST_METHOD'] === 'POST');
-    }
-
-    public function getPathPrefix(): string
-    {
-        return $this->_pathprefix;
-    }
-
-    public function getController(): string
-    {
-        return mb_strtolower($this->_controller);
-    }
-
-    public function getMethod(): string
-    {
-        return mb_strtolower($this->_method);
     }
 
     public function getHeaders(): object
@@ -523,7 +513,7 @@ final class Request
         return $headers;
     }
 
-    public function getToken(): string
+    public function getToken(): string|null
     {
         $tokenheader = null;
 
@@ -543,18 +533,18 @@ final class Request
         return $tokenheader;
     }
 
-    public function getPayloadData(): object
+    public function getPayloadData(): object|null
     {
         $jwt = $this->getToken();
 
         if (! $jwt) {
-            throw new ApiException('Invalid Access.', 403);
+            return $jwt;
         }
 
         // split the token
         $tokenParts = explode('.', $jwt);
         if (count($tokenParts) !== 3) {
-            throw new ApiException('Invalid token format.', 403);
+            throw new ApiException('Invalid token format.', 401);
         }
 
         $header = $tokenParts[0];
@@ -567,46 +557,46 @@ final class Request
 
         // verify it matches the signature provided in the token
         if (! hash_equals($base64UrlSignature, $signatureProvided)) {
-            throw new ApiException('Signature is not valid.', 403);
+            throw new ApiException('Signature is not valid.', 401);
         }
 
         // decode and check the expiration time
         $payloadDecoded = base64_jwt_decode($payload);
         $payloadData = json_decode($payloadDecoded);
         if (! $payloadData || ! isset($payloadData->exp)) {
-            throw new ApiException('Invalid token payload.', 403);
+            throw new ApiException('Invalid token payload.', 401);
         }
 
         return $payloadData;
     }
 
-    public function setController(string $pathprefix = '', string $controllername = ''): object
+    public function verifyController(string $pathprefix = '', string $controllername = ''): object
     {
-        $this->_pathprefix = mb_strtolower(mb_substr($pathprefix, 0, - 1));
-        $this->_controller = mb_strtolower($controllername);
+        $this->pathprefix = mb_strtolower(mb_substr($pathprefix, 0, - 1));
+        $this->controller = mb_strtolower($controllername);
 
-        $controllerfile = CONT_DIR . mb_strtolower($this->_controller) . '.php';
-        if (! preg_match('#^[A-Za-z0-9_-]+$#', $this->_controller) || ! is_readable($controllerfile)) {
-            $controller = MAIN_CONTROLLER;
+        $controllerfile = CONT_DIR . mb_strtolower($this->controller) . '.php';
+        if (! preg_match('#^[A-Za-z0-9_-]+$#', $this->controller) || ! is_readable($controllerfile)) {
+            $this->controller = MAIN_CONTROLLER;
             $controllerfile = CONT_DIR . MAIN_CONTROLLER . '.php';
         }
 
-        $cont = 'c' . $this->_controller;
+        $cont = 'c' . $this->controller;
 
         require_once $controllerfile;
 
         return new $cont();
     }
 
-    public function setMethod(string $methodname = ''): string
+    public function verifyMethod($controller, string $methodname = ''): string
     {
-        if ($this->_pathprefix == '') {
-            $this->_method = mb_str_replace('_', '', mb_strtolower($methodname));
+        if (! method_exists($controller, $methodname)) {
+            $this->method = MAIN_METHOD;
         } else {
-            $this->_method = mb_strtolower($methodname);
+            $this->method = mb_strtolower($methodname);
         }
 
-        return $this->_method;
+        return $this->method;
     }
 }
 
@@ -617,14 +607,19 @@ final class Response
 
     private array $_statusCode = array(
         200 => "200 OK",
+        201 => "201 Resource Created",
+        204 => "204 No Content",
         301 => "301 Moved Permanently",
         302 => "302 Found",
         303 => "303 See Other",
         307 => "307 Temporary Redirect",
         400 => "400 Bad Request",
+        401 => "401 Unauthorized",
         403 => "403 Forbidden",
         404 => "404 Not Found",
         405 => "405 Method Not Allowed",
+        422 => "422 Validation Error",
+        429 => "429 Too Many Requests",
         500 => "500 Internal Server Error",
         503 => "503 Service Unavailable"
     );
@@ -766,8 +761,12 @@ abstract class cAuthController extends cController
 
         $payloadData = $this->req->getPayloadData();
 
+        if (! $payloadData) {
+            throw new ApiException('Token has expired.', 401);
+        }
+
         if (time() > $payloadData->exp) {
-            throw new ApiException('Token has expired.');
+            throw new ApiException('Token has expired.', 401);
         }
 
         $this->user = $payloadData;
@@ -783,13 +782,13 @@ abstract class cAdminController extends cController
     {
         parent::__construct();
 
-        $this->user = (object) getCurrentUser();
+        $this->user = getCurrentUser();
 
         if (! $this->user) {
             $this->res->redirect('login', 'Invalid Access');
         }
 
-        $this->cusertype = $this->user->perms ? $this->user->perms : 'none';
+        $this->cusertype = $this->user->perms;
     }
 }
 
@@ -802,32 +801,38 @@ final class Application
         $uriparts = explode('/', mb_str_replace(SITE_URI . PATH_URI, '', SITE_URI . $_SERVER['REQUEST_URI']));
         $uriparts = array_filter($uriparts);
 
-        $controller = ($c = array_shift($uriparts)) ? $c : MAIN_CONTROLLER;
-        $pathprefix = '';
-
-        if (in_array($controller, unserialize(PATH_PREFIX))) {
-            $pathprefix = mb_strtolower($controller) . '_';
-            $controller = ($c = array_shift($uriparts)) ? $c : MAIN_CONTROLLER;
-        }
-
         $pathPrefixes = unserialize(PATH_PREFIX);
-        $method = ($c = array_shift($uriparts)) ? $pathprefix . mb_str_replace($pathPrefixes, '', $c) : $pathprefix . MAIN_METHOD;
 
-        $con = $request->setController($pathprefix, $controller);
+        $request->pathprefix = '';
+        $request->controller = ($c = array_shift($uriparts)) ? mb_strtolower($c) : MAIN_CONTROLLER;
 
-        if (! method_exists($con, $method)) {
-            $method = MAIN_METHOD;
+        if (in_array($request->controller, $pathPrefixes)) {
+            $request->pathprefix = mb_strtolower($request->controller) . '_';
+            $request->controller = ($c = array_shift($uriparts)) ? $c : MAIN_CONTROLLER;
         }
 
-        $met = $request->setMethod($method);
+        $user = $request->getPayloadData();
+
+        if (! $user) {
+            $user = getCurrentUser();
+            $cusertype = getCurrentUserType();
+        } else {
+            $cusertype = $user->perms;
+        }
+
+        $request->method = ($c = array_shift($uriparts)) ? $request->pathprefix . mb_str_replace($pathPrefixes, '', $c) : $request->pathprefix . MAIN_METHOD;
+
+        $con = $request->verifyController($request->pathprefix, $request->controller);
+
+        $met = $request->verifyMethod($con, $request->method);
 
         $cusertype = getCurrentUserType();
 
-        if ($request->getPathPrefix() == 'manage' && $cusertype != 'superadmin') {
+        if ($request->pathprefix == 'manage' && $cusertype != 'superadmin') {
             $response->redirect('login', 'Invalid Access');
         }
 
-        if ($request->getPathPrefix() == 'dashboard' && $cusertype != 'user') {
+        if ($request->pathprefix == 'dashboard' && $cusertype != 'user') {
             $response->redirect('login', 'Invalid Access');
         }
 

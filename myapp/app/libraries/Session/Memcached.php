@@ -10,22 +10,23 @@
  #
  # Redistributions must retain the above copyright notice.
  */
-final class PdoSessionHandler implements SessionHandlerInterface
+final class MemcachedSessionHandler implements SessionHandlerInterface
 {
 
-    private ?Pdo $_db = null;
+    private ?Memcached $_memcached = null;
+
+    private int $_ttl = 0;
 
     public function __construct()
     {
-        $this->_db = db();
+        $this->_memcached = new Memcached();
+        $this->_memcached->addserver('127.0.0.1', 11211);
+        $this->_ttl = SESS_TIMEOUT;
     }
 
     public function open(string $path = '', string $name = ''): bool
     {
-        if ($this->_db) {
-            return true;
-        }
-        return false;
+        return true;
     }
 
     public function close(): bool
@@ -35,64 +36,27 @@ final class PdoSessionHandler implements SessionHandlerInterface
 
     public function read(string $id): string
     {
-        $stmt = $this->_db->prepare('SELECT sdata FROM sys_sessions WHERE id = ? ');
-        $stmt->bindValue(1, $id);
-        $stmt->execute();
-
-        if ($stmt->rowCount() == 1) {
-            $row = $stmt->fetch();
-            return $row->sdata;
-        } else {
-            return '';
-        }
+        return $this->_memcached->get("sess_" . $id);
     }
 
     public function write(string $id, $data): bool
     {
-        $access = time();
-
-        $stmt = $this->_db->prepare('REPLACE INTO sys_sessions VALUES (?, ?, ?) ');
-        $stmt->bindValue(1, $id);
-        $stmt->bindValue(2, $data);
-        $stmt->bindValue(3, $access);
-
-        if ($stmt->execute()) {
-            return true;
-        }
-        return false;
+        return $this->_memcached->set("sess_" . $id, $data, time() + $this->_ttl);
     }
 
     public function destroy(string $id): bool
     {
-        $stmt = $this->_db->prepare('DELETE FROM sys_sessions WHERE id = ? ');
-        $stmt->bindValue(1, $id);
-
-        session_regenerate_id(TRUE);
-
-        $_SESSION = array();
-
-        if ($stmt->execute()) {
-            return true;
-        }
-        return false;
+        return $this->_memcached->del("sess_" . $id);
     }
 
     public function gc(int $max = 0): int|false
     {
-        $old = time() - $max;
-
-        // Fixed SQL syntax: DELETE doesn't use * (that's SELECT syntax)
-        $stmt = $this->_db->prepare('DELETE FROM sys_sessions WHERE last_accessed < ? ');
-        $stmt->bindValue(1, $old);
-
-        if ($stmt->execute()) {
-            return true;
-        }
-        return false;
+        // Memcached handles garbase collection automatically so nothing to be done
+        return true;
     }
 }
 
-final class Session_Database
+final class Session_Memcached
 {
 
     public function __construct()

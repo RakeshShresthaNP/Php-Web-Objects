@@ -23,7 +23,7 @@ final class cUser extends cAuthController
         $data['data'] = array(
             'id' => 0,
             'realName' => $this->user->realName,
-            'roles' => $this->user->roles,
+            'perms' => $this->user->perms,
             'username' => $this->user->username,
             'homePath' => '/workspace'
         );

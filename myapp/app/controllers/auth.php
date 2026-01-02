@@ -86,9 +86,7 @@ final class cAuth extends cController
                 $udata = array(
                     'id' => $user->id,
                     'realName' => $user->firstname . ' ' . $user->lastname,
-                    'roles' => array(
-                        $user->perms
-                    ),
+                    'perms' => $user->perms,
                     'username' => $user->username,
                     'exp' => time() + 24 * 3600
                 );
@@ -113,7 +111,7 @@ final class cAuth extends cController
         $udata = array(
             'id' => $pdata->id,
             'realName' => $pdata->realName,
-            'roles' => $pdata->perms,
+            'perms' => $pdata->perms,
             'username' => $pdata->username,
             'exp' => time() + 24 * 3600
         );

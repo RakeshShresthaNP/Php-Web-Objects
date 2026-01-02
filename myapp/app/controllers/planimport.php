@@ -29,7 +29,7 @@ final class cPlanImport extends cAuthController
     {
         // Validate file upload
         if (! isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
-            throw new ApiException('Year or month is missing.', 405);
+            throw new ApiException('Year or month is missing.', 422);
         }
 
         $db = db();
@@ -143,13 +143,13 @@ final class cPlanImport extends cAuthController
 
                     $this->res->json($data);
                 } else {
-                    throw new ApiException('Year or month is missing.', 405);
+                    throw new ApiException('Year or month is missing.', 422);
                 }
             } else {
-                throw new ApiException('Year or month is missing.', 405);
+                throw new ApiException('Year or month is missing.', 422);
             }
         } else {
-            throw new ApiException('xlsx error: ' . $xlsx->error(), 405);
+            throw new ApiException('xlsx error: ' . $xlsx->error(), 503);
         }
     }
 }

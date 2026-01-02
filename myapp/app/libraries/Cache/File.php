@@ -47,7 +47,7 @@ final class Cache_File
 
     public function get(string $key)
     {
-        return isset($this->_lkeydata[sha1($key)]) ? $this->_lkeydata[sha1($key)] : null;
+        return isset($this->_lkeydata[sha1($key)]) ? $this->_lkeydata[sha1($key)] : '';
     }
 
     public function valid(string $key): bool

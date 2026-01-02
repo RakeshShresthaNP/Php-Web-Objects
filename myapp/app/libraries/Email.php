@@ -42,10 +42,10 @@ final class Email
     {
         $this->_to = array();
         $this->_headers = array();
-        $this->_subject = null;
-        $this->_message = null;
+        $this->_subject = '';
+        $this->_message = '';
         $this->_wrap = 78;
-        $this->_parameters = null;
+        $this->_parameters = '';
         $this->_attachments = array();
         $this->_attachmentsPath = array();
         $this->_attachmentsFilename = array();

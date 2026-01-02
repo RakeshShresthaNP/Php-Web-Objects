@@ -13,7 +13,7 @@
 final class Cache_Memcached
 {
 
-    private ?stdClass $_memcached = null;
+    private ?Memcached $_memcached = null;
 
     private bool $_memcached_enabled = false;
 
@@ -24,20 +24,14 @@ final class Cache_Memcached
         $this->_memcached_enabled = extension_loaded('memcached');
         if ($this->_memcached_enabled) {
             $this->_memcached = new Memcached();
-            $this->_memcached->addserver(key(unserialize(MC_SERVER)), current(unserialize(MC_SERVER)));
+            $this->_memcached->addserver('127.0.0.1', 11211);
         }
     }
 
     public function set(string $key, $data, int $ttl = 3600): bool
     {
         if ($this->_memcached_enabled) {
-            // Memcached::set() signature: set(string $key, mixed $value, int $expiration = 0)
-            // $expiration: if less than 2592000 (30 days), it's relative time in seconds
-            return $this->_memcached->set(sha1($key), array(
-                $data,
-                time(),
-                $ttl
-            ), $ttl);
+            return $this->_memcached->set(sha1($key), $data, time() + $ttl);
         }
         return false;
     }
@@ -45,7 +39,7 @@ final class Cache_Memcached
     public function get(string $key)
     {
         $hashedKey = sha1($key);
-        return isset($this->_lkeydata[$hashedKey]) ? $this->_lkeydata[$hashedKey] : null;
+        return isset($this->_lkeydata[$hashedKey]) ? $this->_lkeydata[$hashedKey] : '';
     }
 
     public function valid(string $key): bool

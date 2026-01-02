@@ -17,11 +17,11 @@ final class RedisSessionHandler implements SessionHandlerInterface
 
     private int $_ttl = 0;
 
-    public function __construct(string $host = '127.0.0.1', int $port = 6379)
+    public function __construct()
     {
         $this->_redis = new Redis();
-        $this->_redis->connect($host, $part);
-        $this->_ttl = dSESS_TIMEOUT;
+        $this->_redis->connect('127.0.0.1', 6379);
+        $this->_ttl = SESS_TIMEOUT;
     }
 
     public function open(string $path = '', string $name = ''): bool
@@ -46,7 +46,7 @@ final class RedisSessionHandler implements SessionHandlerInterface
 
     public function destroy(string $id): bool
     {
-        return $this->_redis->del("session:$id") > 0;
+        return $this->_redis->del("session:$id");
     }
 
     public function gc(int $max = 0): int|false
