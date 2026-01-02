@@ -147,11 +147,11 @@ function createDir(string $path, $mode = 0777, bool $rec = true): bool
     return true;
 }
 
-function writeLog(string $type = 'mylog', string $msg = null): void
+function writeLog(string $type = 'mylog', $msg): void
 {
     $file = APP_DIR . 'logs/' . $type . '.txt';
     $datetime = date('Y-m-d H:i:s');
-    $logmsg = '###' . $datetime . '### ' . $msg . "\r\n";
+    $logmsg = '###' . $datetime . '### ' . json_encode($msg, JSON_PRETTY_PRINT) . "\r\n";
     file_put_contents($file, $logmsg, FILE_APPEND | LOCK_EX);
 }
 
@@ -567,6 +567,10 @@ final class Request
             throw new ApiException('Invalid token payload.', 401);
         }
 
+        if (time() > $payloadData->exp) {
+            throw new ApiException('Token has expired.', 401);
+        }
+
         return $payloadData;
     }
 
@@ -762,11 +766,7 @@ abstract class cAuthController extends cController
         $payloadData = $this->req->getPayloadData();
 
         if (! $payloadData) {
-            throw new ApiException('Token has expired.', 401);
-        }
-
-        if (time() > $payloadData->exp) {
-            throw new ApiException('Token has expired.', 401);
+            throw new ApiException('Bad Request', 401);
         }
 
         $this->user = $payloadData;
@@ -798,6 +798,9 @@ final class Application
 
     public static function process(Request &$request, Response &$response): void
     {
+        $cusertype = 'none';
+        $apimode = false;
+
         $uriparts = explode('/', mb_str_replace(SITE_URI . PATH_URI, '', SITE_URI . $_SERVER['REQUEST_URI']));
         $uriparts = array_filter($uriparts);
 
@@ -816,6 +819,7 @@ final class Application
         if (! $user) {
             $user = getCurrentUser();
             $cusertype = getCurrentUserType();
+            $apimode = true;
         } else {
             $cusertype = $user->perms;
         }
@@ -825,8 +829,6 @@ final class Application
         $con = $request->verifyController($request->pathprefix, $request->controller);
 
         $met = $request->verifyMethod($con, $request->method);
-
-        $cusertype = getCurrentUserType();
 
         if ($request->pathprefix == 'manage' && $cusertype != 'superadmin') {
             $response->redirect('login', 'Invalid Access');

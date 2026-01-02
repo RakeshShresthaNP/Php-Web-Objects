@@ -41,7 +41,7 @@ final class RedisSessionHandler implements SessionHandlerInterface
 
     public function write(string $id, $data): bool
     {
-        return $this->_redis->setex("session:$id", $this->_ttl, $data);
+        return $this->_redis->setex("session:$id", time() + $this->_ttl, $data);
     }
 
     public function destroy(string $id): bool

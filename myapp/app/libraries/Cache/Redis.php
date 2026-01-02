@@ -25,7 +25,7 @@ final class Cache_Redis
 
     public function set(string $key, $data, int $ttl = 3600): bool
     {
-        return $this->_redis->setex(sha1($key), $ttl, $data);
+        return $this->_redis->setex(sha1($key), time() + $ttl, $data);
     }
 
     public function get(string $key)
@@ -38,8 +38,10 @@ final class Cache_Redis
     {
         $data = $this->_redis->get(sha1($key));
         if ($data) {
-            $this->_lkeydata[sha1($key)] = (is_array($data)) ? $data[0] : false;
+            $this->_lkeydata[sha1($key)] = $data;
             return true;
+        } else {
+            return false;
         }
     }
 }

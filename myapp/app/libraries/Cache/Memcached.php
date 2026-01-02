@@ -15,25 +15,17 @@ final class Cache_Memcached
 
     private ?Memcached $_memcached = null;
 
-    private bool $_memcached_enabled = false;
-
     private array $_lkeydata = array();
 
     public function __construct()
     {
-        $this->_memcached_enabled = extension_loaded('memcached');
-        if ($this->_memcached_enabled) {
-            $this->_memcached = new Memcached();
-            $this->_memcached->addserver('127.0.0.1', 11211);
-        }
+        $this->_memcached = new Memcached();
+        $this->_memcached->addserver('127.0.0.1', 11211);
     }
 
     public function set(string $key, $data, int $ttl = 3600): bool
     {
-        if ($this->_memcached_enabled) {
-            return $this->_memcached->set(sha1($key), $data, time() + $ttl);
-        }
-        return false;
+        return $this->_memcached->set(sha1($key), $data, time() + $ttl);
     }
 
     public function get(string $key)
@@ -44,13 +36,12 @@ final class Cache_Memcached
 
     public function valid(string $key): bool
     {
-        if ($this->_memcached_enabled) {
-            $data = $this->_memcached->get(sha1($key));
-            if ($data) {
-                $this->_lkeydata[sha1($key)] = (is_array($data)) ? $data[0] : false;
-                return true;
-            }
+        $data = $this->_memcached->get(sha1($key));
+        if ($data) {
+            $this->_lkeydata[sha1($key)] = $data;
+            return true;
+        } else {
+            return false;
         }
-        return false;
     }
 }

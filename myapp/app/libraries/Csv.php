@@ -17,6 +17,8 @@ final class Csv
 
     private ?string $delimiter = null;
 
+    private ?string $escape = null;
+
     private array $rows = array();
 
     private int $numfields = 0;
@@ -25,6 +27,7 @@ final class Csv
     {
         $this->enclosure = "\"";
         $this->delimiter = ",";
+        $this->escape = "\\";
     }
 
     public function load(string $file, bool $headersonly = false)
@@ -38,7 +41,7 @@ final class Csv
             if ($ext == '.txt')
                 $this->delimiter = "\t";
 
-            while (($data = fgetcsv($handle, 1000, $this->delimiter, $this->enclosure)) !== FALSE) {
+            while (($data = fgetcsv($handle, 1000, $this->delimiter, $this->enclosure, $this->escape)) !== FALSE) {
                 if ($row == 1) {
                     foreach ($data as $key => $val)
                         $headingTexts[] = mb_strtolower(mb_trim($val));
@@ -96,6 +99,7 @@ final class Csv
 
             $data .= rtrim($data_temp, $csv_delimiter) . "\r\n";
         }
+
         echo $data;
     }
 }

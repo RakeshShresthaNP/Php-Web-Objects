@@ -39,79 +39,80 @@ final class FCM
 
     const EXCEEDED = 'TopicsMessageRateExceeded';
 
-    private $header;
+    private array $header;
 
-    private $content_type;
+    private string $content_type;
 
-    private $message;
+    private array $message;
 
     private $response;
 
-    private $token;
+    private string $token;
 
-    private $time_to_live;
+    private int $time_to_live;
 
-    private $collapse_key;
+    private string $collapse_key;
 
-    function __construct($content_type, $time_to_live, $collapse_key)
+    function __construct(string $content_type, int $time_to_live, string $collapse_key)
     {
         $this->content_type = $content_type;
-        $this->time_to_live = (int) $time_to_live;
+        $this->time_to_live = $time_to_live;
         $this->collapse_key = $collapse_key;
+
         $this->headers();
     }
 
-    private function headers()
+    private function headers(): void
     {
-        $this->headers = [
+        $this->header = [
             'Content-Type:' . $this->content_type,
             'Authorization:key=' . FIREBASE_API_KEY
         ];
     }
 
-    public function topics($to, $condition, $body = null, $data = null, $title = null)
+    public function topics(string $to = '', string $condition = '', string $body = '', string $data = '', string $title = ''): void
     {
-        if ($to != null) {
+        if ($to != '') {
             $this->message['to'] = '/topics/' . $to;
-        } elseif ($condition != null) {
+        } elseif ($condition != '') {
             $this->message['condition'] = $condition;
         }
 
         $this->message($body, $data, $title);
     }
 
-    public function notification($token, $body, $data = null, $title = null)
+    public function notification(string $token = '', string $body = '', string $data = '', string $title = ''): void
     {
         $this->token = $token;
         $this->message[self::REGISTRATION_IDS] = $this->token;
         $this->message($body, $data, $title);
     }
 
-    private function message($body, $data, $title)
+    private function message(string $body = '', string $data = '', string $title = ''): void
     {
-        if ($body != null) {
+        if ($body != '') {
             $this->message['notification'] = [
                 'title' => $title ? $title : APP_NAME,
                 'body' => $body
             ];
         }
 
-        if ($data != null) {
+        if ($data != '') {
             $this->message['data'] = $data;
         }
 
-        if ($this->time_to_live != null) {
+        if ($this->time_to_live != '') {
             $this->message['time_to_live'] = $this->time_to_live;
         }
 
-        if ($this->collapse_key != null) {
+        if ($this->collapse_key != '') {
             $this->message['collapse_key'] = $this->collapse_key;
         }
 
         $this->send();
     }
 
-    private function response()
+    private function response(): void
     {
         if ((isset($this->response[self::FAILURE]) && $this->response[self::FAILURE] > 0) || (isset($this->response[self::CANONICAL_IDS]) && $this->response[self::CANONICAL_IDS] > 0)) {
 
@@ -153,21 +154,22 @@ final class FCM
         }
     }
 
-    private function remove_registration_id($token)
+    private function remove_registration_id(string $token = ''): void
     {
         // do something
     }
 
-    private function update_registration_id($old, $new)
+    private function update_registration_id(string $old = '', string $new = ''): void
     {
         // do something
     }
 
-    private function send()
+    private function send(): void
     {
-        if ($this->message != null) {
+        if ($this->message != '') {
 
             $ch = curl_init();
+
             curl_setopt_array($ch, [
 
                 CURLOPT_URL => FB_URL,
@@ -179,7 +181,9 @@ final class FCM
             ]);
 
             $this->response = json_decode(curl_exec($ch), true);
+
             curl_close($ch);
+
             $this->response();
         }
     }

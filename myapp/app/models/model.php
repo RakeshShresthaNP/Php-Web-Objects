@@ -13,13 +13,13 @@
 class model
 {
 
-    protected $db = null;
+    protected ?Pdo $db = null;
 
-    private $_rs = array();
+    private array $_rs = array();
 
-    private $_pk;
+    private string $_pk;
 
-    private $_table;
+    private string $_table;
 
     public function __construct(string $table = '', string $pk = 'id')
     {

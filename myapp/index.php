@@ -35,13 +35,13 @@ try {
 
     $response->json($data);
 } catch (Exception $e) {
-    $data['message'] = DEBUG ? $e : '';
+    $data['message'] = $e->getMessage();
 
     if ($request->isAjax()) {
         $data['layout'] = false;
     }
 
-    writeLog('exception_' . date('Y_m_d'), $data);
+    writeLog('exception_' . date('Y_m_d'), $data['message']);
 
     $response->display($data, 'errors/exception');
 }
