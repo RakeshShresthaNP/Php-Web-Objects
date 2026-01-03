@@ -10,7 +10,10 @@
  #
  # Redistributions must retain the above copyright notice.
  */
+declare(strict_types = 1);
+
 require_once APP_DIR . 'config/config.php';
+require_once APP_DIR . 'myfuncs.php';
 
 // begin core functions
 function req(): Request
@@ -33,7 +36,7 @@ function cache(): object
     return Cache::getContext(CACHE_TYPE);
 }
 
-function setCurrentUser(array &$userdata = array()): void
+function setCurrentUser(?stdClass &$userdata = null): void
 {
     Session::getContext(SESS_TYPE)->set('authUser', $userdata);
 }
@@ -42,7 +45,7 @@ function getCurrentUser(): ?object
 {
     $authUser = Session::getContext(SESS_TYPE)->get('authUser');
     if ($authUser) {
-        return (object) $authUser;
+        return $authUser;
     } else {
         return null;
     }
@@ -511,6 +514,9 @@ final class Request
             }
         }
 
+        unset($headers['Cookie']);
+        unset($headers['Authorization']);
+
         return (object) $headers;
     }
 
@@ -712,17 +718,17 @@ final class Response
         return View::assign($data, $viewname);
     }
 
-    public static function addSplashMsg(string $msg = ''): void
+    public static function addSplashMsg($msg = ''): void
     {
         Session::getContext(SESS_TYPE)->set('splashmessage', $msg);
     }
 
-    public static function getSplashMsg(): string
+    public static function getSplashMsg()
     {
         $sess = Session::getContext(SESS_TYPE);
         $msg = $sess->get('splashmessage');
         $sess->set('splashmessage', null);
-        return $msg;
+        return $msg ? $msg : null;
     }
 
     private function _get_status_message(int $code = 200): string

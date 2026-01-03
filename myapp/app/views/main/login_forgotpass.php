@@ -1,6 +1,3 @@
-<?php $splashmsgs[] = res()->getSplashMsg(); ?>
-<?php echo ((isset($splashmsgs) && is_array($splashmsgs)) ? implode("<br />\n", $splashmsgs) : ''); ?>
-
 <div class="login-box">
 	<div class="login-logo">
 		<b>Forgot Password</b>

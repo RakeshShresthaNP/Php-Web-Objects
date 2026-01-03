@@ -21,7 +21,7 @@ final class cUsers extends cAdminController
     public function index()
     {
         $data['pagetitle'] = SITE_TITLE;
-        
+
         $this->res->display($data);
     }
 
@@ -29,17 +29,17 @@ final class cUsers extends cAdminController
     {
         $data['pagename'] = 'Users';
 
-        $user = new user();
-        $data['users'] = $user->select('*');
+        $user = new model('users');
+        $data['users'] = $user->select('*', 'perms <> ?', 'superadmin');
 
         $this->res->display($data);
     }
 
     public function manage_add()
     {
-        $data['pagename'] = 'Users';
+        $data['pagename'] = 'Add User';
 
-        $user = new user();
+        $user = [];
 
         if ($this->req->isPost()) {
             $vars = $_POST;
@@ -49,6 +49,8 @@ final class cUsers extends cAdminController
                 $this->res->redirect('admin/users/manage_add', 'Password must be at least 6 characters long');
                 return;
             }
+
+            $data['user'] = $vars;
 
             $vars['password'] = password_hash($vars['password'], PASSWORD_DEFAULT);
             $vars['remarks'] = $vars['password'];
@@ -63,6 +65,8 @@ final class cUsers extends cAdminController
 
             $this->res->redirect('manage/users', 'User Added Successfully');
         }
+
+        $data['user'] = $user;
 
         $this->res->display($data);
     }
@@ -121,6 +125,6 @@ final class cUsers extends cAdminController
         $user->status = 1;
         $user->update();
 
-        $this->res->redirect('amanage/users', 'User Enabled');
+        $this->res->redirect('manage/users', 'User Enabled');
     }
 }

@@ -10,6 +10,8 @@
  #
  # Redistributions must retain the above copyright notice.
  */
+declare(strict_types = 1);
+
 final class Email
 {
 

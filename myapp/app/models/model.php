@@ -21,6 +21,8 @@ class model
 
     private string $_table;
 
+    private string $_sql = '';
+
     public function __construct(string $table = '', string $pk = 'id')
     {
         $this->_pk = $pk;
@@ -28,7 +30,7 @@ class model
         $this->db = db();
     }
 
-    public function __set(string $key, $val)
+    public function __set(string $key, $val): void
     {
         $this->_rs[$key] = $val;
     }
@@ -64,7 +66,7 @@ class model
         if ($stmt->rowCount() == 1) {
             $this->_rs = $stmt->fetch(PDO::FETCH_ASSOC);
         } else {
-            return $stmt->fetchAll();
+            return $stmt;
         }
     }
 
@@ -150,9 +152,9 @@ class model
         return 0;
     }
 
-    public function get()
+    public function get(): object
     {
-        return $this->_rs;
+        return (object) $this->_rs;
     }
 
     public function assign(array &$arr = array(), bool $checkfield = false)

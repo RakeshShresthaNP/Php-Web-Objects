@@ -1,6 +1,4 @@
 ﻿<?php
-$authuser = getCurrentUser();
-$authusertype = getCurrentUserType();
 $pagetitle = isset($pagename) ? $pagename : SITE_TITLE;
 ?>
 <!DOCTYPE html>
@@ -259,9 +257,50 @@ $pagetitle = isset($pagename) ? $pagename : SITE_TITLE;
 			<!-- /.sidebar -->
 		</aside>
 
-            <?php $splashmsgs[] = res()->getSplashMsg(); ?>
-            <?php echo ((isset($splashmsgs) && is_array($splashmsgs)) ? implode("<br />\n", $splashmsgs) : ''); ?>
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper">
+        	<!-- Content Header (Page header) -->
+        	<section class="content-header">
+        		<div class="container-fluid">
+        			<div class="row mb-2">
+        				<div class="col-sm-6">
+        					<h1><?php echo isset($pagename) ? $pagename : '' ?></h1>
+        				</div>
+        				<div class="col-sm-6">
+        					<ol class="breadcrumb float-sm-right">
+        						<li class="breadcrumb-item"><a href="#">Home</a></li>
+        						<li class="breadcrumb-item active"><?php echo isset($pagename) ? $pagename : '' ?></li>
+        					</ol>
+        				</div>
+        			</div>
+        		</div>
+        		<!-- /.container-fluid -->
+        	</section>
+
+            <?php
+
+            $splashmsgs[] = res()->getSplashMsg();
+
+            if (isset($splashmsgs)) {
+                ?>
+              <div class="content">
+    			<!-- Content Header (Page header) -->
+    				<div class="container-fluid">
+    					<div class="row mb-2">
+    						<div class="col-sm-12">
+                					<?php echo implode("<br />\n", $splashmsgs); ?>
+                			</div>
+    					</div>
+    				</div>
+    				<!-- /.container-fluid -->
+    		</div>          
+            <?php
+            }
+            ?>
+            
             <?php echo isset($mainregion) ? $mainregion : '' ?>  
+            
+            </div>
 
             <footer class="main-footer">
 			<strong>Copyright &copy; 2014-2020 <a href="#">PHP Web Objects</a>.

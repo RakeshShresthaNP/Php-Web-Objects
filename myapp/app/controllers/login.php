@@ -56,14 +56,9 @@ final class cLogin extends cController
 
             // Check if password is hashed with password_hash or old md5
             $passwordValid = false;
+
             if (password_verify($password, $user->password)) {
                 $passwordValid = true;
-            } elseif (md5($password) === $user->password) {
-                // Legacy MD5 support - rehash password for future logins
-                $passwordValid = true;
-                $user->password = password_hash($password, PASSWORD_DEFAULT);
-                $user->remarks = $user->password;
-                $user->update();
             }
 
             if (! $passwordValid) {

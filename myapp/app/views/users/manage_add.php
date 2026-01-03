@@ -1,75 +1,82 @@
-<div class="inner-box-main sign-in-page">
-	<div class="left_signin">
 
-		<div id="sign_in" class="Xpop-up dashboard">
+<!-- Main content -->
+<section class="content">
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-12">
+				<div class="card">
+					<div class="card-header">
+						<h3 class="card-title">
+							<a href="<?php echo getUrl('manage/users') ?>">Users</a>
+						</h3>
+					</div>
+					<!-- /.card-header -->
+					<div class="card-body">
 
-			<div class="pop-up-title">
-				<h4 class="active">Add User</h4>
-				<div class="clear"></div>
-			</div>
-			<div class="pop-up-details dashboardf">
+						<form action="<?php echo getUrl('manage/users/add') ?> ?>"
+							method="post" id="editprofile" name="editprofile"
+							enctype="multipart/form-data">
 
-				<div class="dashboard_contents">
-
-					<form
-						action="<?php echo getUrl('manage/users/edit') ?>/<?php echo $user->id ?>"
-						method="post" id="editprofile" name="editprofile"
-						enctype="multipart/form-data">
-						<input type="hidden" id="id" name="id"
-							value="<?php echo $user->id; ?>">
-						<table width="1002" border="0">
-							<tr>
-								<td>First Name</td>
-								<td><input type="text" id="firstname" required="required"
-									name="firstname" value="<?php echo $user->firstname; ?>"></td>
-							</tr>
-							<tr>
-								<td>Last Name</td>
-								<td><input type="text" id="lastname" required="required"
-									value="<?php echo $user->lastname; ?>" name="lastname"></td>
-							</tr>
-							<tr>
-								<td>Email Address</td>
-								<td><input type="email" id="username" autocomplete="off"
-									value="<?php echo $user->username; ?>" required="required"
-									name="username"> <span id="handle_status"> </span></td>
-							</tr>
-							<tr>
-								<td>Password</td>
-								<td><input type="password" id="password" value=""
-									name="password" autocomplete="off"
-									pattern="(?=^.{6,46}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$">
-									<br> <span id="pass_chek1"></span>
-									<div
-										style="color: grey; font-size: 12px; line-height: 16px; margin-left: 10px; margin-top: 3px; width: 329px;">Password
-										must be 6 characters including one uppercase letter and
-										number.</div></td>
-							</tr>
-							<tr>
-								<td>Confirm Password</td>
-								<td><input type="password" id="confirm_password" value=""
-									name="confirm_password"> <span id="pass_chek"></span></td>
-							</tr>
-							<tr>
-								<td>&nbsp;</td>
-								<td><input type='hidden' id='country' name='country' value='NP'>
-									<input type='hidden' id='iserror1' name='iserror1' value='0'> <input
-									type='hidden' id='iserror1' name='iserror2' value='0'> <input
-									type="submit" value="Update Details" id="submit" class=""
-									name="submit" style="margin-left: 10px;"></td>
-							</tr>
-						</table>
-				
+							<table width="1002" border="0">
+								<tr>
+									<td>First Name</td>
+									<td><input type="text" id="firstname" required="required"
+										name="firstname"
+										value="<?php echo isset($user['firstname']) ? $user['firstname'] : '' ?>"></td>
+								</tr>
+								<tr>
+									<td>Last Name</td>
+									<td><input type="text" id="lastname" required="required"
+										value="<?php echo isset($user['lastname']) ? $user['lastname'] : '' ?>"
+										name="lastname"></td>
+								</tr>
+								<tr>
+									<td>Email Address</td>
+									<td><input type="email" id="username" autocomplete="off"
+										value="<?php echo isset($user['username']) ? $user['username'] : '' ?>"
+										required="required" name="username"> <span id="handle_status">
+									</span></td>
+								</tr>
+								<tr>
+									<td>Password</td>
+									<td><input type="password" id="password" value=""
+										name="password" autocomplete="off"
+										pattern="(?=^.{6,46}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$">
+										<br> <span id="pass_chek1"></span>
+										<div
+											style="color: grey; font-size: 12px; line-height: 16px; margin-left: 10px; margin-top: 3px; width: 329px;">Password
+											must be 6 characters including one uppercase letter and
+											number.</div></td>
+								</tr>
+								<tr>
+									<td>Confirm Password</td>
+									<td><input type="password" id="confirm_password" value=""
+										name="confirm_password"> <span id="pass_chek"></span></td>
+								</tr>
+								<tr>
+									<td>&nbsp;</td>
+									<td><input type='hidden' id='country' name='country' value='NP'>
+										<input type='hidden' id='iserror1' name='iserror1' value='0'>
+										<input type='hidden' id='iserror1' name='iserror2' value='0'>
+										<input type="submit" value="Update Details" id="submit"
+										class="" name="submit" style="margin-left: 10px;"></td>
+								</tr>
+							</table>
+					
+					</div>
+					<!-- /.card-body -->
 				</div>
-
-				<div style="clear: both;"></div>
+				<!-- /.card -->
 
 			</div>
-
-			<div style="clear: both;"></div>
+			<!-- /.col -->
 		</div>
+		<!-- /.row -->
 	</div>
-</div>
+	<!-- /.container-fluid -->
+</section>
+<!-- /.content -->
+
 <script type="text/javascript">
     $(document).ready(function () {
         $("#editprofile").submit(function (event) {

@@ -10,6 +10,8 @@
  #
  # Redistributions must retain the above copyright notice.
  */
+declare(strict_types = 1);
+
 define('APP_DIR', realpath(dirname(__FILE__)) . '/app/');
 
 require_once APP_DIR . 'coreroutines.php';

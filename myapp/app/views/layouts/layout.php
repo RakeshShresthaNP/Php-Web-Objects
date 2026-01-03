@@ -24,7 +24,9 @@ $pagetitle = isset($pagename) ? $pagename : SITE_TITLE;
 <body class="hold-transition login-page">
 
         <?php $splashmsgs[] = res()->getSplashMsg(); ?>
+        
         <?php echo ((isset($splashmsgs) && is_array($splashmsgs)) ? implode("<br />\n", $splashmsgs) : ''); ?>
+        
         <?php echo isset($mainregion) ? $mainregion : '' ?>  
 
         <!-- jQuery -->
