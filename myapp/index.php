@@ -31,7 +31,7 @@ try {
     $data['code'] = $e->getCode();
     $data['error'] = $e->getMessage();
 
-    writeLog('apiexception_' . date('Y_m_d'), $data['error']);
+    writeLog('apiexception_' . date('Y_m_d'), $data);
 
     $response->json($data);
 } catch (Exception $e) {
@@ -41,7 +41,7 @@ try {
         $data['layout'] = false;
     }
 
-    writeLog('exception_' . date('Y_m_d'), $data['message']);
+    writeLog('exception_' . date('Y_m_d'), $data);
 
     $response->display($data, 'errors/exception');
 }

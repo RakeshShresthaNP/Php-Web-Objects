@@ -32,14 +32,21 @@
  */
 final class NTLMStream
 {
+
     private string $path;
+
     private int $mode;
+
     private int $options;
+
     private ?string $opened_path;
+
     private ?string $buffer = null;
+
     private int $pos = 0;
 
     private static string $user = '';
+
     private static string $password = '';
 
     /** @var resource|\CurlHandle|null */
@@ -78,12 +85,12 @@ final class NTLMStream
 
     public function stream_write(string $data): bool
     {
-        return !empty($this->buffer);
+        return ! empty($this->buffer);
     }
 
     public function stream_eof(): bool
     {
-        return $this->pos >= strlen((string)$this->buffer);
+        return $this->pos >= strlen((string) $this->buffer);
     }
 
     public function stream_tell(): int
@@ -98,21 +105,27 @@ final class NTLMStream
         return true;
     }
 
-    /** @return array<string, int> */
+    /**
+     *
+     * @return array<string, int>
+     */
     public function stream_stat(): array
     {
         $this->createBuffer($this->path);
         return [
-            'size' => strlen((string)$this->buffer)
+            'size' => strlen((string) $this->buffer)
         ];
     }
 
-    /** @return array<string, int> */
+    /**
+     *
+     * @return array<string, int>
+     */
     public function url_stat(string $path, int $flags): array
     {
         $this->createBuffer($path);
         return [
-            'size' => strlen((string)$this->buffer)
+            'size' => strlen((string) $this->buffer)
         ];
     }
 
@@ -127,9 +140,9 @@ final class NTLMStream
         curl_setopt($this->ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         curl_setopt($this->ch, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
         curl_setopt($this->ch, CURLOPT_USERPWD, self::$user . ':' . self::$password);
-        
+
         $result = curl_exec($this->ch);
-        $this->buffer = ($result === false) ? '' : (string)$result;
+        $this->buffer = ($result === false) ? '' : (string) $result;
         $this->pos = 0;
     }
 
@@ -142,21 +155,23 @@ final class NTLMStream
 
 class CurlSoapClient extends SoapClient
 {
+
     private array $options = [];
+
     private bool $use_ntlm = false;
 
-    public function __construct(string $url, array $data)
+    public function __construct(string $url, array &$data)
     {
         $this->options = $data;
 
-        $hasUser = !empty($data['ntlm_username']);
-        $hasPass = !empty($data['ntlm_password']);
+        $hasUser = ! empty($data['ntlm_username']);
+        $hasPass = ! empty($data['ntlm_password']);
 
-        if (!$hasUser && !$hasPass) {
+        if (! $hasUser && ! $hasPass) {
             parent::__construct($url, $data);
         } else {
             $this->use_ntlm = true;
-            NTLMStream::setCredentials((string)$data['ntlm_username'], (string)$data['ntlm_password']);
+            NTLMStream::setCredentials((string) $data['ntlm_username'], (string) $data['ntlm_password']);
 
             stream_wrapper_unregister('http');
             stream_wrapper_unregister('https');
@@ -172,6 +187,7 @@ class CurlSoapClient extends SoapClient
     }
 
     /**
+     *
      * @param string $request
      * @param string $location
      * @param string $action
@@ -179,7 +195,7 @@ class CurlSoapClient extends SoapClient
      * @param int $one_way
      * @return string|null
      */
-    public function __doRequest($request, $location, $action, $version, $one_way = 0): ?string
+    public function __doRequest(string $request, string $location, string $action, int $version = 1, int $one_way = 0): ?string
     {
         $this->__last_request = $request;
 
@@ -197,7 +213,7 @@ class CurlSoapClient extends SoapClient
         curl_setopt($ch, CURLOPT_POSTFIELDS, $request);
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 
-        if (!empty($this->options['ntlm_username']) && !empty($this->options['ntlm_password'])) {
+        if (! empty($this->options['ntlm_username']) && ! empty($this->options['ntlm_password'])) {
             curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_NTLM);
             curl_setopt($ch, CURLOPT_USERPWD, $this->options['ntlm_username'] . ':' . $this->options['ntlm_password']);
         }
@@ -206,7 +222,7 @@ class CurlSoapClient extends SoapClient
         $response = curl_exec($ch);
         curl_close($ch);
 
-        return $response === false ? null : (string)$response;
+        return $response === false ? null : (string) $response;
     }
 }
 

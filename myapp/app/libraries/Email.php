@@ -12,19 +12,29 @@
  */
 final class Email
 {
+
     private string $_crlf = "\r\n";
+
     private int $_wrap = 78;
+
     /** @var string[] */
     private array $_to = [];
+
     private string $_subject = '';
+
     private string $_message = '';
+
     /** @var string[] */
     private array $_headers = [];
+
     private string $_parameters = '-f';
+
     /** @var string[] */
     private array $_attachments = [];
+
     /** @var string[] */
     private array $_attachmentsPath = [];
+
     /** @var string[] */
     private array $_attachmentsFilename = [];
 
@@ -58,7 +68,10 @@ final class Email
         return $this;
     }
 
-    /** @return string[] */
+    /**
+     *
+     * @return string[]
+     */
     public function getTo(): array
     {
         return $this->_to;
@@ -127,10 +140,10 @@ final class Email
      */
     public function getAttachmentData(string $path): string
     {
-        if (!is_readable($path)) {
+        if (! is_readable($path)) {
             throw new RuntimeException("File not readable: $path");
         }
-        
+
         $attachment = file_get_contents($path);
         return chunk_split(base64_encode($attachment));
     }
@@ -154,7 +167,10 @@ final class Email
         return $this;
     }
 
-    /** @return string[] */
+    /**
+     *
+     * @return string[]
+     */
     public function getHeaders(): array
     {
         return $this->_headers;
@@ -184,12 +200,12 @@ final class Email
 
     public function hasAttachments(): bool
     {
-        return !empty($this->_attachments);
+        return ! empty($this->_attachments);
     }
 
     public function assembleAttachmentHeaders(): string
     {
-        $u = md5(uniqid((string)time(), true));
+        $u = md5(uniqid((string) time(), true));
 
         $h = "\r\nMIME-Version: 1.0\r\n";
         $h .= "Content-Type: multipart/mixed; boundary=\"" . $u . "\"\r\n\r\n";
@@ -213,8 +229,8 @@ final class Email
 
     public function send(): bool
     {
-        $headers = (!empty($this->_headers)) ? implode($this->_crlf, $this->_headers) : '';
-        $to = (!empty($this->_to)) ? implode(", ", $this->_to) : '';
+        $headers = (! empty($this->_headers)) ? implode($this->_crlf, $this->_headers) : '';
+        $to = (! empty($this->_to)) ? implode(", ", $this->_to) : '';
 
         if (empty($to)) {
             return false;
@@ -243,21 +259,40 @@ final class Email
 
     public function filterEmail(string $email): string
     {
-        $rule = ["\r" => '', "\n" => '', "\t" => '', '"' => '', ',' => '', '<' => '', '>' => ''];
+        $rule = [
+            "\r" => '',
+            "\n" => '',
+            "\t" => '',
+            '"' => '',
+            ',' => '',
+            '<' => '',
+            '>' => ''
+        ];
         $email = strtr($email, $rule);
-        return (string)filter_var($email, FILTER_SANITIZE_EMAIL);
+        return (string) filter_var($email, FILTER_SANITIZE_EMAIL);
     }
 
     public function filterName(string $name): string
     {
-        $rule = ["\r" => '', "\n" => '', "\t" => '', '"' => "'", '<' => '[', '>' => ']'];
+        $rule = [
+            "\r" => '',
+            "\n" => '',
+            "\t" => '',
+            '"' => "'",
+            '<' => '[',
+            '>' => ']'
+        ];
         $sanitized = htmlspecialchars($name, ENT_QUOTES | ENT_HTML5, 'UTF-8', false);
         return trim(strtr($sanitized, $rule));
     }
 
     public function filterOther(string $data): string
     {
-        $rule = ["\r" => '', "\n" => '', "\t" => ''];
+        $rule = [
+            "\r" => '',
+            "\n" => '',
+            "\t" => ''
+        ];
         $sanitized = htmlspecialchars($data, ENT_QUOTES | ENT_HTML5, 'UTF-8', false);
         return strtr($sanitized, $rule);
     }

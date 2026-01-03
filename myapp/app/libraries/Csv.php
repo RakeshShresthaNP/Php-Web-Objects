@@ -1,28 +1,42 @@
 <?php
 
 /**
- * Modernized CSV Handler
+ # Copyright Rakesh Shrestha (rakesh.shrestha@gmail.com)
+ # All rights reserved.
+ #
+ # Redistribution and use in source and binary forms, with or without
+ # modification, are permitted provided that the following conditions are
+ # met:
+ #
+ # Redistributions must retain the above copyright notice.
  */
 final class Csv
 {
+
     private string $enclosure = '"';
+
     private string $delimiter = ',';
+
     private string $escape = '\\';
+
     private int $numFields = 0;
 
     /**
-     * @param string $file Path to the file
-     * @param bool $headersOnly If true, returns only the header array
+     *
+     * @param string $file
+     *            Path to the file
+     * @param bool $headersOnly
+     *            If true, returns only the header array
      * @return Generator|array|int Returns a Generator for rows, array for headers, or 0 on failure
      */
     public function load(string $file, bool $headersOnly = false): mixed
     {
-        if (!is_readable($file)) {
+        if (! is_readable($file)) {
             return 0;
         }
 
         $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-        
+
         // Auto-detect delimiter based on extension
         if ($ext === 'txt') {
             $this->delimiter = "\t";
@@ -36,7 +50,7 @@ final class Csv
             while (($data = fgetcsv($handle, 0, $this->delimiter, $this->enclosure, $this->escape)) !== false) {
                 // Process Headers
                 if ($rowIdx === 1) {
-                    $headers = array_map(fn($v) => mb_strtolower(trim($v)), $data);
+                    $headers = array_map(fn ($v) => mb_strtolower(trim($v)), $data);
                     $this->numFields = count($headers);
 
                     if ($this->numFields < 2) {
@@ -47,7 +61,7 @@ final class Csv
                         return $headers;
                     }
 
-                    $rowIdx++;
+                    $rowIdx ++;
                     continue;
                 }
 
@@ -56,7 +70,7 @@ final class Csv
                     yield array_combine($headers, $data);
                 }
 
-                $rowIdx++;
+                $rowIdx ++;
             }
         } finally {
             fclose($handle);
@@ -66,16 +80,16 @@ final class Csv
     /**
      * Writes CSV data directly to the output stream
      */
-    public function write(array $headers = [], array $rows = [], ?string $delimiter = null): void
+    public function write(array &$headers = [], array &$rows = [], ?string $delimiter = null): void
     {
         $delimiter ??= $this->delimiter;
-        
+
         // Open php://output to write directly to the buffer
         $handle = fopen('php://output', 'w');
 
         // Write Headers
-        if (!empty($headers)) {
-            $cleanHeaders = array_map(fn($v) => mb_strtolower($v), $headers);
+        if (! empty($headers)) {
+            $cleanHeaders = array_map(fn ($v) => mb_strtolower($v), $headers);
             fputcsv($handle, $cleanHeaders, $delimiter, $this->enclosure, $this->escape);
         }
 

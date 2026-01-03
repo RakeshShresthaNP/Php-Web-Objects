@@ -13,17 +13,17 @@
 require_once APP_DIR . 'config/config.php';
 
 // begin core functions
-function req(): object
+function req(): Request
 {
     return Request::getContext();
 }
 
-function res(): object
+function res(): Response
 {
     return Response::getContext();
 }
 
-function db(): object
+function db(): Pdo
 {
     return DB::getContext();
 }
@@ -38,7 +38,7 @@ function setCurrentUser(array &$userdata = array()): void
     Session::getContext(SESS_TYPE)->set('authUser', $userdata);
 }
 
-function getCurrentUser(): object|null
+function getCurrentUser(): ?object
 {
     $authUser = Session::getContext(SESS_TYPE)->get('authUser');
     if ($authUser) {
@@ -74,7 +74,7 @@ function clean(string $string = null): string
     return strip_tags(mb_trim($string));
 }
 
-function cleanHtml(string $html = null): string
+function cleanHtml(string $html = ''): string
 {
     static $allowed_tags = array(
         'a',
@@ -91,17 +91,13 @@ function cleanHtml(string $html = null): string
         'table',
         'tr',
         'td',
-        'tbody',
-        'thead',
-        'th',
         'br',
         'b',
         'i',
         'p'
     );
-    return preg_replace_callback('/<\/?([^>\s]+)[^>]*>/i', function ($matches) use ($allowed_tags) {
-        return in_array(mb_strtolower($matches[1]), $allowed_tags, true) ? $matches[0] : '';
-    }, $html);
+
+    return strip_tags($html, $allowed_tags);
 }
 
 function getRequestIP(): string
@@ -174,7 +170,7 @@ if (! function_exists('bool_array_search')) {
 
 if (! function_exists('mb_ucwords')) {
 
-    function mb_ucwords(string $str = null): string
+    function mb_ucwords(string $str = ''): string
     {
         return mb_convert_case($str, MB_CASE_TITLE, "UTF-8");
     }
@@ -313,17 +309,12 @@ if (! function_exists('array_map_recursive')) {
 
 function customError(int $errno, string $errstr, string $errfile, int $errline): void
 {
-    // Respect the error suppression operator (@)
-    if (!(error_reporting() & $errno)) {
-        return;
-    }
-
     // Build the log data as an array for cleaner writeLog handling
     $logData = [
-        'errno'   => $errno,
+        'errno' => $errno,
         'message' => $errstr,
-        'file'    => $errfile,
-        'line'    => $errline,
+        'file' => $errfile,
+        'line' => $errline,
         'context' => 'Execution Terminated'
     ];
 
@@ -337,14 +328,6 @@ function customError(int $errno, string $errstr, string $errfile, int $errline):
 
     // Modern status code for errors
     http_response_code(500);
-
-    // Display the error
-    echo "<div class='error' style='text-align:left; border:1px solid #cc0000; padding:15px; background:#fff5f5; font-family:sans-serif;'>";
-    echo "<b style='color:#cc0000;'>Custom error:</b> [{$errno}] " . htmlspecialchars($errstr) . "<br />";
-    echo "Error on line <b>{$errline}</b> in <code>" . htmlspecialchars($errfile) . "</code><br />";
-    echo "<hr />";
-    echo "<i>Script execution terminated.</i>";
-    echo "</div>";
 
     // Stop execution completely
     exit(1);
@@ -422,7 +405,7 @@ final class DB
             self::$_context->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             self::$_context->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
         } catch (PDOException $ex) {
-            throw $ex;
+            throw new Exception($ex);
         }
 
         return self::$_context;
@@ -448,7 +431,7 @@ final class Session
 final class View
 {
 
-    public static function assign(array &$vars = array(), string $viewname = null): string
+    public static function assign(array &$vars = array(), string $viewname = ''): string
     {
         $req = req();
         if (is_array($vars)) {
@@ -462,7 +445,7 @@ final class View
         return ob_get_clean();
     }
 
-    public static function display(array &$vars = array(), string $viewname = null): void
+    public static function display(array &$vars = array(), string $viewname = ''): void
     {
         $req = req();
         if ($viewname == null) {
@@ -620,7 +603,7 @@ final class Request
         return new $cont();
     }
 
-    public function verifyMethod($controller, string $methodname = ''): string
+    public function verifyMethod(&$controller, string $methodname = ''): string
     {
         if (! method_exists($controller, $methodname)) {
             $this->method = MAIN_METHOD;
@@ -675,7 +658,7 @@ final class Response
         http_response_code($status);
     }
 
-    public function redirect(string $path = null, string $alertmsg = null): void
+    public function redirect(string $path = '', string $alertmsg = ''): void
     {
         if ($alertmsg) {
             $this->addSplashMsg($alertmsg);
@@ -687,7 +670,7 @@ final class Response
         exit();
     }
 
-    public function display(array &$data = array(), string $viewname = null): void
+    public function display(array &$data = array(), string $viewname = ''): void
     {
         View::display($data, $viewname);
     }
@@ -724,12 +707,12 @@ final class Response
         echo json_encode($data, JSON_UNESCAPED_SLASHES);
     }
 
-    public function assign(array &$data = array(), string $viewname = null): string
+    public function assign(array &$data = array(), string $viewname = ''): string
     {
         return View::assign($data, $viewname);
     }
 
-    public static function addSplashMsg(string $msg = null): void
+    public static function addSplashMsg(string $msg = ''): void
     {
         Session::getContext(SESS_TYPE)->set('splashmessage', $msg);
     }

@@ -12,17 +12,25 @@
  */
 final class FCM
 {
+
     // ... [Previous constants remains] ...
     const FCM_V1_URL = 'https://fcm.googleapis.com/v1/projects/%s/messages:send';
 
     private string $project_id;
-    private string $bearer_token; // For OAuth2
+
+    private string $bearer_token;
+
+    // For OAuth2
     private array $message = [];
+
     private array $header = [];
 
     /**
-     * @param string $project_id Your Firebase Project ID (required for v1)
-     * @param string $bearer_token OAuth2 Access Token
+     *
+     * @param string $project_id
+     *            Your Firebase Project ID (required for v1)
+     * @param string $bearer_token
+     *            OAuth2 Access Token
      */
     function __construct(string $project_id, string $bearer_token = '')
     {
@@ -42,7 +50,7 @@ final class FCM
     /**
      * Extension: Enhanced Android/iOS specific configurations
      */
-    public function send_v1_notification(string $token, string $title, string $body, array $extra_data = [])
+    public function send_v1_notification(string $token, string $title, string $body, array &$extra_data = [])
     {
         $url = sprintf(self::FCM_V1_URL, $this->project_id);
 
