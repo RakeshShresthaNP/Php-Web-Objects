@@ -24,7 +24,7 @@ final class cHome extends cController
     {
         $data['pagetitle'] = SITE_TITLE;
 
-        $this->res->display($data);
+        $this->res->view($data);
     }
 
     public function manage_index()
@@ -35,7 +35,7 @@ final class cHome extends cController
 
         $data['pagetitle'] = SITE_TITLE;
 
-        $this->res->display($data);
+        $this->res->view($data);
     }
 
     public function dashboard_index()
@@ -46,6 +46,6 @@ final class cHome extends cController
 
         $data['pagetitle'] = SITE_TITLE;
 
-        $this->res->display($data);
+        $this->res->view($data);
     }
 }

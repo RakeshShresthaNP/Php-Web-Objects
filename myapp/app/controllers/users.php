@@ -22,7 +22,7 @@ final class cUsers extends cAdminController
     {
         $data['pagetitle'] = SITE_TITLE;
 
-        $this->res->display($data);
+        $this->res->view($data);
     }
 
     public function manage_index()
@@ -32,7 +32,7 @@ final class cUsers extends cAdminController
         $user = new model('users');
         $data['users'] = $user->select('*', 'perms <> ?', 'superadmin');
 
-        $this->res->display($data);
+        $this->res->view($data);
     }
 
     public function manage_add()
@@ -68,7 +68,7 @@ final class cUsers extends cAdminController
 
         $data['user'] = $user;
 
-        $this->res->display($data);
+        $this->res->view($data);
     }
 
     public function manage_edit($id = 0)
@@ -103,7 +103,7 @@ final class cUsers extends cAdminController
             $this->res->redirect('manage/users', 'User Updated Successfully');
         }
 
-        $this->res->display($data);
+        $this->res->view($data);
     }
 
     public function manage_disable($userid = 0)

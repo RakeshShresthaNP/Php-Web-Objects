@@ -91,7 +91,7 @@ final class cLogin extends cController
             exit();
         }
 
-        $this->res->display($data, 'main/login_form');
+        $this->res->view($data, 'main/login_form');
     }
 
     public function forgotpass()
@@ -147,7 +147,7 @@ final class cLogin extends cController
             $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">Your password has been mailed to you!</div>');
         }
 
-        $this->res->display($data, 'main/login_forgotpass');
+        $this->res->view($data, 'main/login_forgotpass');
     }
 
     public function logout()

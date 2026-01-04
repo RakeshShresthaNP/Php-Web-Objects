@@ -676,7 +676,7 @@ final class Response
         exit();
     }
 
-    public function display(array &$data = array(), string $viewname = ''): void
+    public function view(array &$data = array(), string $viewname = ''): void
     {
         View::display($data, $viewname);
     }
@@ -718,17 +718,21 @@ final class Response
         return View::assign($data, $viewname);
     }
 
-    public static function addSplashMsg($msg = ''): void
+    public static function addSplashMsg(string $msg = ''): void
     {
         Session::getContext(SESS_TYPE)->set('splashmessage', $msg);
     }
 
-    public static function getSplashMsg()
+    public static function getSplashMsg(): ?string
     {
         $sess = Session::getContext(SESS_TYPE);
         $msg = $sess->get('splashmessage');
-        $sess->set('splashmessage', null);
-        return $msg ? $msg : null;
+        if ($msg) {
+            $sess->set('splashmessage', null);
+            return $msg;
+        } else {
+            return null;
+        }
     }
 
     private function _get_status_message(int $code = 200): string
@@ -806,6 +810,14 @@ abstract class cAdminController extends cController
         }
 
         $this->cusertype = $this->user->perms;
+
+        if ($this->request->pathprefix == 'manage' && $this->cusertype != 'superadmin') {
+            $response->redirect('login', 'Invalid Access');
+        }
+
+        if ($this->request->pathprefix == 'dashboard' && $this->cusertype != 'user') {
+            $response->redirect('login', 'Invalid Access');
+        }
     }
 }
 
@@ -817,8 +829,8 @@ final class Application
     {
         $cusertype = 'none';
         $apimode = false;
-
-        $uriparts = explode('/', mb_str_replace(SITE_URI . PATH_URI, '', SITE_URI . $_SERVER['REQUEST_URI']));
+        
+        $uriparts = explode('/', mb_str_replace(array(SITE_URI . PATH_URI, '?'. $_SERVER['QUERY_STRING']), '', SITE_URI . $_SERVER['REQUEST_URI']));
         $uriparts = array_filter($uriparts);
 
         $pathPrefixes = unserialize(PATH_PREFIX);
@@ -833,12 +845,8 @@ final class Application
 
         $user = $request->getPayloadData();
 
-        if (! $user) {
-            $user = getCurrentUser();
-            $cusertype = getCurrentUserType();
+        if ($user) {
             $apimode = true;
-        } else {
-            $cusertype = $user->perms;
         }
 
         $request->method = ($c = array_shift($uriparts)) ? $request->pathprefix . mb_str_replace($pathPrefixes, '', $c) : $request->pathprefix . MAIN_METHOD;
@@ -846,14 +854,6 @@ final class Application
         $con = $request->verifyController($request->pathprefix, $request->controller);
 
         $met = $request->verifyMethod($con, $request->method);
-
-        if ($request->pathprefix == 'manage' && $cusertype != 'superadmin') {
-            $response->redirect('login', 'Invalid Access');
-        }
-
-        if ($request->pathprefix == 'dashboard' && $cusertype != 'user') {
-            $response->redirect('login', 'Invalid Access');
-        }
 
         $args = (isset($uriparts[0])) ? $uriparts : array();
 

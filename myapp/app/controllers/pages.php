@@ -22,34 +22,34 @@ final class cPages extends cAdminController
     {
         $data['pagetitle'] = SITE_TITLE;
 
-        $this->res->display($data);
+        $this->res->view($data);
     }
 
     public function dashboard_advancedforms()
     {
         $data['pagename'] = 'Advanced Forms';
 
-        $this->res->display($data);
+        $this->res->view($data);
     }
 
     public function dashboard_simpletables()
     {
         $data['pagename'] = 'Simple Tables';
 
-        $this->res->display($data);
+        $this->res->view($data);
     }
 
     public function manage_advancedforms()
     {
         $data['pagename'] = 'Advanced Forms';
 
-        $this->res->display($data);
+        $this->res->view($data);
     }
 
     public function manage_simpletables()
     {
         $data['pagename'] = 'Simple Tables';
 
-        $this->res->display($data);
+        $this->res->view($data);
     }
 }

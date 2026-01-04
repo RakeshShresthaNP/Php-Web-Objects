@@ -22,7 +22,7 @@ final class cProfile extends cAuthController
     {
         $data['pagetitle'] = SITE_TITLE;
 
-        $this->res->display($data);
+        $this->res->view($data);
     }
 
     public function api_search()

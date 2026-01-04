@@ -12,6 +12,8 @@
  */
 declare(strict_types = 1);
 
+$time = microtime(true);
+
 define('APP_DIR', realpath(dirname(__FILE__)) . '/app/');
 
 require_once APP_DIR . 'coreroutines.php';
@@ -47,3 +49,6 @@ try {
 
     $response->display($data, 'errors/exception');
 }
+
+echo sprintf("Execution time: %f seconds\nMemory usage: %f MB\n\n", microtime(true) - $time, memory_get_usage(true) / 1024 / 1024);
+
