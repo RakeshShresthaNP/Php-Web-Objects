@@ -77,7 +77,7 @@ function clean(string $string = null): string
     return strip_tags(mb_trim($string));
 }
 
-function cleanHtml(string $html = ''): string
+function cleanHtml($html = ''): ?string
 {
     static $allowed_tags = array(
         'a',
@@ -99,8 +99,12 @@ function cleanHtml(string $html = ''): string
         'i',
         'p'
     );
-
-    return strip_tags($html, $allowed_tags);
+    
+    if (is_string($html)) {
+        return strip_tags($html, $allowed_tags);
+    } else {
+        return null;
+    }
 }
 
 function getRequestIP(): string
@@ -710,7 +714,7 @@ final class Response
 
         $this->setHeader('Content-Type: application/json; charset=utf-8');
 
-        echo json_encode($data, JSON_UNESCAPED_SLASHES);
+        echo json_encode($data, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR | JSON_FORCE_OBJECT);
     }
 
     public function assign(array &$data = array(), string $viewname = ''): string
@@ -811,12 +815,12 @@ abstract class cAdminController extends cController
 
         $this->cusertype = $this->user->perms;
 
-        if ($this->request->pathprefix == 'manage' && $this->cusertype != 'superadmin') {
-            $response->redirect('login', 'Invalid Access');
+        if ($this->req->pathprefix == 'manage' && $this->cusertype != 'superadmin') {
+            $this->res->redirect('login', 'Invalid Access');
         }
 
-        if ($this->request->pathprefix == 'dashboard' && $this->cusertype != 'user') {
-            $response->redirect('login', 'Invalid Access');
+        if ($this->req->pathprefix == 'dashboard' && $this->cusertype != 'user') {
+            $this->res->redirect('login', 'Invalid Access');
         }
     }
 }

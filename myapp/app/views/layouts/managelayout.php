@@ -259,8 +259,7 @@ $pagetitle = isset($pagename) ? $pagename : SITE_TITLE;
 
 		<!-- Content Wrapper. Contains page content -->
 		<div class="content-wrapper">
-			<!-- Content Header (Page header) -->
-			<section class="content-header">
+			<!-- section class="content-header">
 				<div class="container-fluid">
 					<div class="row mb-2">
 						<div class="col-sm-6">
@@ -274,8 +273,8 @@ $pagetitle = isset($pagename) ? $pagename : SITE_TITLE;
 						</div>
 					</div>
 				</div>
-				<!-- /.container-fluid -->
-			</section>
+			</section-->
+			<br>
 
             <?php
 
@@ -303,7 +302,7 @@ $pagetitle = isset($pagename) ? $pagename : SITE_TITLE;
             </div>
 
 		<footer class="main-footer">
-			<strong>Copyright &copy; 2014-2020 <a href="#">PHP Web Objects</a>.
+			<strong>Copyright &copy; 2014 - <?php echo date('Y') ?> <a href="#">PHP Web Objects</a>.
 			</strong> All rights reserved.
 			<div class="float-right d-none d-sm-inline-block">
 				<b>Version</b> 1.0
@@ -360,7 +359,7 @@ $pagetitle = isset($pagename) ? $pagename : SITE_TITLE;
 	<script
 		src="<?php echo getUrl('assets/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') ?>"></script>
 	<!-- AdminLTE App -->
-	<script src="<?php echo getUrl('assets/dist/js/adminlte.js') ?>"></script>
+	<script src="<?php echo getUrl('assets/dist/js/adminlte.min.js') ?>"></script>
 	<script src="<?php echo getUrl('assets/dist/js/demo.js') ?>"></script>
 	<script src="<?php echo getUrl('assets/dist/js/pages/dashboard.js') ?>"></script>
 </body>

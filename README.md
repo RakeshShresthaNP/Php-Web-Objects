@@ -29,10 +29,10 @@ Password Values
 6. Uri to controller mapping
 7. Very lightweight template engine
 8. PHP native Views
-9. Zero dependencies, add extra libraries only when you need it
+9. Zero dependencies, add extra libraries only when you need it and load libary only when needed using php native dependency injection mechanism
 10. Builtin libraries for various SessionStorageHandlers as well as Cache (Redis, Memcached)
 11. Useful builtin libraries for mail, firebase messaging, smpp (smsc), amazon s3 storage, geometry classes and format conversion routines, SoapClient for NTLMStream, encryption, excelxlsx import, pagination, jwt api and QR code
-12. Builtin machine learning libraries for Rule Learning, Classification, Regression, Clustering, Metric, Workflow, Neural Network, Cross Validation, Feature Selection, Preprocessing, Feature Extraction, Models Management and Math Routines (Set, Matrix, Statistic, Distance)
+12. Builtin Machine Learning libraries for Rule Learning, Classification, Regression, Clustering, Metric, Workflow, Neural Network, Cross Validation, Feature Selection, Preprocessing, Feature Extraction, Models Management and Mathematics Routines
 13. Builtin XSS security
 14. Builtin SQL injection security
 

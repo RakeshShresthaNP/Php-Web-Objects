@@ -79,7 +79,7 @@ AddDefaultCharset utf-8
 
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^(.*)$ index.php [L,QSA]
+    RewriteRule ^ index.php [L,QSA]
 </IfModule>
 
 SetOutputFilter DEFLATE	
