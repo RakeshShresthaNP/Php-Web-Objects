@@ -77,7 +77,7 @@ function clean(string $string = null): string
     return strip_tags(mb_trim($string));
 }
 
-function cleanHtml($html = ''): ?string
+function cleanHtml($html = '')
 {
     static $allowed_tags = array(
         'a',
@@ -103,7 +103,7 @@ function cleanHtml($html = ''): ?string
     if (is_string($html)) {
         return strip_tags($html, $allowed_tags);
     } else {
-        return null;
+        return $html;
     }
 }
 
@@ -832,6 +832,7 @@ final class Application
     public static function process(Request &$request, Response &$response): void
     {
         $cusertype = 'none';
+        
         $apimode = false;
         
         $uriparts = explode('/', mb_str_replace(array(SITE_URI . PATH_URI, '?'. $_SERVER['QUERY_STRING']), '', SITE_URI . $_SERVER['REQUEST_URI']));

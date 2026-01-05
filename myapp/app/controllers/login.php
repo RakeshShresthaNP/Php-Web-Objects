@@ -75,7 +75,7 @@ final class cLogin extends cController
 
             setCurrentUser($cuser);
 
-            $cutype = getCurrentUserType();
+            $cutype = $cuser->perms;
 
             if ($cutype == 'superadmin') {
                 $this->res->redirect('manage');

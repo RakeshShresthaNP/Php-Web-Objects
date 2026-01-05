@@ -14,7 +14,7 @@ Optional
 1. Curl -- In order to use firebase messaging, curl extended soap client with ntlmstream support and Amazon S3 Storage
 2. Memcached or Redis
 
-We recommend opcache is enabled. After PHP7, PHP has builtin support.
+We recommend opcache is enabled. After PHP7, PHP has builtin support for it.
 
 Password Values
 1. superadmin@gmail.com = Mytest123
@@ -29,12 +29,14 @@ Password Values
 6. Uri to controller mapping
 7. Very lightweight template engine
 8. PHP native Views
-9. Zero dependencies, add extra libraries only when you need it and load libary only when needed using php native dependency injection mechanism
-10. Builtin libraries for various SessionStorageHandlers as well as Cache (Redis, Memcached)
-11. Useful builtin libraries for mail, firebase messaging, smpp (smsc), amazon s3 storage, geometry classes and format conversion routines, SoapClient for NTLMStream, encryption, excelxlsx import, pagination, jwt api and QR code
-12. Builtin Machine Learning libraries for Rule Learning, Classification, Regression, Clustering, Metric, Workflow, Neural Network, Cross Validation, Feature Selection, Preprocessing, Feature Extraction, Models Management and Mathematics Routines
-13. Builtin XSS security
-14. Builtin SQL injection security
+9. Load libary only when needed using php native dependency injection mechanism
+10. Libraries for various SessionStorageHandlers as well as Cache (Redis, Memcached)
+11. Libraries for mail, firebase messaging, smpp (smsc), amazon s3 storage, geometry classes and format conversion routines, SoapClient for NTLMStream, encryption, excelxlsx import, pagination, jwt api and QR code
+12. Machine Learning libraries for Rule Learning, Classification, Regression, Clustering, Metric, Workflow, Neural Network, Cross Validation, Feature Selection, Preprocessing, Feature Extraction, Models Management and Mathematics Routines
+13. Finance libraries Time Series Analysis, Options Pricing, Regression Analysis, Risk Metrics
+14. GeminiAI library for Generative Model, Streaming responses and Streaming Chat Session with (Multi-Turn Conversations), Text generation with system instruction and Multimodal input
+15. Builtin XSS security
+16. Builtin SQL injection security
 
 ### Database Recommended Best Practises when using php web objects framework
 1. Use Views for querying information

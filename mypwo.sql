@@ -34,14 +34,15 @@ CREATE TABLE IF NOT EXISTS `users` (
   `registerip` varchar(50) NOT NULL,
   `created` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci PAGE_CHECKSUM=1;
 
 -- Dumping data for table pwotest.users: 2 rows
 DELETE FROM `users`;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 INSERT INTO `users` (`id`, `username`, `password`, `firstname`, `lastname`, `country`, `perms`, `status`, `remarks`, `registerip`, `created`) VALUES
 	(1, 'superadmin@gmail.com', '$2y$12$5qwHKGAGImFrsQILwLldW.DMSc9FX6EWuCT2.n9yzaESaKGbqYAZm', 'Super', 'Admin', 'NP', 'superadmin', 1, '', '', '2019-03-11 11:29:42'),
-	(2, 'user@gmail.com', '$2y$12$5qwHKGAGImFrsQILwLldW.DMSc9FX6EWuCT2.n9yzaESaKGbqYAZm', 'My', 'User', 'NP', 'user', 1, '', '', '2019-03-11 11:29:42');
+	(2, 'admin@gmail.com', '$2y$12$5qwHKGAGImFrsQILwLldW.DMSc9FX6EWuCT2.n9yzaESaKGbqYAZm', 'User', 'Admin', 'NP', 'admin', 1, '', '', '2019-03-11 11:29:42'),
+	(3, 'user@gmail.com', '$2y$12$5qwHKGAGImFrsQILwLldW.DMSc9FX6EWuCT2.n9yzaESaKGbqYAZm', 'My', 'User', 'NP', 'user', 1, '', '', '2019-03-11 11:29:42');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
