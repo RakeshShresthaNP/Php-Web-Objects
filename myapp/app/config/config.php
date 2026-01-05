@@ -45,16 +45,15 @@ define('PATH_URI', dirname($_SERVER["SCRIPT_NAME"]));
 
 define('SITE_TITLE', 'PWO');
 
-define('GEOIP_API_KEY', '');
-
 define('PATH_PREFIX', serialize(array(
     'dashboard',
     'manage',
     'api'
 )));
 
+define('GEOIP_API_KEY', '');
 define('FIREBASE_API_KEY', '');
-define('SECRET_KEY', 'PHpisVeryCOOLDear1234##Isitso');
+define('GEMINI_API_KEY', '');
 
 define('SYSTEM_EMAIL', '');
 
@@ -66,10 +65,9 @@ define('CACHE_TYPE', 'Memcached');
 define('SESS_TIMEOUT', 1800);
 define('SESS_TYPE', 'Database');
 
-define('PAGINATE_PUBLICLIMIT', '1500');
-define('PAGINATE_LIMIT', '10');
-
 define('CONT_DIR', APP_DIR . 'controllers/');
 define('LIBS_DIR', APP_DIR . 'libraries/');
 define('VIEW_DIR', APP_DIR . 'views/');
 define('MODS_DIR', APP_DIR . 'models/');
+
+define('SECRET_KEY', 'PHpisVeryCOOLDear1234##Isitso');
