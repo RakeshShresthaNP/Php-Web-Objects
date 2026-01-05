@@ -714,7 +714,7 @@ final class Response
 
         $this->setHeader('Content-Type: application/json; charset=utf-8');
 
-        echo json_encode($data, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR | JSON_FORCE_OBJECT);
+        echo json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK |  JSON_INVALID_UTF8_SUBSTITUTE | JSON_FORCE_OBJECT);
     }
 
     public function assign(array &$data = array(), string $viewname = ''): string
