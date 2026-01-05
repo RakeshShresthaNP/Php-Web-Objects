@@ -1,0 +1,15 @@
+{
+  "name": "RakeshShresthaNP/Php-Web-Objects",
+  "description": "Simple/Easy to learn and use PHP MVC framework. Very low memory footprint framework",
+  "type": "library",
+  "license": "Apache License 2.0",
+  "require": {
+    "php": ">=8.4"
+  },
+  "authors": [
+    {
+      "name": "Rakesh Shrestha",
+      "email": "rakesh.shrestha@gmail.com"
+    }
+  ]
+}
