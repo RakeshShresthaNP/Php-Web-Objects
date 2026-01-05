@@ -33,8 +33,8 @@ Password Values
 10. Libraries for various SessionStorageHandlers as well as Cache (Redis, Memcached)
 11. Libraries for mail, firebase messaging, smpp (smsc), amazon s3 storage, geometry classes and format conversion routines, SoapClient for NTLMStream, encryption, excelxlsx import, pagination, jwt api and QR code
 12. Machine Learning libraries for Rule Learning, Classification, Regression, Clustering, Metric, Workflow, Neural Network, Cross Validation, Feature Selection, Preprocessing, Feature Extraction, Models Management and Mathematics Routines
-13. Finance libraries Time Series Analysis, Options Pricing, Regression Analysis, Risk Metrics
-14. GeminiAI library for Generative Model, Streaming responses and Streaming Chat Session with (Multi-Turn Conversations), Text generation with system instruction and Multimodal input
+13. Finance libraries Time Series Analysis, Options Pricing, Regression Analysis, Risk Metrics like VaR, CVaR, Sharpe ratio, maximum drawdown, and other risk measures and Portfolio Analytics like Active share, tracking error, information ratio
+14. Gemini based AI with support for Text-and-image Input, Text-and-video Input, Image Generation, Multi-turn Conversations (Chat), Chat with Streaming, Stream Generative AI, System Instructions, Speech generation, Thinking Mode, etc 
 15. Builtin XSS security
 16. Builtin SQL injection security
 
