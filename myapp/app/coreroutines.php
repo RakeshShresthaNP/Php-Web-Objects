@@ -51,18 +51,6 @@ function getCurrentUser(): ?object
     }
 }
 
-function getCurrentUserID(): string
-{
-    $authUser = getCurrentUser();
-    return isset($authUser->id) ? $authUser->id : '';
-}
-
-function getCurrentUserType(): string
-{
-    $authUser = getCurrentUser();
-    return isset($authUser->perms) ? $authUser->perms : 'none';
-}
-
 function getUrl(string $path = null): string
 {
     if (PATH_URI != '/') {
@@ -77,7 +65,7 @@ function clean(string $string = null): string
     return strip_tags(mb_trim($string));
 }
 
-function cleanHtml($html = '')
+function cleanHtml(mixed $html = ''): mixed
 {
     static $allowed_tags = array(
         'a',
@@ -99,7 +87,7 @@ function cleanHtml($html = '')
         'i',
         'p'
     );
-    
+
     if (is_string($html)) {
         return strip_tags($html, $allowed_tags);
     } else {
@@ -150,7 +138,7 @@ function createDir(string $path, $mode = 0777, bool $rec = true): bool
     return true;
 }
 
-function writeLog(string $type = 'mylog', $msg): void
+function writeLog(string $type = 'mylog', mixed $msg): void
 {
     $file = APP_DIR . 'logs/' . $type . '.txt';
     $datetime = date('Y-m-d H:i:s');
@@ -412,7 +400,7 @@ final class DB
             self::$_context->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             self::$_context->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
         } catch (PDOException $ex) {
-            throw new Exception($ex);
+            throw new Exception($ex->getMessage(), $ex->getCode());
         }
 
         return self::$_context;
@@ -483,6 +471,12 @@ final class Request
     public string $controller = '';
 
     public string $method = '';
+
+    public ?stdClass $user = null;
+
+    public ?string $cusertype = null;
+
+    public ?bool $apimode = null;
 
     private static $_context = null;
 
@@ -714,7 +708,7 @@ final class Response
 
         $this->setHeader('Content-Type: application/json; charset=utf-8');
 
-        echo json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK |  JSON_INVALID_UTF8_SUBSTITUTE | JSON_FORCE_OBJECT);
+        echo json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK | JSON_INVALID_UTF8_SUBSTITUTE | JSON_FORCE_OBJECT);
     }
 
     public function assign(array &$data = array(), string $viewname = ''): string
@@ -762,7 +756,7 @@ abstract class cController
 
     public ?stdClass $user = null;
 
-    public string $cusertype = 'none';
+    public ?string $cusertype = null;
 
     public string $currenthost = '';
 
@@ -776,52 +770,11 @@ abstract class cController
         $this->headers = $this->req->getHeaders();
         $this->deviceinfo = $this->req->getDeviceInfo();
 
+        $this->user = $this->req->user;
+        $this->cusertype = isset($this->user->perms) ? $this->user->perms : 'none';
+
         $this->currenthost = $this->headers->Host;
         $this->currentuserip = getRequestIP();
-    }
-}
-
-abstract class cAuthController extends cController
-{
-
-    public function __construct()
-    {
-        parent::__construct();
-
-        $payloadData = $this->req->getPayloadData();
-
-        if (! $payloadData) {
-            throw new ApiException('Bad Request', 401);
-        }
-
-        $this->user = $payloadData;
-
-        $this->cusertype = $this->user->perms;
-    }
-}
-
-abstract class cAdminController extends cController
-{
-
-    public function __construct()
-    {
-        parent::__construct();
-
-        $this->user = getCurrentUser();
-
-        if (! $this->user) {
-            $this->res->redirect('login', 'Invalid Access');
-        }
-
-        $this->cusertype = $this->user->perms;
-
-        if ($this->req->pathprefix == 'manage' && $this->cusertype != 'superadmin') {
-            $this->res->redirect('login', 'Invalid Access');
-        }
-
-        if ($this->req->pathprefix == 'dashboard' && $this->cusertype != 'user') {
-            $this->res->redirect('login', 'Invalid Access');
-        }
     }
 }
 
@@ -831,11 +784,12 @@ final class Application
 
     public static function process(Request &$request, Response &$response): void
     {
-        $cusertype = 'none';
-        
-        $apimode = false;
-        
-        $uriparts = explode('/', mb_str_replace(array(SITE_URI . PATH_URI, '?'. $_SERVER['QUERY_STRING']), '', SITE_URI . $_SERVER['REQUEST_URI']));
+        $request->cusertype = 'none';
+
+        $uriparts = explode('/', mb_str_replace(array(
+            SITE_URI . PATH_URI,
+            '?' . $_SERVER['QUERY_STRING']
+        ), '', SITE_URI . $_SERVER['REQUEST_URI']));
         $uriparts = array_filter($uriparts);
 
         $pathPrefixes = unserialize(PATH_PREFIX);
@@ -851,7 +805,15 @@ final class Application
         $user = $request->getPayloadData();
 
         if ($user) {
-            $apimode = true;
+            $request->user = $user;
+            $request->cusertype = $user->perms;
+            $request->apimode = true;
+        } else {
+            $request->user = getCurrentUser();
+            if ($request->user) {
+                $request->cusertype = $request->user->perms;
+            }
+            $request->apimode = false;
         }
 
         $request->method = ($c = array_shift($uriparts)) ? $request->pathprefix . mb_str_replace($pathPrefixes, '', $c) : $request->pathprefix . MAIN_METHOD;

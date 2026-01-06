@@ -10,7 +10,7 @@
  #
  # Redistributions must retain the above copyright notice.
  */
-final class cUsers extends cAdminController
+final class cUsers extends cController
 {
 
     public function __construct()

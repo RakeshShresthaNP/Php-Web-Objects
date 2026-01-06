@@ -10,7 +10,7 @@
  #
  # Redistributions must retain the above copyright notice.
  */
-final class cPages extends cAdminController
+final class cPages extends cController
 {
 
     public function __construct()

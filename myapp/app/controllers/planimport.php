@@ -10,7 +10,7 @@
  #
  # Redistributions must retain the above copyright notice.
  */
-final class cPlanImport extends cAuthController
+final class cPlanImport extends cController
 {
 
     public function __construct()

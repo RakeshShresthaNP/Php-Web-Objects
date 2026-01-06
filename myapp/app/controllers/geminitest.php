@@ -10,7 +10,7 @@
  #
  # Redistributions must retain the above copyright notice.
  */
-use Gemini;
+use Gemini\Gemini;
 use Gemini\Data\Blob;
 use Gemini\Enums\MimeType;
 

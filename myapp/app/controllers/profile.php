@@ -10,7 +10,7 @@
  #
  # Redistributions must retain the above copyright notice.
  */
-final class cProfile extends cAuthController
+final class cProfile extends cController
 {
 
     public function __construct()

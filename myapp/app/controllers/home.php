@@ -16,8 +16,6 @@ final class cHome extends cController
     public function __construct()
     {
         parent::__construct();
-
-        $this->cusertype = getCurrentUserType();
     }
 
     public function index()
@@ -29,6 +27,7 @@ final class cHome extends cController
 
     public function manage_index()
     {
+        
         if ($this->cusertype != 'superadmin') {
             $this->res->redirect('login', 'Invalid Access');
         }

@@ -50,7 +50,7 @@ $pagetitle = isset($pagename) ? $pagename : SITE_TITLE;
 				<li class="nav-item"><a class="nav-link" data-widget="pushmenu"
 					href="#" role="button"><i class="fas fa-bars"></i></a></li>
 				<li class="nav-item d-none d-sm-inline-block"><a
-					href="<?php echo getUrl('manage') ?>" class="nav-link">Home</a></li>
+					href="<?php echo getUrl('dashboard') ?>" class="nav-link">Home</a></li>
 				<li class="nav-item d-none d-sm-inline-block"><a href="#"
 					class="nav-link">Contact</a></li>
 			</ul>
@@ -168,7 +168,7 @@ $pagetitle = isset($pagename) ? $pagename : SITE_TITLE;
 		<!-- Main Sidebar Container -->
 		<aside class="main-sidebar sidebar-dark-primary elevation-4">
 			<!-- Brand Logo -->
-			<a href="<?php echo getUrl('manage') ?>" class="brand-link"> <span
+			<a href="<?php echo getUrl('dashboard') ?>" class="brand-link"> <span
 				class="brand-text font-weight-light">PHPWebObjects</span>
 			</a>
 
@@ -302,7 +302,8 @@ $pagetitle = isset($pagename) ? $pagename : SITE_TITLE;
             </div>
 
 		<footer class="main-footer">
-			<strong>Copyright &copy; 2014 - <?php echo date('Y') ?> <a href="#">PHP Web Objects</a>.
+			<strong>Copyright &copy; 2014 - <?php echo date('Y') ?> <a href="#">PHP
+					Web Objects</a>.
 			</strong> All rights reserved.
 			<div class="float-right d-none d-sm-inline-block">
 				<b>Version</b> 1.0

@@ -25,13 +25,11 @@ final class cLogin extends cController
         $data['username'] = '';
         $data['user'] = '';
 
-        $cutype = getCurrentUserType();
-
-        if ($cutype == 'superadmin') {
+        if ($this->cusertype == 'superadmin') {
             $this->res->redirect('manage');
         }
 
-        if ($cutype == 'superadmin') {
+        if ($this->cusertype == 'user') {
             $this->res->redirect('dashboard');
         }
 
@@ -101,13 +99,11 @@ final class cLogin extends cController
         $data['username'] = '';
         $data['user'] = '';
 
-        $cutype = getCurrentUserType();
-
-        if ($cutype == 'superadmin') {
+        if ($this->cusertype == 'superadmin') {
             $this->res->redirect('manage');
         }
 
-        if ($cutype == 'user') {
+        if ($this->cusertype == 'user') {
             $this->res->redirect('dashboard');
         }
 

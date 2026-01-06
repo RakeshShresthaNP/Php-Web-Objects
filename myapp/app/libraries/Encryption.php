@@ -15,46 +15,17 @@ declare(strict_types = 1);
 final class Encryption
 {
 
-    private string $_skey = "ThisIsCOOL";
-
-    private const CIPHER_METHOD = 'AES-256-CBC';
-
-    private const IV_LENGTH = 16;
-
-    public function encode(string $value): string
+    public static function encrypt(mixed $value, string $password, int $hashIterations = 100000): string
     {
-        if (! $value) {
-            return '';
-        }
-        $text = $value;
-
-        // Generate a random IV
-        $iv = openssl_random_pseudo_bytes(self::IV_LENGTH);
-
-        // Encrypt using OpenSSL
-        $crypttext = openssl_encrypt($text, self::CIPHER_METHOD, $this->_skey, OPENSSL_RAW_DATA, $iv);
-
-        // Combine IV and encrypted text, then encode
-        $encrypted = base64_encode($iv . $crypttext);
-
-        return mb_trim(base64_url_encode($encrypted));
+        $iv = openssl_random_pseudo_bytes(16);
+        $salt = openssl_random_pseudo_bytes(16);
+        $key = hash_pbkdf2("sha256", $password, $salt, $hashIterations, 64, true);
+        $cipher = openssl_encrypt(json_encode($value), 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
+        return str_pad($hashIterations, 10, "0", STR_PAD_LEFT) . bin2hex($iv) . bin2hex($salt) . bin2hex($cipher);
     }
 
-    public function decode(string $value): string
+    public static function decrypt(string $encryptedValue, string $password): mixed
     {
-        if (! $value) {
-            return '';
-        }
-        $encrypted = base64_url_decode($value);
-        $data = base64_decode($encrypted);
-
-        // Extract IV and encrypted text
-        $iv = substr($data, 0, self::IV_LENGTH);
-        $crypttext = substr($data, self::IV_LENGTH);
-
-        // Decrypt using OpenSSL
-        $decrypttext = openssl_decrypt($crypttext, self::CIPHER_METHOD, $this->_skey, OPENSSL_RAW_DATA, $iv);
-
-        return mb_trim($decrypttext);
+        return json_decode(openssl_decrypt(hex2bin(substr($encryptedValue, 74)), 'aes-256-cbc', hash_pbkdf2("sha256", $password, hex2bin(substr($encryptedValue, 42, 32)), (int) substr($encryptedValue, 0, 10), 64, true), OPENSSL_RAW_DATA, hex2bin(substr($encryptedValue, 10, 32))), true);
     }
 }

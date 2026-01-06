@@ -10,7 +10,7 @@
  #
  # Redistributions must retain the above copyright notice.
  */
-final class cTimezone extends cAuthController
+final class cTimezone extends cController
 {
 
     public function __construct()

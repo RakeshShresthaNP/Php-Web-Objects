@@ -10,7 +10,7 @@
  #
  # Redistributions must retain the above copyright notice.
  */
-final class cUser extends cAuthController
+final class cUser extends cController
 {
 
     public function __construct()
