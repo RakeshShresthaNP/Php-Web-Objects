@@ -73,8 +73,8 @@ class Plugin implements PluginInterface, EventSubscriberInterface
             'php-http/discovery' => ['psr/http-factory-implementation'],
         ],
         'psr/http-factory-implementation' => [
-            'nyholm/psr7' => [],
             'guzzlehttp/psr7:>=2' => [],
+            'nyholm/psr7' => [],
             'slim/psr7' => [],
             'laminas/laminas-diactoros' => [],
             'phalcon/cphalcon:^4' => [],

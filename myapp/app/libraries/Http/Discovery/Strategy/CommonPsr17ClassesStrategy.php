@@ -23,7 +23,7 @@ final class CommonPsr17ClassesStrategy implements DiscoveryStrategy
      */
     private static $classes = [
         RequestFactoryInterface::class => [
-            'Phalcon\Http\Message\RequestFactory',
+            'Http\Message\RequestFactory',
             'Nyholm\Psr7\Factory\Psr17Factory',
             'GuzzleHttp\Psr7\HttpFactory',
             'Http\Factory\Diactoros\RequestFactory',
@@ -34,7 +34,7 @@ final class CommonPsr17ClassesStrategy implements DiscoveryStrategy
             'HttpSoft\Message\RequestFactory',
         ],
         ResponseFactoryInterface::class => [
-            'Phalcon\Http\Message\ResponseFactory',
+            'Http\Message\ResponseFactory',
             'Nyholm\Psr7\Factory\Psr17Factory',
             'GuzzleHttp\Psr7\HttpFactory',
             'Http\Factory\Diactoros\ResponseFactory',
@@ -45,7 +45,7 @@ final class CommonPsr17ClassesStrategy implements DiscoveryStrategy
             'HttpSoft\Message\ResponseFactory',
         ],
         ServerRequestFactoryInterface::class => [
-            'Phalcon\Http\Message\ServerRequestFactory',
+            'Http\Message\ServerRequestFactory',
             'Nyholm\Psr7\Factory\Psr17Factory',
             'GuzzleHttp\Psr7\HttpFactory',
             'Http\Factory\Diactoros\ServerRequestFactory',
@@ -56,7 +56,7 @@ final class CommonPsr17ClassesStrategy implements DiscoveryStrategy
             'HttpSoft\Message\ServerRequestFactory',
         ],
         StreamFactoryInterface::class => [
-            'Phalcon\Http\Message\StreamFactory',
+            'Http\Message\StreamFactory',
             'Nyholm\Psr7\Factory\Psr17Factory',
             'GuzzleHttp\Psr7\HttpFactory',
             'Http\Factory\Diactoros\StreamFactory',
@@ -67,7 +67,7 @@ final class CommonPsr17ClassesStrategy implements DiscoveryStrategy
             'HttpSoft\Message\StreamFactory',
         ],
         UploadedFileFactoryInterface::class => [
-            'Phalcon\Http\Message\UploadedFileFactory',
+            'Http\Message\UploadedFileFactory',
             'Nyholm\Psr7\Factory\Psr17Factory',
             'GuzzleHttp\Psr7\HttpFactory',
             'Http\Factory\Diactoros\UploadedFileFactory',
@@ -78,7 +78,7 @@ final class CommonPsr17ClassesStrategy implements DiscoveryStrategy
             'HttpSoft\Message\UploadedFileFactory',
         ],
         UriFactoryInterface::class => [
-            'Phalcon\Http\Message\UriFactory',
+            'Http\Message\UriFactory',
             'Nyholm\Psr7\Factory\Psr17Factory',
             'GuzzleHttp\Psr7\HttpFactory',
             'Http\Factory\Diactoros\UriFactory',
