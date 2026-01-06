@@ -10,7 +10,6 @@
  #
  # Redistributions must retain the above copyright notice.
  */
-use Gemini\Gemini;
 use Gemini\Data\Blob;
 use Gemini\Enums\MimeType;
 
@@ -25,7 +24,11 @@ final class cGeminiTest extends cController
     public function index()
     {
         // https://aistudio.google.com/app/apikey get api key from here
-        $client = Gemini::client(GEMINI_API_KEY);
+        $client = Gemini::factory()->withApiKey('AIzaSyB9KaK9vvlqZ8iUSD...............')
+            ->withHttpClient(new GuzzleHttp\Client([
+            'timeout' => 3600
+        ]))
+            ->make();
 
         $result = $client->generativeModel(model: 'gemini-2.0-flash')->generateContent([
             'What is this picture?',

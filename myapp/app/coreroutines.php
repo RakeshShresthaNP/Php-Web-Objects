@@ -328,7 +328,7 @@ function customError(int $errno, string $errstr, string $errfile, int $errline):
     exit(1);
 }
 
-set_error_handler("customError");
+//set_error_handler("customError");
 
 // begin core classes
 unset($_REQUEST);
@@ -548,12 +548,12 @@ final class Request
         return $tokenheader;
     }
 
-    public function getPayloadData(): object|null
+    public function getPayloadData(): ?object
     {
         $jwt = $this->getToken();
 
         if (! $jwt) {
-            return $jwt;
+            return null;
         }
 
         // split the token
