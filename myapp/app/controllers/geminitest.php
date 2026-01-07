@@ -24,7 +24,7 @@ final class cGeminiTest extends cController
     public function index()
     {
         // https://aistudio.google.com/app/apikey get api key from here
-        $client = Gemini::factory()->withApiKey('AIzaSyB9KaK9vvlqZ8iUSD...............')
+        $client = Gemini::factory()->withApiKey(GEMINI_API_KEY)
             ->withHttpClient(new GuzzleHttp\Client([
             'timeout' => 3600
         ]))
