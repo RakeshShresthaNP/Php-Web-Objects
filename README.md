@@ -1,44 +1,59 @@
 
-Simple/Easy to learn and use PHP MVC framework. Very low memory footprint framework
+Simple/Easy to learn and high-performance, lightweight PHP MVC framework that bridges the gap between traditional web development and cutting-edge data science. By combining aminimalist core with powerful Gemini-powered AI, Machine Learning, and Financial Analytics libraries, it allows developers to build complex, secure, and data-driven applications without the bloat. Whether you are managing multi-database CRUD operations, PHP Web Objects provides the tools you need—loaded only when you need them
 =======
 
 <img src="https://github.com/RakeshShrestha/Php-Web-Objects/blob/master/screen/dashboard1.png?raw=true" alt="Dashboard" />
 
-### PHP Requirement
+### Password Values
+* superadmin@gmail.com = Mytest123
+* user@gmail.com = Mytest123
 
-1. php >= 8.4
-2. pdo mysql extension
-3. mbstring
+1. CORE ARCHITECTURE & ROUTING
+------------------------------------------------------------
+* Modern MVC Framework: Lightweight architecture inspired by CodeIgniter and CakePHP.
+* Intelligent Routing: Seamless URI-to-controller mapping for clean, SEO-friendly URLs.
+* Native Dependency Injection: High-efficiency DI mechanism ensuring libraries load only when required.
+* Extensible View Engine: Supports PHP-native views through a high-performance, minimalist template engine.
 
-Optional
-1. Curl -- In order to use firebase messaging, curl extended soap client with ntlmstream support and Amazon S3 Storage
-2. Memcached or Redis
+2. DATABASE & STORAGE
+------------------------------------------------------------
+* Universal PDO Support: Native multi-database compatibility.
+* High-Speed ORM: Lightweight Model class optimized for streamlined CRUD operations.
+* Modular Caching: Handlers for Redis, Memcached, and local SessionStorage.
+* Cloud Integration: Native bridge for Amazon S3 storage and file management.
 
-We recommend opcache is enabled. After PHP7, PHP has builtin support for it.
+3. GEMINI-POWERED AI & DOCUMENT WORKFLOW
+------------------------------------------------------------
+* Multimodal Input: Native support for Text, Image, and Video-based prompts.
+* Conversational Intelligence: Multi-turn Chat, Streaming responses, and "Thinking Mode."
+* Document Workflow Automation:
+- Intelligent Parsing: Support for PDF, DOCX, and Layout-awareness.
+- Large Context: Process 1M+ tokens (full manuals/contracts) in a single pass.
+- Automated Extraction: Convert unstructured docs into structured data.
+- AI-Assisted Redaction: Automatic PII masking and document classification.
+* Speech & Media: Integrated Speech generation (TTS) and Image Generation capabilities.
 
-Password Values
-1. superadmin@gmail.com = Mytest123
-2. user@gmail.com = Mytest123
+4. MACHINE LEARNING (ML) SUITE
+------------------------------------------------------------
+* Predictive Analytics: Rule Learning, Classification, Regression, and Neural Networks.
+* Data Processing: Preprocessing, Feature Extraction, and Feature Selection routines.
+* Clustering & Validation: Advanced Clustering algorithms with built-in Cross-Validation.
+* Model Management: Dedicated tools for managing and deploying ML models.
 
-### Features
-1. Clean/Lightweight/Modern PHP MVC Framework - Certain Aspects of CI and CakePHP
-2. Multi DB support via PDO 
-3. Very lightweight database and model class  - CRUD Operation
-4. Good Dashbaord with visual elements - AdminLTE
-5. Authentication
-6. Uri to controller mapping
-7. Very lightweight template engine
-8. PHP native Views
-9. Load libary only when needed using php native dependency injection mechanism
-10. Libraries for various SessionStorageHandlers as well as Cache (Redis, Memcached)
-11. Libraries for mail, firebase messaging, smpp (smsc), amazon s3 storage, geometry classes and format conversion routines, SoapClient for NTLMStream, encryption, excelxlsx import, pagination, jwt api and QR code
-12. Machine Learning libraries for Rule Learning, Classification, Regression, Clustering, Metric, Workflow, Neural Network, Cross Validation, Feature Selection, Preprocessing, Feature Extraction, Models Management and Mathematics Routines
-13. Finance libraries Time Series Analysis, Options Pricing, Regression Analysis, Risk Metrics like VaR, CVaR, Sharpe ratio, maximum drawdown, and other risk measures and Portfolio Analytics like Active share, tracking error, information ratio
-14. Gemini based AI with support for Text-and-image Input, Text-and-video Input, Image Generation, Multi-turn Conversations (Chat), Chat with Streaming, Stream Generative AI, System Instructions, Speech generation, Thinking Mode, etc 
-15. Builtin XSS security
-16. Builtin SQL injection security
+5. QUANTITATIVE FINANCE & ANALYTICS
+------------------------------------------------------------
+* Market Analysis: Time Series Analysis, Options Pricing, and Regression Analysis.
+* Risk Metrics: Calculation of Value at Risk (VaR), Conditional VaR (CVaR), and Max Drawdown.
+* Portfolio Analytics: Active Share, Tracking Error, Information Ratio, and Sharpe Ratio.
+
+6. SECURITY & UTILITIES
+------------------------------------------------------------
+* Hardened Security: Built-in protection against XSS and SQL Injection.
+* Auth & API: Integrated Authentication scaffolding and JWT API support.
+* Modern UI: Dashboard integration with pre-built visual elements.
+* Extended Libraries: Support for Firebase Messaging, SMPP (SMSC), QR Codes, Excel (XLSX) Import, Pagination, and SoapClient for NTLMStream.
 
 ### Database Recommended Best Practises when using php web objects framework
-1. Use Views for querying information
-2. Use Stored Procedures for complex queries
-3. Use Triggers
+* Use Views for querying information
+* Use Stored Procedures for complex queries
+* Use Triggers

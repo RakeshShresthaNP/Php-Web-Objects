@@ -84,7 +84,7 @@ final class PdoSessionHandler implements SessionHandlerInterface
         $old = time() - $max;
 
         // Fixed SQL syntax: DELETE doesn't use * (that's SELECT syntax)
-        $stmt = $this->_db->prepare('DELETE FROM sys_sessions WHERE last_accessed < ? ');
+        $stmt = $this->_db->prepare('DELETE FROM sys_sessions WHERE lastaccessed < ? ');
         $stmt->bindValue(1, $old);
 
         if ($stmt->execute()) {

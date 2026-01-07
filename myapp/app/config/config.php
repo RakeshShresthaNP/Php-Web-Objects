@@ -22,7 +22,7 @@ if ($_SERVER['SERVER_NAME'] == 'localhost') {
         'localhost',
         'root',
         '',
-        'pwotest'
+        'pwo'
     )));
 } else {
     define('DEBUG', '0');
@@ -60,10 +60,10 @@ define('SYSTEM_EMAIL', '');
 define('MAIN_CONTROLLER', 'home');
 define('MAIN_METHOD', 'index');
 
-define('CACHE_TYPE', 'Memcached');
+define('CACHE_TYPE', 'Redis');
 
 define('SESS_TIMEOUT', 1800);
-define('SESS_TYPE', 'Database');
+define('SESS_TYPE', 'Memcached');
 
 define('CONT_DIR', APP_DIR . 'controllers/');
 define('LIBS_DIR', APP_DIR . 'libraries/');

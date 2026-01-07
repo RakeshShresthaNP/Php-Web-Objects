@@ -328,7 +328,7 @@ function customError(int $errno, string $errstr, string $errfile, int $errline):
     exit(1);
 }
 
-//set_error_handler("customError");
+set_error_handler("customError");
 
 // begin core classes
 unset($_REQUEST);
