@@ -12,6 +12,8 @@ Simple/Easy to learn and high-performance, lightweight PHP MVC framework that br
 * [Quantitative Finance and Analytics](#5-quantitative-finance-and-analytics)
 * [Security and Extended Libraries](#6-security-and-extended-libraries)
 * [Permission Management Logic](#7-permission-management-logic)
+* [Performance Comparison (Node.js vs. Python vs. This Framework)](#8-performance-comparison)
+* [Benchmarks & Resource Efficiency](#9-benchmarks--resource-efficiency)
 
 ### Password Values
 * superadmin@gmail.com = Mytest123
@@ -104,7 +106,6 @@ The framework utilizes a robust, database-driven **Role-Based Access Control (RB
 * **Module-Level Access:** Control which user roles can see specific sections of the application (e.g., Admin, Finance, Editor).
 * **Function-Level Granularity:** Define permissions down to specific actions (e.g., `delete_user`, `export_csv`).
 * **Dynamic Evaluation:** Permissions are checked in real-time against the database, allowing for instant access revocation without requiring code changes or redeployment.
-
 
 ---
 
