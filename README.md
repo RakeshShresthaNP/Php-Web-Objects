@@ -102,7 +102,7 @@ Simple/Easy to learn and high-performance, lightweight PHP MVC framework that br
 The framework utilizes a robust, database-driven **Role-Based Access Control (RBAC)** system to manage granular permissions:
 
 * **Module-Level Access:** Control which user roles can see specific sections of the application (e.g., Admin, Finance, Editor).
-* **Function-Level Granularity:** Define permissions down to specific actions (e.g., `can_delete_user`, `can_export_csv`).
+* **Function-Level Granularity:** Define permissions down to specific actions (e.g., `delete_user`, `export_csv`).
 * **Dynamic Evaluation:** Permissions are checked in real-time against the database, allowing for instant access revocation without requiring code changes or redeployment.
 
 ---
