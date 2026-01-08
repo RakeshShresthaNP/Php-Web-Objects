@@ -36,10 +36,11 @@ Simple/Easy to learn and high-performance, lightweight PHP MVC framework that br
 ---
 
 ### 3. Artificial Intelligence
+
 * **Multimodal Input:** Native support for Text, Image, and Video-based prompts.
 * **Conversational Intelligence:** Multi-turn Chat, Streaming responses, and "Thinking Mode."
 
-#### * **Document Workflow Automation
+#### Document Workflow Automation
 **1. Advanced Document Processing**
 * **Multimodal Extraction:** Can extract structured data (JSON/CSV) from unstructured sources like handwritten notes, complex financial tables, and long-form contracts.
 * **Document Intelligence:** Natively understand various document layouts, charts, spatial relationships, and formatting rather than just reading plain text.
@@ -55,7 +56,7 @@ Simple/Easy to learn and high-performance, lightweight PHP MVC framework that br
 * **Cross-Document Synthesis:** Can reason across multiple files simultaneously to find discrepancies, summarize themes, or perform compliance checks across a whole dataset.
 * **Tool Use (Function Calling):** Can be connected to internal APIs to move data automatically, such as extracting an invoice total and then calling a payment function.
 
-#### * **Speech & Media - Integrated Speech generation (TTS) and Image Generation capabilities.*
+#### Speech & Media - Integrated Speech generation (TTS) and Image Generation capabilities.*
 
 **1. Advanced Speech Intelligence**
 * **Native Speech-to-Text:** Can transcribe audio files up to 8.4 hours long in a single request, providing high-accuracy text outputs with precise timestamps for every word or sentence.
