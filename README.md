@@ -11,6 +11,7 @@ Simple/Easy to learn and high-performance, lightweight PHP MVC framework that br
 * [4. Machine Learning (ML) Suite](#4-machine-learning-ml-suite)
 * [5. Quantitative Finance and Analytics](#5-quantitative-finance-and-analytics)
 * [6. Security and Extended Libraries](#6-security-and-extended-libraries)
+* [7. Permission Management Logic](#7-permission-management-logic)
 
 ### Password Values
 * superadmin@gmail.com = Mytest123
@@ -94,6 +95,17 @@ Simple/Easy to learn and high-performance, lightweight PHP MVC framework that br
 * **Auth & API:** Integrated Authentication scaffolding and JWT API support.
 * **Modern UI:** Dashboard integration with pre-built visual elements.
 * **Extended Libraries:** Support for Firebase Messaging, SMPP (SMSC), QR Codes, Excel (XLSX) Import, Pagination, and SoapClient for NTLMStream.
+
+---
+
+### 7. Permission Management Logic
+The framework utilizes a robust, database-driven **Role-Based Access Control (RBAC)** system to manage granular permissions:
+
+* **Module-Level Access:** Control which user roles can see specific sections of the application (e.g., Admin, Finance, Editor).
+* **Function-Level Granularity:** Define permissions down to specific actions (e.g., `can_delete_user`, `can_export_csv`).
+* **Dynamic Evaluation:** Permissions are checked in real-time against the database, allowing for instant access revocation without requiring code changes or redeployment.
+
+---
 
 ### Database Recommended Best Practises when using php web objects framework
 * Use Views for querying information
