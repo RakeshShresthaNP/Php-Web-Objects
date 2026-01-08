@@ -15,7 +15,7 @@ final class user extends model
 
     public function __construct(int $id = 0)
     {
-        parent::__construct('users');
+        parent::__construct('mst_users');
 
         if ($id)
             $this->select('*', 'id=?', $id);
@@ -23,11 +23,19 @@ final class user extends model
 
     public function insert()
     {
+        $this->partner_id = 1;
         $this->perms = 'user';
-        $this->status = '2';
-        $this->registerip = getRequestIP();
-        $this->created = date('Y-m-d H:i:s');
+        $this->status = '1';
+        $this->d_created = date('Y-m-d H:i:s');
+        $this->d_updated = $this->d_created;
 
         return parent::insert();
+    }
+
+    public function update()
+    {
+        $this->d_updated = date('Y-m-d H:i:s');
+
+        return parent::update();
     }
 }

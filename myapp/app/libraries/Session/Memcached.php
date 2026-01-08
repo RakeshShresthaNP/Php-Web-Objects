@@ -63,7 +63,7 @@ final class Session_Memcached
 
     public function __construct()
     {
-        $handler = new PdoSessionHandler();
+        $handler = new MemcachedSessionHandler();
         session_set_save_handler($handler, true);
         @session_start();
     }

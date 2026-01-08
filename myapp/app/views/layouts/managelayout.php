@@ -35,9 +35,6 @@ $pagetitle = isset($pagename) ? $pagename : SITE_TITLE;
 <!-- Daterange picker -->
 <link rel="stylesheet"
 	href="<?php echo getUrl('assets/plugins/daterangepicker/daterangepicker.css') ?>">
-<!-- summernote -->
-<link rel="stylesheet"
-	href="<?php echo getUrl('assets/plugins/summernote/summernote-bs4.min.css') ?>">
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 	<div class="wrapper">
@@ -352,9 +349,6 @@ $pagetitle = isset($pagename) ? $pagename : SITE_TITLE;
 	<!-- Tempusdominus Bootstrap 4 -->
 	<script
 		src="<?php echo getUrl('assets/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') ?>"></script>
-	<!-- Summernote -->
-	<script
-		src="<?php echo getUrl('assets/plugins/summernote/summernote-bs4.min.js') ?>"></script>
 	<!-- overlayScrollbars -->
 	<script
 		src="<?php echo getUrl('assets/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') ?>"></script>

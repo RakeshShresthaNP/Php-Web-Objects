@@ -29,7 +29,7 @@ final class cUsers extends cController
     {
         $data['pagename'] = 'Users';
 
-        $user = new model('users');
+        $user = new model('mst_users');
         $data['users'] = $user->select('*', 'perms <> ?', 'superadmin');
 
         $this->res->view($data);
@@ -53,12 +53,16 @@ final class cUsers extends cController
             $data['user'] = $vars;
 
             $vars['password'] = password_hash($vars['password'], PASSWORD_DEFAULT);
-            $vars['remarks'] = $vars['password'];
+            $vars['c_name'] = explode('@', $vars['email'])[0];
+            $vars['u_created'] = $this->user->id;
+            $vars['u_updated'] = $this->user->id;
 
             unset($vars['confirm_password']);
             unset($vars['iserror1']);
             unset($vars['iserror2']);
             unset($vars['submit']);
+
+            $user = new user();
 
             $user->assign($vars);
             $user->insert();
@@ -88,10 +92,10 @@ final class cUsers extends cController
                     return;
                 }
                 $vars['password'] = password_hash($vars['password'], PASSWORD_DEFAULT);
-                $vars['remarks'] = $vars['password'];
             } else {
                 $vars['password'] = $user->password;
             }
+            $vars['u_updated'] = $this->user->id;
             unset($vars['confirm_password']);
             unset($vars['iserror1']);
             unset($vars['iserror2']);
@@ -112,6 +116,8 @@ final class cUsers extends cController
 
         $user = new user($userid);
         $user->status = 2;
+        $user->u_updated = $this->user->id;
+
         $user->update();
 
         $this->res->redirect('manage/users', 'User Disabled');
@@ -123,6 +129,7 @@ final class cUsers extends cController
 
         $user = new user($userid);
         $user->status = 1;
+        $user->u_updated = $this->user->id;
         $user->update();
 
         $this->res->redirect('manage/users', 'User Enabled');

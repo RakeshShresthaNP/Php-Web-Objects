@@ -102,10 +102,13 @@ class model
 
     public function update()
     {
+        $_pk = $this->_pk;
+
         $s = '';
 
         foreach ($this->_rs as $k => $v) {
-            $s .= ',' . $k . '=?';
+            if ($k != $_pk)
+                $s .= ',' . $k . '=?';
         }
 
         $s = mb_substr($s, 1);
@@ -117,7 +120,8 @@ class model
         $i = 0;
 
         foreach ($this->_rs as $k => $v) {
-            $stmt->bindValue(++ $i, is_scalar($v) ? $v : serialize($v));
+            if ($k != $_pk)
+                $stmt->bindValue(++ $i, is_scalar($v) ? $v : serialize($v));
         }
 
         $stmt->bindValue(++ $i, $this->_rs[$this->_pk]);

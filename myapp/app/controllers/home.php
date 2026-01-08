@@ -27,11 +27,6 @@ final class cHome extends cController
 
     public function manage_index()
     {
-        
-        if ($this->cusertype != 'superadmin') {
-            $this->res->redirect('login', 'Invalid Access');
-        }
-
         $data['pagetitle'] = SITE_TITLE;
 
         $this->res->view($data);
@@ -39,10 +34,6 @@ final class cHome extends cController
 
     public function dashboard_index()
     {
-        if ($this->cusertype != 'user') {
-            $this->res->redirect('login', 'Invalid Access');
-        }
-
         $data['pagetitle'] = SITE_TITLE;
 
         $this->res->view($data);

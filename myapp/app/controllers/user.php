@@ -25,7 +25,7 @@ final class cUser extends cController
             'realName' => $this->user->realName,
             'perms' => $this->user->perms,
             'username' => $this->user->username,
-            'homePath' => '/workspace'
+            'homePath' => $this->user->homepath
         );
 
         $this->res->json($data);

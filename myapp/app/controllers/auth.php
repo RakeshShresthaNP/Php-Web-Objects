@@ -65,7 +65,7 @@ final class cAuth extends cController
             $username = $fdata['username'];
             $password = $fdata['password'];
 
-            $user->select('*', 'username=?', array(
+            $user->select('*', 'email=?', array(
                 $username
             ));
 
@@ -82,9 +82,10 @@ final class cAuth extends cController
 
                 $udata = array(
                     'id' => $user->id,
-                    'realName' => $user->firstname . ' ' . $user->lastname,
+                    'realName' => $user->realname,
                     'perms' => $user->perms,
-                    'username' => $user->username,
+                    'username' => $user->c_name,
+                    'homepath' => $user->homepath,
                     'exp' => time() + 24 * 3600
                 );
 

@@ -21,20 +21,20 @@
 								value="<?php echo $user->id; ?>">
 							<table width="1002" border="0">
 								<tr>
-									<td>First Name</td>
-									<td><input type="text" id="firstname" required="required"
-										name="firstname" value="<?php echo $user->firstname; ?>"></td>
+									<td>Name</td>
+									<td><input type="text" id="realname" required="required"
+										name="realname" value="<?php echo $user->realname; ?>"></td>
 								</tr>
 								<tr>
-									<td>Last Name</td>
+									<td>Home Path</td>
 									<td><input type="text" id="lastname" required="required"
-										value="<?php echo $user->lastname; ?>" name="lastname"></td>
+										value="<?php echo $user->homepath; ?>" name="realname"></td>
 								</tr>
 								<tr>
-									<td>Email Address</td>
-									<td><input type="email" id="username" autocomplete="off"
-										value="<?php echo $user->username; ?>" required="required"
-										name="username"> <span id="handle_status"> </span></td>
+									<td>Email</td>
+									<td><input type="email" id="email" autocomplete="off"
+										value="<?php echo $user->email; ?>" required="required"
+										name="email"> <span id="handle_status"> </span></td>
 								</tr>
 								<tr>
 									<td>Password</td>
@@ -54,7 +54,7 @@
 								</tr>
 								<tr>
 									<td>&nbsp;</td>
-									<td><input type='hidden' id='country' name='country' value='NP'>
+									<td>
 										<input type='hidden' id='iserror1' name='iserror1' value='0'>
 										<input type='hidden' id='iserror1' name='iserror2' value='0'>
 										<input type="submit" value="Update Details" id="submit"
@@ -104,22 +104,6 @@
                 return;
             }
 
-        });
-
-        $("#username").focusout(function () {
-            var username = $('#username').val();
-            var id = $('#id').val();
-            if (username) {
-                $.post("<?php echo getUrl('ajax/main/userexist_account') ?>", {username: username, id: id}, function (data) {
-                    if (data == 1) {
-                        $('#handle_status').html('Email already taken');
-                        $('#iserror1').val(1);
-                    } else {
-                        $('#handle_status').html('');
-                        $('#iserror1').val(0);
-                    }
-                });
-            }
         });
 
     });

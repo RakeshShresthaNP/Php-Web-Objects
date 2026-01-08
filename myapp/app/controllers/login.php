@@ -25,12 +25,8 @@ final class cLogin extends cController
         $data['username'] = '';
         $data['user'] = '';
 
-        if ($this->cusertype == 'superadmin') {
-            $this->res->redirect('manage');
-        }
-
-        if ($this->cusertype == 'user') {
-            $this->res->redirect('dashboard');
+        if ($this->cusertype != 'none') {
+            $this->res->redirect($this->user->homepath);
         }
 
         $user = new user();
@@ -45,7 +41,7 @@ final class cLogin extends cController
                 return;
             }
 
-            $user->select('*', 'username=?', $username);
+            $user->select('*', 'email=?', $username);
 
             if (! $user->exist()) {
                 $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">LOGIN FAILED!</div>');
@@ -75,13 +71,7 @@ final class cLogin extends cController
 
             $cutype = $cuser->perms;
 
-            if ($cutype == 'superadmin') {
-                $this->res->redirect('manage');
-            }
-
-            if ($cutype == 'user') {
-                $this->res->redirect('dashboard');
-            }
+            $this->res->redirect($cuser->homepath);
 
             $data['username'] = $username;
             $data['user'] = $user;
@@ -99,12 +89,8 @@ final class cLogin extends cController
         $data['username'] = '';
         $data['user'] = '';
 
-        if ($this->cusertype == 'superadmin') {
-            $this->res->redirect('manage');
-        }
-
-        if ($this->cusertype == 'user') {
-            $this->res->redirect('dashboard');
+        if ($this->cusertype != 'none') {
+            $this->res->redirect($this->user->homepath);
         }
 
         $user = new user();
@@ -117,7 +103,7 @@ final class cLogin extends cController
                 return;
             }
 
-            $user->select('*', 'username=?', $username);
+            $user->select('*', 'email=?', $username);
 
             if (! $user->exist()) {
                 $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User does not exist!</div>');
@@ -130,16 +116,12 @@ final class cLogin extends cController
 
             $mail = new Email();
             $mail->setFrom(SYSTEM_EMAIL, 'System');
-            $mail->setTO($user->username, $user->firstname);
+            $mail->setTO($user->username, $user->realname);
             $mail->setSubject('Forgot Password');
-
-            $message = "Dear " . $user->firstname . ",\r\n\r\nYour Forgot Password.\r\n\r\n";
-            $message .= "Details:\r\nEmail:  $user->username \r\nPassword: $user->remarks \r\n ";
-            $message .= "\r\nLogin Url: " . getUrl('manage/login');
 
             $mail->setMessage($message);
 
-            $mail->send();
+            // $mail->send();
             $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">Your password has been mailed to you!</div>');
         }
 

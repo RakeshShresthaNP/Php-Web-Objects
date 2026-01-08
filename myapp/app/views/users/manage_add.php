@@ -13,29 +13,28 @@
 					<!-- /.card-header -->
 					<div class="card-body">
 
-						<form action="<?php echo getUrl('manage/users/add') ?> ?>"
-							method="post" id="editprofile" name="editprofile"
+						<form action="<?php echo getUrl('manage/users/add') ?>"
+							method="post" id="addprofile" name="addprofile"
 							enctype="multipart/form-data">
 
 							<table width="1002" border="0">
 								<tr>
-									<td>First Name</td>
-									<td><input type="text" id="firstname" required="required"
-										name="firstname"
-										value="<?php echo isset($user['firstname']) ? $user['firstname'] : '' ?>"></td>
+									<td>Name</td>
+									<td><input type="text" id="realname" required="required"
+										name="realname"
+										value="<?php echo isset($user['realname']) ? $user['realname'] : '' ?>"></td>
 								</tr>
 								<tr>
-									<td>Last Name</td>
-									<td><input type="text" id="lastname" required="required"
-										value="<?php echo isset($user['lastname']) ? $user['lastname'] : '' ?>"
-										name="lastname"></td>
+									<td>Home Path</td>
+									<td><input type="text" id="homepath" required="required"
+										value="<?php echo isset($user['homepath']) ? $user['homepath'] : '' ?>"
+										name="homepath"></td>
 								</tr>
 								<tr>
-									<td>Email Address</td>
-									<td><input type="email" id="username" autocomplete="off"
-										value="<?php echo isset($user['username']) ? $user['username'] : '' ?>"
-										required="required" name="username"> <span id="handle_status">
-									</span></td>
+									<td>Email</td>
+									<td><input type="email" id="email" autocomplete="off"
+										value="<?php echo isset($user['email']) ? $user['email'] : '' ?>"
+										required="required" name="email"> <span id="handle_status"> </span></td>
 								</tr>
 								<tr>
 									<td>Password</td>
@@ -55,10 +54,9 @@
 								</tr>
 								<tr>
 									<td>&nbsp;</td>
-									<td><input type='hidden' id='country' name='country' value='NP'>
-										<input type='hidden' id='iserror1' name='iserror1' value='0'>
-										<input type='hidden' id='iserror1' name='iserror2' value='0'>
-										<input type="submit" value="Update Details" id="submit"
+									<td><input type='hidden' id='iserror1' name='iserror1'
+										value='0'> <input type='hidden' id='iserror1' name='iserror2'
+										value='0'> <input type="submit" value="Add" id="submit"
 										class="" name="submit" style="margin-left: 10px;"></td>
 								</tr>
 							</table>
@@ -79,7 +77,7 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
-        $("#editprofile").submit(function (event) {
+        $("#addprofile").submit(function (event) {
             var pass1 = document.getElementById("password").value;
             var pass2 = document.getElementById("confirm_password").value;
 
@@ -105,22 +103,6 @@
                 return;
             }
 
-        });
-
-        $("#username").focusout(function () {
-            var username = $('#username').val();
-            var id = $('#id').val();
-            if (username) {
-                $.post("<?php echo getUrl('ajax/main/userexist_account') ?>", {username: username, id: id}, function (data) {
-                    if (data == 1) {
-                        $('#handle_status').html('Email already taken');
-                        $('#iserror1').val(1);
-                    } else {
-                        $('#handle_status').html('');
-                        $('#iserror1').val(0);
-                    }
-                });
-            }
         });
 
     });

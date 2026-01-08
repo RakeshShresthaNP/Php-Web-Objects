@@ -17,7 +17,6 @@
 								<tr>
 									<th><strong>Username</strong></th>
 									<th><strong>Name</strong></th>
-									<th><strong>Country</strong></th>
 									<th><strong>Registered Date</strong></th>
 									<th><strong>Status</strong></th>
 									<th><strong>Action</strong></th>
@@ -29,10 +28,9 @@
                                     foreach ($users as $user) {
                                         ?>
                                         <tr>
-									<td><?php echo $user->username; ?> </td>
-									<td><?php echo $user->firstname; ?> <?php echo $user->lastname; ?></td>
-									<td><?php echo $user->country ? getCountryList($user->country) : ''; ?></td>
-									<td><?php echo date('F d, Y', strtotime($user->created)); ?></td>
+									<td><?php echo $user->email; ?> </td>
+									<td><?php echo $user->realname; ?></td>
+									<td><?php echo date('F d, Y', strtotime($user->d_created)); ?></td>
 									<td><?php echo $user->status == 1 ? 'Enabled' : 'Disabled'; ?></td>
 									<td><a
 										href="<?php echo getUrl('manage/users/edit') ?>/<?php echo $user->id ?>">

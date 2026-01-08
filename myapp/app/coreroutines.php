@@ -60,6 +60,25 @@ function getUrl(string $path = null): string
     }
 }
 
+function getDataDiff(mixed $obj1, mixed $obj2): array
+{
+    $changes = [];
+
+    $arr1 = (array) $obj1;
+    $arr2 = (array) $obj2;
+
+    foreach ($arr1 as $key => $val) {
+        if ($val != $arr2[$key]) {
+            $changes[$key] = [
+                'from' => $val,
+                'to' => $arr2[$key]
+            ];
+        }
+    }
+
+    return $changes;
+}
+
 function clean(string $string = null): string
 {
     return strip_tags(mb_trim($string));
