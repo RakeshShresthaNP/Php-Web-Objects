@@ -12,7 +12,7 @@ Simple/Easy to learn and high-performance, lightweight PHP MVC framework that br
 * [Quantitative Finance and Analytics](#5-quantitative-finance-and-analytics)
 * [Security and Extended Libraries](#6-security-and-extended-libraries)
 * [Permission Management Logic](#7-permission-management-logic)
-* [Performance Comparison (Node.js vs. Python vs. This Framework)](#8-performance-comparison)
+* [Performance Comparison (Node.js vs. Python vs. PWO Framework)](#8-performance-comparison)
 * [Benchmarks & Resource Efficiency](#9-benchmarks--resource-efficiency)
 
 ### Password Values
