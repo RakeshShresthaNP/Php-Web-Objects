@@ -140,7 +140,7 @@ Traditional frameworks require downloading thousands of external files to achiev
 #### Key Efficiency Metrics:
 1.  **Lazy Loading:** Libraries are never loaded into memory unless the specific controller requires them.
 2.  **Stateless Execution:** Unlike Node.js, which maintains a persistent heap that grows over time, our framework clears memory after every request.
-3.  **No Middleware Bloat:** While other frameworks require 20+ "packages" for basic security and routing, this framework handles these natively within a single core.
+3.  **No Middleware Bloat:** While other frameworks require 20+ "packages" for basic security and routing, this framework handles these natively within a single coreroutines file.
 
 > **Why it matters:** Lower library size means faster deployment, smaller Docker images, and lower storage costs on cloud providers.
 
