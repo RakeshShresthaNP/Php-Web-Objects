@@ -57,7 +57,7 @@ Simple/Easy to learn and high-performance, lightweight PHP MVC framework that br
 * Visual-Spatial Intelligence: Can describe the layout of a scene, read text appearing on screen, and summarize complex visual data like charts or infographics within a video stream.
 
 3. Real-Time Media Workflows
-* Live Interaction (Gemini Live): Support bidirectional, low-latency voice conversations where you can interrupt, change the topic, or ask to "look" through your camera to explain.
+* Live Interaction: Support bidirectional, low-latency voice conversations where you can interrupt, change the topic, or ask to "look" through your camera to explain.
 * Content Generation & Synthesis: Can generate summaries, chapters, and metadata for podcasts or webinars, and even synthesize "NotebookLM-style" audio overviews from a set of text documents.
 * Multimodal Orchestration: Can reason across different media types simultaneously—for example, comparing an audio recording of a meeting against a PDF contract to find discrepancies.
 
@@ -85,6 +85,7 @@ Simple/Easy to learn and high-performance, lightweight PHP MVC framework that br
 * Use Views for querying information
 * Use Stored Procedures for complex queries
 * Use Triggers
+
 
 
 
