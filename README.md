@@ -133,7 +133,7 @@ Traditional frameworks require downloading thousands of external files to achiev
 
 #### 🚀 Memory Usage Per Request
 
-* **This Framework:** ~2MB - 5MB (Idle/Full AI/ML Library Calls)
+* **This Framework:** ~2MB - 5MB (Idle - Full AI/ML Library Calls)
 * **Node.js (Express):** ~15MB - 30MB (Idle)
 * **Python (Django):** ~40MB - 70MB (Idle)
 
