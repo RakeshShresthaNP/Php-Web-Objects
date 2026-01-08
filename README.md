@@ -114,8 +114,8 @@ This framework is engineered for environments where performance, disk space, and
 
 | Feature | This Framework | Node.js (Express/Nest) | Python (Django/FastAPI) |
 | :--- | :--- | :--- | :--- |
-| **Memory Footprint** | **Ultra-Low (Native PHP)** | High (V8 Engine overhead) | Moderate to High (Interpreter) |
-| **App Library Size** | **Slim (< 5MB Core)** | Massive (`node_modules`) | Large (Virtual Envs / Libs) |
+| **Memory Footprint** | **Ultra-Low (OPCache PHP)** | High (V8 Engine overhead) | Moderate to High (Interpreter) |
+| **App Library Size** | **Slim (< 2.5MB Core)** | Massive (`node_modules`) | Large (Virtual Envs / Libs) |
 | **Dependency Model** | Native / Integrated | NPM (Third-party heavy) | Pip (Heavy external pkgs) |
 | **Cold Start Time** | Near-Instant | Moderate | Slow (especially Django) |
 
