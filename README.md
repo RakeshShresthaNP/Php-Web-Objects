@@ -78,7 +78,7 @@ Simple/Easy to learn and high-performance, lightweight PHP MVC framework that br
 ### 4. Machine Learning (ML) Suite
 * **Predictive Analytics:** Rule Learning, Classification, Regression, and Neural Networks.
 * **Data Processing:** Preprocessing, Feature Extraction, and Feature Selection routines.
-* **Clustering & Validation:** Advanced Clustering algorithms like K-Means and DBSCAN algorithm with built-in Cross-Validation.
+* **Clustering & Validation:** Advanced Clustering algorithms like K-Means and DBSCAN with built-in Cross-Validation.
 * **Model Management:** Dedicated tools for managing and deploying ML models.
 
 ---
