@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `documentextractions` (
   `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `key_documentextractions` (`partner_id`, `document_id`)
+  KEY `key_documentextractions` (`partner_id`,`document_id`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
 -- Dumping data for table pwo.documentextractions: 0 rows
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS `documents` (
   `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `key_documents` (`partner_id`, `user_id`, `filename`)
+  KEY `key_documents` (`partner_id`,`user_id`,`filename`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
 -- Dumping data for table pwo.documents: 0 rows
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS `mlmodelmetadatas` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `c_name` varchar(100) DEFAULT NULL,
   `version` varchar(10) DEFAULT NULL,
-  `accuracymetrics` json NOT NULL CHECK (json_valid(`accuracymetrics`)),
+  `accuracymetrics` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`accuracymetrics`)),
   `serializedpath` varchar(255) DEFAULT NULL,
   `d_created` timestamp NULL DEFAULT current_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
@@ -119,11 +119,8 @@ CREATE TABLE IF NOT EXISTS `mst_partners` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `c_name` varchar(64) DEFAULT NULL,
   `hostname` varchar(256) NOT NULL,
-  `sitetile` varchar(256) NOT NULL,
+  `sitetitle` varchar(256) NOT NULL,
   `email` varchar(256) NOT NULL,
-  `geoip_api_key` varchar(256) NULL,
-  `firebase_api_key` varchar(256) NULL,
-  `gemini_api_key` varchar(256) NULL,
   `phone1` varchar(32) NOT NULL DEFAULT '',
   `phone2` varchar(32) DEFAULT NULL,
   `contactfax` varchar(32) DEFAULT NULL,
@@ -142,12 +139,41 @@ CREATE TABLE IF NOT EXISTS `mst_partners` (
   KEY `key_partners` (`c_name`,`hostname`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
--- Dumping data for table pwo.mst_partners: 1 rows
+-- Dumping data for table pwo.mst_partners: 2 rows
 DELETE FROM `mst_partners`;
 /*!40000 ALTER TABLE `mst_partners` DISABLE KEYS */;
-INSERT INTO `mst_partners` (`id`, `c_name`, `hostname`, `sitetile`, `email`, `phone1`, `phone2`, `contactfax`, `address1`, `address2`, `city`, `state`, `country`, `zip`, `remarks`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
-	(1, 'Test', 'localhost', 'Pwo Title', 'test@test.com', '', '', '', '', '', 'Kathmandu', 'BG', 'NP', '92630', '', '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
+INSERT INTO `mst_partners` (`id`, `c_name`, `hostname`, `sitetitle`, `email`, `phone1`, `phone2`, `contactfax`, `address1`, `address2`, `city`, `state`, `country`, `zip`, `remarks`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
+	(1, 'Test', 'localhost', 'Pwo Title', 'test@test.com', '', '', '', '', '', 'Kathmandu', 'BG', 'NP', '92630', '', '2025-12-31 20:15:00', 1, '2025-12-31 20:15:00', 1),
+	(2, 'Test2', 'test.com', 'Pwo Title', 'test@test.com', '', '', '', '', '', 'Kathmandu', 'BG', 'NP', '92630', '', '2025-12-31 20:15:00', 1, '2026-01-09 07:36:30', 1);
 /*!40000 ALTER TABLE `mst_partners` ENABLE KEYS */;
+
+-- Dumping structure for table pwo.mst_partner_settings
+CREATE TABLE IF NOT EXISTS `mst_partner_settings` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `partner_id` int(11) NOT NULL,
+  `mailtype` varchar(256) DEFAULT NULL,
+  `mailhost` varchar(256) DEFAULT NULL,
+  `mailport` varchar(256) DEFAULT NULL,
+  `mailusername` varchar(256) DEFAULT NULL,
+  `mailpassword` varchar(256) DEFAULT NULL,
+  `mailencryption` varchar(256) DEFAULT NULL,
+  `geoip_api_key` varchar(256) DEFAULT NULL,
+  `firebase_api_key` varchar(256) DEFAULT NULL,
+  `gemini_api_key` varchar(256) DEFAULT NULL,
+  `d_created` timestamp NULL DEFAULT current_timestamp(),
+  `u_created` bigint(20) DEFAULT NULL,
+  `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `u_updated` bigint(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `key_partnersettingss` (`partner_id`,`mailhost`,`mailusername`)
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+
+-- Dumping data for table pwo.mst_partner_settings: 1 rows
+DELETE FROM `mst_partner_settings`;
+/*!40000 ALTER TABLE `mst_partner_settings` DISABLE KEYS */;
+INSERT INTO `mst_partner_settings` (`id`, `partner_id`, `mailtype`, `mailhost`, `mailport`, `mailusername`, `mailpassword`, `mailencryption`, `geoip_api_key`, `firebase_api_key`, `gemini_api_key`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
+	(1, 1, '', '', '', '', '', '', '', '', '', '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
+/*!40000 ALTER TABLE `mst_partner_settings` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.mst_reportpivots
 CREATE TABLE IF NOT EXISTS `mst_reportpivots` (
@@ -203,17 +229,17 @@ CREATE TABLE IF NOT EXISTS `mst_users` (
   `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `key_usersc_name` (`partner_id`, `c_name`),
+  UNIQUE KEY `key_usersc_name` (`partner_id`,`c_name`),
   UNIQUE KEY `key_usersemail` (`email`)
-) ENGINE=Aria AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
--- Dumping data for table pwo.mst_users: 4 rows
+-- Dumping data for table pwo.mst_users: 3 rows
 DELETE FROM `mst_users`;
 /*!40000 ALTER TABLE `mst_users` DISABLE KEYS */;
 INSERT INTO `mst_users` (`id`, `partner_id`, `c_name`, `email`, `phone`, `homepath`, `realname`, `password`, `perms`, `status`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
 	(1, 1, 'superadmin', 'superadmin@gmail.com', '', 'manage', 'Rakesh Shrestha', '$2y$12$5qwHKGAGImFrsQILwLldW.DMSc9FX6EWuCT2.n9yzaESaKGbqYAZm', 'superadmin', 1, '2019-03-11 11:29:42', 0, '2026-01-08 12:57:22', 0),
 	(2, 1, 'admin', 'admin@gmail.com', '', 'dashboard', 'dashboard', '$2y$12$5qwHKGAGImFrsQILwLldW.DMSc9FX6EWuCT2.n9yzaESaKGbqYAZm', 'admin', 1, '2019-03-11 11:29:42', 1, '2026-01-08 12:42:56', 1),
-	(3, 1, 'user', 'user@gmail.com', '', 'dashboard', 'Rakesh Shrestha', '$2y$12$5qwHKGAGImFrsQILwLldW.DMSc9FX6EWuCT2.n9yzaESaKGbqYAZm', 'user', 1, '2019-03-11 11:29:42', 1, '2026-01-08 12:33:06', 1);	
+	(3, 1, 'user', 'user@gmail.com', '', 'dashboard', 'Rakesh Shrestha', '$2y$12$5qwHKGAGImFrsQILwLldW.DMSc9FX6EWuCT2.n9yzaESaKGbqYAZm', 'user', 1, '2019-03-11 11:29:42', 1, '2026-01-08 12:33:06', 1);
 /*!40000 ALTER TABLE `mst_users` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.sys_auditlogs
@@ -236,7 +262,7 @@ CREATE TABLE IF NOT EXISTS `sys_auditlogs` (
   `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `key_auditlogsuseraction` (`user_id`, `actionname`, `entitytype`, `entityid`)
+  KEY `key_auditlogsuseraction` (`user_id`,`actionname`,`entitytype`,`entityid`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1 TRANSACTIONAL=1;
 
 -- Dumping data for table pwo.sys_auditlogs: 0 rows
@@ -258,7 +284,7 @@ CREATE TABLE IF NOT EXISTS `sys_methods` (
   `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `key_methods` (`c_name`, `module_id`, `controllername`, `controllermethod`, `perms`)
+  KEY `key_methods` (`c_name`,`module_id`,`controllername`,`controllermethod`,`perms`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
 -- Dumping data for table pwo.sys_methods: 0 rows
@@ -277,7 +303,7 @@ CREATE TABLE IF NOT EXISTS `sys_modules` (
   `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `key_modules` (`c_name`, `perms`)
+  KEY `key_modules` (`c_name`,`perms`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
 -- Dumping data for table pwo.sys_modules: 13 rows
@@ -307,7 +333,7 @@ CREATE TABLE IF NOT EXISTS `sys_sessions` (
   PRIMARY KEY (`id`)
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
 
--- Dumping data for table pwo.sys_sessions: 2 rows
+-- Dumping data for table pwo.sys_sessions: 0 rows
 DELETE FROM `sys_sessions`;
 /*!40000 ALTER TABLE `sys_sessions` DISABLE KEYS */;
 /*!40000 ALTER TABLE `sys_sessions` ENABLE KEYS */;

@@ -20,21 +20,27 @@ final class cHome extends cController
 
     public function index()
     {
-        $data['pagename'] =  $this->partner->sitetitle;
+        $data['pagename'] = $this->partner->sitetitle;
 
         $this->res->view($data);
     }
 
     public function manage_index()
     {
-        $data['pagename'] =  $this->partner->sitetitle;
+        if ($this->cusertype == 'none')
+            $this->res->redirect('login');
+
+        $data['pagename'] = $this->partner->sitetitle;
 
         $this->res->view($data);
     }
 
     public function dashboard_index()
     {
-        $data['pagename'] =  $this->partner->sitetitle;
+        if ($this->cusertype == 'none')
+            $this->res->redirect('login');
+
+        $data['pagename'] = $this->partner->sitetitle;
 
         $this->res->view($data);
     }

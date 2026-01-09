@@ -125,7 +125,7 @@ final class cLogin extends cController
                 return;
             }
 
-            $mail = new Email();
+            $mail = new Mailer();
             $mail->setFrom($this->partner->email, $this->partner->c_name);
             $mail->setTO($user->username, $user->realname);
             $mail->setSubject('Forgot Password');

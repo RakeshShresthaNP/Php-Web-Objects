@@ -523,12 +523,12 @@ final class Request
         if ($cache->valid($hostname)) {
             $pdata = $cache->get($hostname);
         } else {
-            $data = new model('mst_partners');
-            $data->select('*', 'hostname = ?', $hostname);
+            $data = new partner();
+            $pdata = json_decode($data->getAllConfigByHost($hostname));
 
-            $pdata = $data->get();
             $cache->set($hostname, $pdata);
         }
+
         $this->partner = $pdata;
 
         if (! isset($this->partner->id)) {
