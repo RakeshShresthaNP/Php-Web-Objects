@@ -66,7 +66,7 @@ class model
         if ($stmt->rowCount() == 1) {
             $this->_rs = $stmt->fetch(PDO::FETCH_ASSOC);
         } else {
-            return $stmt;
+            return $stmt->fetchAll();
         }
     }
 
