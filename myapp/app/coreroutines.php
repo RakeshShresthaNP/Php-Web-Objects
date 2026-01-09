@@ -520,6 +520,7 @@ final class Request
     public function getPartner(string $hostname = ''): void
     {
         $cache = cache();
+
         if ($cache->valid($hostname)) {
             $pdata = $cache->get($hostname);
         } else {
