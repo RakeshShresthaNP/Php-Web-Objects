@@ -20,7 +20,7 @@ final class cPlanImport extends cController
 
     public function index()
     {
-        $data['pagetitle'] = SITE_TITLE;
+        $data['pagename'] =  $this->partner->sitetitle;
 
         $this->res->view($data);
     }

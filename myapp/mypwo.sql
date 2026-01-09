@@ -119,6 +119,11 @@ CREATE TABLE IF NOT EXISTS `mst_partners` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `c_name` varchar(64) DEFAULT NULL,
   `hostname` varchar(256) NOT NULL,
+  `sitetile` varchar(256) NOT NULL,
+  `email` varchar(256) NOT NULL,
+  `geoip_api_key` varchar(256) NULL,
+  `firebase_api_key` varchar(256) NULL,
+  `gemini_api_key` varchar(256) NULL,
   `phone1` varchar(32) NOT NULL DEFAULT '',
   `phone2` varchar(32) DEFAULT NULL,
   `contactfax` varchar(32) DEFAULT NULL,
@@ -140,8 +145,8 @@ CREATE TABLE IF NOT EXISTS `mst_partners` (
 -- Dumping data for table pwo.mst_partners: 1 rows
 DELETE FROM `mst_partners`;
 /*!40000 ALTER TABLE `mst_partners` DISABLE KEYS */;
-INSERT INTO `mst_partners` (`id`, `c_name`, `hostname`, `phone1`, `phone2`, `contactfax`, `address1`, `address2`, `city`, `state`, `country`, `zip`, `remarks`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
-	(1, 'Test', 'localhost', '', '', '', '', '', 'Kathmandu', 'BG', 'NP', '92630', '', '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
+INSERT INTO `mst_partners` (`id`, `c_name`, `hostname`, `sitetile`, `email`, `phone1`, `phone2`, `contactfax`, `address1`, `address2`, `city`, `state`, `country`, `zip`, `remarks`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
+	(1, 'Test', 'localhost', 'Pwo Title', 'test@test.com', '', '', '', '', '', 'Kathmandu', 'BG', 'NP', '92630', '', '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
 /*!40000 ALTER TABLE `mst_partners` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.mst_reportpivots

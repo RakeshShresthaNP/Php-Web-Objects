@@ -43,17 +43,11 @@ if ($_SERVER["SERVER_PORT"] != 80 && $_SERVER["SERVER_PORT"] != 443) {
 define('SITE_URI', $siteuri);
 define('PATH_URI', dirname($_SERVER["SCRIPT_NAME"]));
 
-define('SITE_TITLE', 'PWO');
-
 define('PATH_PREFIX', serialize(array(
     'dashboard',
     'manage',
     'api'
 )));
-
-define('GEOIP_API_KEY', '');
-define('FIREBASE_API_KEY', '');
-define('GEMINI_API_KEY', '');
 
 define('MAIN_CONTROLLER', 'home');
 define('MAIN_METHOD', 'index');

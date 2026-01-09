@@ -114,17 +114,29 @@ final class cLogin extends cController
                 $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User does not exist!</div>');
                 return;
             }
+
             if ($user->status == 2) {
                 $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User does not exist!</div>');
                 return;
             }
 
+            if ($user->perms != 'superadmin' && $user->partner_id != $this->partner->id) {
+                $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User does not exist</div>');
+                return;
+            }
+
             $mail = new Email();
-            $mail->setFrom(SYSTEM_EMAIL, 'System');
+            $mail->setFrom($this->partner->email, $this->partner->c_name);
             $mail->setTO($user->username, $user->realname);
             $mail->setSubject('Forgot Password');
 
+            $message = "Dear " . $user->realname . ",\r\n\r\nYour Forgot Password.\r\n\r\n";
+            $message .= "Details:\r\nEmail:  $user->email \r\nPassword:  \r\n ";
+            $message .= "\r\nLogin Url: " . getUrl('login');
+
             $mail->setMessage($message);
+
+            var_dump($mail);
 
             // $mail->send();
             $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">Your password has been mailed to you!</div>');

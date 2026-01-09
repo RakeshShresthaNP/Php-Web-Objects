@@ -20,7 +20,7 @@ final class cProfile extends cController
 
     public function index()
     {
-        $data['pagetitle'] = SITE_TITLE;
+        $data['pagename'] = SITE_TITLE;
 
         $this->res->view($data);
     }

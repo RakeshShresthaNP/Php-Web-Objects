@@ -1,5 +1,5 @@
 <?php
-$pagetitle = isset($pagename) ? $pagename : SITE_TITLE;
+$pagetitle = isset($pagename) ? $pagename : 'Pwo ';
 ?>
 <!DOCTYPE html>
 <html lang="en">
