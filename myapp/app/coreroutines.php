@@ -677,7 +677,7 @@ final class Request
 
         if (! $iscontollerallowed) {
             if ($this->apimode) {
-                throw new ApiException('Module Does not Exist', 503);
+                throw new ApiException('Access to module: ' . $this->controller . ' not allowed!', 503);
             } else {
                 res()->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">Access to module: ' . $this->controller . ' not allowed!</div>');
             }
