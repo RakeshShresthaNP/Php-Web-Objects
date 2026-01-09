@@ -80,6 +80,14 @@ final class cAuth extends cController
                     throw new ApiException('Error Login', 405);
                 }
 
+                if ($user->status == 2) {
+                    throw new ApiException('Error Login', 405);
+                }
+
+                if ($user->perms != 'superadmin' && $user->partner_id != $this->partner->id) {
+                    throw new ApiException('Error Login', 405);
+                }
+
                 $udata = array(
                     'id' => $user->id,
                     'realName' => $user->realname,

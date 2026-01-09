@@ -21,9 +21,13 @@ final class MemcachedSessionHandler implements SessionHandlerInterface
 
     public function __construct()
     {
-        $this->_memcached = new Memcached();
-        $this->_memcached->addserver('127.0.0.1', 11211);
-        $this->_ttl = SESS_TIMEOUT;
+        if (extension_loaded('Memcached')) {
+            $this->_memcached = new Memcached();
+            $this->_memcached->addserver('127.0.0.1', 11211);
+            $this->_ttl = SESS_TIMEOUT;
+        } else {
+            throw new ApiException('Redis not loaded', 404);
+        }
     }
 
     public function open(string $path = '', string $name = ''): bool

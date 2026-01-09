@@ -65,6 +65,11 @@ final class cLogin extends cController
                 return;
             }
 
+            if ($user->perms != 'superadmin' && $user->partner_id != $this->partner->id) {
+                $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User does not exist</div>');
+                return;
+            }
+
             $cuser = $user->get();
 
             setCurrentUser($cuser);

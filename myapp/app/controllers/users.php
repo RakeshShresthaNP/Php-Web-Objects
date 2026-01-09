@@ -54,6 +54,7 @@ final class cUsers extends cController
 
             $vars['password'] = password_hash($vars['password'], PASSWORD_DEFAULT);
             $vars['c_name'] = explode('@', $vars['email'])[0];
+            $vars['partner_id'] = $this->partner->id;
             $vars['u_created'] = $this->user->id;
             $vars['u_updated'] = $this->user->id;
 

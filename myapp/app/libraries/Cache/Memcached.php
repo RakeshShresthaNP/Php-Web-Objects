@@ -21,8 +21,12 @@ final class Cache_Memcached
 
     public function __construct()
     {
-        $this->_memcached = new Memcached();
-        $this->_memcached->addserver('127.0.0.1', 11211);
+        if (extension_loaded('Memcached')) {
+            $this->_memcached = new Memcached();
+            $this->_memcached->addserver('127.0.0.1', 11211);
+        } else {
+            throw new ApiException('Redis not loaded', 404);
+        }
     }
 
     public function set(string $key, $data, int $ttl = 3600): bool

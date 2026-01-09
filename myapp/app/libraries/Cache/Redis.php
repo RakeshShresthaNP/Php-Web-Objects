@@ -21,8 +21,12 @@ final class Cache_Redis
 
     public function __construct()
     {
-        $this->_redis = new Redis();
-        $this->_redis->connect('127.0.0.1', 6379);
+        if (extension_loaded('Redis')) {
+            $this->_redis = new Redis();
+            $this->_redis->connect('127.0.0.1', 6379);
+        } else {
+            throw new ApiException('Redis not loaded', 404);
+        }
     }
 
     public function set(string $key, $data, int $ttl = 3600): bool

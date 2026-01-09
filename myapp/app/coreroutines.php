@@ -60,12 +60,9 @@ function getUrl(string $path = null): string
     }
 }
 
-function getDataDiff(mixed $obj1, mixed $obj2): array
+function getDataDiff(array &$arr1, array &$arr2): array
 {
     $changes = [];
-
-    $arr1 = (array) $obj1;
-    $arr2 = (array) $obj2;
 
     foreach ($arr1 as $key => $val) {
         if ($val != $arr2[$key]) {
@@ -491,6 +488,8 @@ final class Request
 
     public string $method = '';
 
+    public ?stdClass $partner = null;
+
     public ?stdClass $user = null;
 
     public ?string $cusertype = null;
@@ -516,6 +515,25 @@ final class Request
     public function isPost(): bool
     {
         return ($_SERVER['REQUEST_METHOD'] === 'POST');
+    }
+
+    public function getPartner(string $hostname = ''): void
+    {
+        $cache = cache();
+        if ($cache->valid($hostname)) {
+            $pdata = $cache->get($hostname);
+        } else {
+            $data = new model('mst_partners');
+            $data->select('*', 'hostname = ?', $hostname);
+
+            $pdata = $data->get();
+            $cache->set($hostname, $pdata);
+        }
+        $this->partner = $pdata;
+
+        if (! isset($this->partner->id)) {
+            throw new Exception('Invalid Domain Name', 503);
+        }
     }
 
     public function getHeaders(): object
@@ -773,6 +791,8 @@ abstract class cController
 
     public ?stdClass $deviceinfo = null;
 
+    public ?stdClass $partner = null;
+
     public ?stdClass $user = null;
 
     public ?string $cusertype = null;
@@ -788,6 +808,8 @@ abstract class cController
 
         $this->headers = $this->req->getHeaders();
         $this->deviceinfo = $this->req->getDeviceInfo();
+
+        $this->partner = $this->req->partner;
 
         $this->user = $this->req->user;
         $this->cusertype = isset($this->user->perms) ? $this->user->perms : 'none';
@@ -810,6 +832,8 @@ final class Application
             '?' . $_SERVER['QUERY_STRING']
         ), '', SITE_URI . $_SERVER['REQUEST_URI']));
         $uriparts = array_filter($uriparts);
+
+        $request->getPartner($_SERVER['SERVER_NAME']);
 
         $pathPrefixes = unserialize(PATH_PREFIX);
 

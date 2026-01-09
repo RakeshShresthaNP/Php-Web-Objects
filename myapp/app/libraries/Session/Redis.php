@@ -21,9 +21,13 @@ final class RedisSessionHandler implements SessionHandlerInterface
 
     public function __construct()
     {
-        $this->_redis = new Redis();
-        $this->_redis->connect('127.0.0.1', 6379);
-        $this->_ttl = SESS_TIMEOUT;
+        if (extension_loaded('Redis')) {
+            $this->_redis = new Redis();
+            $this->_redis->connect('127.0.0.1', 6379);
+            $this->_ttl = SESS_TIMEOUT;
+        } else {
+            throw new ApiException('Redis not loaded', 404);
+        }
     }
 
     public function open(string $path = '', string $name = ''): bool

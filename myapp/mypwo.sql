@@ -253,7 +253,7 @@ CREATE TABLE IF NOT EXISTS `sys_methods` (
   `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `key_methods` (`c_name`, `controllername`, `controllermethod`, `perms`)
+  KEY `key_methods` (`c_name`, `module_id`, `controllername`, `controllermethod`, `perms`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
 -- Dumping data for table pwo.sys_methods: 0 rows

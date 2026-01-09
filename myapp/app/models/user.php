@@ -23,7 +23,6 @@ final class user extends model
 
     public function insert()
     {
-        $this->partner_id = 1;
         $this->perms = 'user';
         $this->status = '1';
         $this->d_created = date('Y-m-d H:i:s');

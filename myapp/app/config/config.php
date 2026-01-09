@@ -55,8 +55,6 @@ define('GEOIP_API_KEY', '');
 define('FIREBASE_API_KEY', '');
 define('GEMINI_API_KEY', '');
 
-define('SYSTEM_EMAIL', '');
-
 define('MAIN_CONTROLLER', 'home');
 define('MAIN_METHOD', 'index');
 
