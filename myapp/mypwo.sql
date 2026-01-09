@@ -310,19 +310,19 @@ CREATE TABLE IF NOT EXISTS `sys_modules` (
 DELETE FROM `sys_modules`;
 /*!40000 ALTER TABLE `sys_modules` DISABLE KEYS */;
 INSERT INTO `sys_modules` (`id`, `c_name`, `perms`, `status`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
-	(1, 'auth', 'none', 0, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(2, 'home', 'none', 0, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(3, 'login', 'none', 0, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(4, 'pages', 'admin,superadmin,user,demo', 0, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(5, 'users', 'superadmin', 0, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(6, 'user', 'admin,superadmin,user,demo', 0, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(7, 'profile', 'admin,superadmin,user,demo', 0, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(8, 'timezone', 'admin,superadmin,user,demo', 0, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(9, 'mltest', 'admin,superadmin,user,demo', 0, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(10, 'mathtest', 'admin,superadmin,user,demo', 0, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(11, 'financetest', 'admin,superadmin,user,demo', 0, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(12, 'geminitest', 'admin,superadmin,user,demo', 0, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(13, 'planimport', 'admin,superadmin,user,demo', 0, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
+	(1, 'auth', 'none', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(2, 'home', 'none', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(3, 'login', 'none', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(4, 'pages', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(5, 'users', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(6, 'user', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(7, 'profile', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(8, 'timezone', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(9, 'mltest', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(10, 'mathtest', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(11, 'financetest', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(12, 'geminitest', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(13, 'planimport', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
 /*!40000 ALTER TABLE `sys_modules` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.sys_sessions

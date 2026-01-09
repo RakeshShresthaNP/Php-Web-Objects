@@ -638,6 +638,51 @@ final class Request
             $controllerfile = CONT_DIR . MAIN_CONTROLLER . '.php';
         }
 
+        $cache = cache();
+
+        if ($cache->valid($this->controller)) {
+            $cdata = $cache->get($this->controller);
+        } else {
+            $data = new model('sys_modules');
+            $data->select('*', 'c_name=?', $this->controller);
+            $cdata = $data->get();
+
+            $cache->set($this->controller, $cdata);
+        }
+
+        if ($cdata->status == 2) {
+            if ($this->apimode) {
+                throw new ApiException('Module Does not Exist', 503);
+            } else {
+                throw new Exception('Module Does not Exist', 503);
+            }
+        }
+
+        $iscontollerallowed = false;
+
+        if ($cdata->perms == "none") {
+            $iscontollerallowed = true;
+        } else {
+            $p1 = explode(",", $this->cusertype);
+            $p2 = explode(",", $cdata->perms);
+
+            // array_intersect finds common values between the two arrays
+            // If the resulting array is not empty, there is a match
+            if (! empty(array_intersect($p1, $p2))) {
+                $iscontollerallowed = true;
+            } else {
+                $iscontollerallowed = false;
+            }
+        }
+
+        if (! $iscontollerallowed) {
+            if ($this->apimode) {
+                throw new ApiException('Module Does not Exist', 503);
+            } else {
+                res()->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">Access to module: ' . $this->controller . ' not allowed!</div>');
+            }
+        }
+
         $cont = 'c' . $this->controller;
 
         require_once $controllerfile;
