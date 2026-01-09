@@ -143,8 +143,8 @@ CREATE TABLE IF NOT EXISTS `mst_partners` (
 DELETE FROM `mst_partners`;
 /*!40000 ALTER TABLE `mst_partners` DISABLE KEYS */;
 INSERT INTO `mst_partners` (`id`, `c_name`, `hostname`, `sitetitle`, `email`, `phone1`, `phone2`, `contactfax`, `address1`, `address2`, `city`, `state`, `country`, `zip`, `remarks`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
-	(1, 'Test', 'localhost', 'Pwo Title', 'test@test.com', '', '', '', '', '', 'Kathmandu', 'BG', 'NP', '92630', '', '2025-12-31 20:15:00', 1, '2025-12-31 20:15:00', 1),
-	(2, 'Test2', 'test.com', 'Pwo Title', 'test@test.com', '', '', '', '', '', 'Kathmandu', 'BG', 'NP', '92630', '', '2025-12-31 20:15:00', 1, '2026-01-09 07:36:30', 1);
+	(1, 'Test', 'localhost', 'Pwo Title', 'test@test.com', '', '', '', '', '', 'Kathmandu', 'BG', 'NP', '92630', '', '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(2, 'Test2', 'test.com', 'Pwo Title2', 'test2@test.com', '', '', '', '', '', 'Kathmandu', 'BG', 'NP', '92630', '', '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
 /*!40000 ALTER TABLE `mst_partners` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.mst_partner_settings
@@ -237,9 +237,9 @@ CREATE TABLE IF NOT EXISTS `mst_users` (
 DELETE FROM `mst_users`;
 /*!40000 ALTER TABLE `mst_users` DISABLE KEYS */;
 INSERT INTO `mst_users` (`id`, `partner_id`, `c_name`, `email`, `phone`, `homepath`, `realname`, `password`, `perms`, `status`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
-	(1, 1, 'superadmin', 'superadmin@gmail.com', '', 'manage', 'Rakesh Shrestha', '$2y$12$5qwHKGAGImFrsQILwLldW.DMSc9FX6EWuCT2.n9yzaESaKGbqYAZm', 'superadmin', 1, '2019-03-11 11:29:42', 0, '2026-01-08 12:57:22', 0),
-	(2, 1, 'admin', 'admin@gmail.com', '', 'dashboard', 'dashboard', '$2y$12$5qwHKGAGImFrsQILwLldW.DMSc9FX6EWuCT2.n9yzaESaKGbqYAZm', 'admin', 1, '2019-03-11 11:29:42', 1, '2026-01-08 12:42:56', 1),
-	(3, 1, 'user', 'user@gmail.com', '', 'dashboard', 'Rakesh Shrestha', '$2y$12$5qwHKGAGImFrsQILwLldW.DMSc9FX6EWuCT2.n9yzaESaKGbqYAZm', 'user', 1, '2019-03-11 11:29:42', 1, '2026-01-08 12:33:06', 1);
+	(1, 1, 'superadmin', 'superadmin@gmail.com', '', 'manage', 'Rakesh Shrestha', '$2y$12$5qwHKGAGImFrsQILwLldW.DMSc9FX6EWuCT2.n9yzaESaKGbqYAZm', 'superadmin', 1, '2026-01-01 02:00:00', 0, '2026-01-01 02:00:00', 0),
+	(2, 1, 'admin', 'admin@gmail.com', '', 'dashboard', 'dashboard', '$2y$12$5qwHKGAGImFrsQILwLldW.DMSc9FX6EWuCT2.n9yzaESaKGbqYAZm', 'admin', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(3, 1, 'user', 'user@gmail.com', '', 'dashboard', 'Rakesh Shrestha', '$2y$12$5qwHKGAGImFrsQILwLldW.DMSc9FX6EWuCT2.n9yzaESaKGbqYAZm', 'user', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
 /*!40000 ALTER TABLE `mst_users` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.sys_auditlogs
@@ -322,7 +322,7 @@ INSERT INTO `sys_modules` (`id`, `c_name`, `perms`, `status`, `d_created`, `u_cr
 	(10, 'mathtest', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
 	(11, 'financetest', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
 	(12, 'geminitest', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(13, 'planimport', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
+	(13, 'planimport', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
 /*!40000 ALTER TABLE `sys_modules` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.sys_sessions
