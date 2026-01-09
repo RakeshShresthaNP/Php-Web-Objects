@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS `mlmodelmetadatas` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `c_name` varchar(100) DEFAULT NULL,
   `version` varchar(10) DEFAULT NULL,
-  `accuracymetrics` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`accuracymetrics`)),
+  `accuracymetrics` json NOT NULL CHECK (json_valid(`accuracymetrics`)),
   `serializedpath` varchar(255) DEFAULT NULL,
   `d_created` timestamp NULL DEFAULT current_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
