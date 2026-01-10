@@ -31,7 +31,7 @@ Simple/Easy to learn and high-performance, lightweight PHP MVC framework that br
 
 ### 2. Database and Storage
 
-The integrated ORM is optimized for minimal memory footprint and fast execution, specifically designed to solve the N+1 query problem by leveraging MySQL's native JSON capabilities.
+A PHP Web Objects framework provides lightweight, fluent model class optimized for streamlined CRUD operations, engineered to provide Laravel-inspired developer experience with extreme performance efficiency. At its core, this ORM features a built-in Graph Engine that leverages native PDO support and modern MySQL JSON functions (JSON_OBJECT, JSON_ARRAYAGG) to fetch complex, nested relationships in a single, high-performance database hit. By transforming relational data into hierarchical JSON structures at the storage layer, it completely eliminates the N+1 query problem, drastically reducing latency and server overhead compared to traditional "Lazy Loading" or "Eager Loading" techniques that require multiple round-trips to the database.
 
 * **Universal PDO Support:** Native multi-database compatibility for secure, prepared statements.
 * **One-Query Nesting:** Fetch parents and children (1:N) as a single nested JSON object using the built-in Graph Engine.
