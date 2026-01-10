@@ -1,5 +1,4 @@
 <?php
-
 /**
  # Copyright Rakesh Shrestha (rakesh.shrestha@gmail.com)
  # All rights reserved.
@@ -12,25 +11,25 @@
  */
 declare(strict_types = 1);
 
-class Model
+class model
 {
 
     protected ?PDO $db = null;
 
     protected array $_rs = [];
 
-    protected array $_where = [];
+    private array $_where = [];
 
-    protected array $_bindings = [];
+    private array $_bindings = [];
 
-    protected array $_joins = [];
+    private array $_joins = [];
 
-    protected string $_order = '';
+    private string $_order = '';
 
-    protected string $_limit = '';
+    private string $_limit = '';
 
-    // Defaulting to string for comma-separated fields
-    protected string $selectedFields = '*';
+    // Configurable defaults
+    private string $selectedFields = '*';
 
     public function __construct(protected string $table, protected string $pk = 'id')
     {
@@ -44,12 +43,10 @@ class Model
 
     public function __get(string $key): mixed
     {
-        $this->_rs[$key] ?? null;
+        return $this->_rs[$key] ?? null;
     }
 
-    /**
-     * Fluent method to set fields as a comma-separated string
-     */
+    // --- Fluent Query Builder ---
     public function select(string $fields): self
     {
         $this->selectedFields = $fields;
@@ -91,57 +88,118 @@ class Model
         return $this;
     }
 
+    // --- GraphQL-style JSON Generation ---
+
     /**
-     * Executes the query.
-     * Uses the provided string, or falls back to $this->selectedFields
+     * Fetches nested relational data as a single JSON object (GraphQL style)
      */
-    public function find(?string $columns = null): array|object|null
+    public function findGraph(array $schema, string $alias = 'p'): mixed
     {
-        if ($this->useSoftDeletes) {
-            $this->where("{$this->table}.{$this->deletedAtColumn}", "IS", null);
-        }
+        $jsonExpr = $this->parseGraphSchema($schema, $alias);
 
-        $fieldString = $columns ?? $this->selectedFields;
-
-        $sql = "SELECT {$fieldString} FROM {$this->table}" . implode('', $this->_joins);
+        // We use a specific alias 'graph_data' to identify the result
+        $sql = "SELECT {$jsonExpr} AS graph_data FROM {$this->table} {$alias} " . implode('', $this->_joins);
 
         if ($this->_where) {
             $sql .= " WHERE " . implode(' AND ', $this->_where);
         }
 
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($this->_bindings);
+        $this->resetQuery();
+
+        // Fetch the specific column containing the JSON string
+        $result = $stmt->fetchColumn();
+
+        if (! $result)
+            return null;
+
+        // Decode into a PHP object
+        return json_decode($result);
+    }
+
+    /**
+     * Paginated version of the GraphQL nested query
+     */
+    public function paginateGraph(array $schema, int $page = 1, int $perPage = 15): object
+    {
+        $total = $this->count();
+        $page = max(1, $page);
+        $offset = ($page - 1) * $perPage;
+
+        $jsonExpr = $this->parseGraphSchema($schema, 'p');
+        $sql = "SELECT {$jsonExpr} as row_data FROM {$this->table} p " . implode('', $this->_joins);
+
+        if ($this->_where)
+            $sql .= " WHERE " . implode(' AND ', $this->_where);
+        $sql .= $this->_order . " LIMIT {$offset}, {$perPage}";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($this->_bindings);
+        $this->resetQuery();
+
+        $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        return (object) [
+            'items' => array_map(fn ($j) => json_decode($j), $rows),
+            'meta' => (object) [
+                'total_records' => $total,
+                'total_pages' => (int) ceil($total / $perPage),
+                'current_page' => $page
+            ]
+        ];
+    }
+
+    protected function parseGraphSchema(array $schema, string $alias): string
+    {
+        $parts = [];
+        foreach ($schema as $key => $val) {
+            $parts[] = "'{$key}'";
+            if (is_array($val)) {
+                $subFields = $this->parseGraphSchema($val['fields'], 'sub');
+                $parts[] = "COALESCE((SELECT JSON_ARRAYAGG({$subFields}) FROM {$val['table']} sub WHERE sub.{$val['foreign_key']} = {$alias}.{$this->pk}), JSON_ARRAY())";
+            } else {
+                $parts[] = "{$alias}.{$val}";
+            }
+        }
+        return "JSON_OBJECT(" . implode(', ', $parts) . ")";
+    }
+
+    // --- Standard Execution ---
+    public function find(?string $columns = null): array|object|null
+    {
+        $fields = $columns ?? $this->selectedFields;
+        $sql = "SELECT {$fields} FROM {$this->table} p " . implode('', $this->_joins);
+        if ($this->_where)
+            $sql .= " WHERE " . implode(' AND ', $this->_where);
         $sql .= $this->_order . $this->_limit;
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($this->_bindings);
-
         $this->resetQuery();
-        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if (! $results)
-            return null;
-
-        if (count($results) === 1) {
-            $this->_rs = $results[0];
+        if ($stmt->rowCount() == 1) {
+            $this->_rs = $stmt->fetch(PDO::FETCH_ASSOC);
             return (object) $this->_rs;
         }
 
-        return $results;
+        $res = $stmt->fetchAll();
+
+        if (! $res)
+            return null;
+
+        return $res;
     }
 
     public function paginate(int $page = 1, int $perPage = 15, ?string $columns = null): object
     {
         $total = $this->count();
         $page = max(1, $page);
-
         $this->limit($perPage, ($page - 1) * $perPage);
         $data = $this->find($columns);
-
-        $items = is_array($data) ? $data : ($data ? [
-            $data
-        ] : []);
-
         return (object) [
-            'items' => $items,
+            'items' => is_array($data) ? $data : ($data ? [
+                $data
+            ] : []),
             'meta' => (object) [
                 'total_records' => $total,
                 'total_pages' => (int) ceil($total / $perPage),
@@ -153,35 +211,28 @@ class Model
 
     public function count(): int
     {
-        $sql = "SELECT COUNT(*) FROM {$this->table}" . implode('', $this->_joins);
-        if ($this->_where) {
+        $sql = "SELECT COUNT(*) FROM {$this->table} p " . implode('', $this->_joins);
+        if ($this->_where)
             $sql .= " WHERE " . implode(' AND ', $this->_where);
-        }
-
         $stmt = $this->db->prepare($sql);
         $stmt->execute($this->_bindings);
 
         return (int) $stmt->fetchColumn();
     }
 
-    // --- Persistence Methods ---
+    // --- Persistence ---
     public function save(): bool|string
     {
-        return isset($this->_rs[$this->pk]) ? $this->update() : $this->insert();
+        isset($this->_rs[$this->pk]) ? $this->update() : $this->insert();
+        return true;
     }
 
     public function insert(): string|false
     {
-        $columns = array_keys($this->_rs);
-        $placeholders = array_fill(0, count($columns), '?');
-
-        $sql = "INSERT INTO {$this->table} (" . implode(',', $columns) . ")
-                VALUES (" . implode(',', $placeholders) . ")";
-
-        $stmt = $this->db->prepare($sql);
+        $cols = array_keys($this->_rs);
+        $sql = "INSERT INTO {$this->table} (" . implode(',', $cols) . ") VALUES (" . implode(',', array_fill(0, count($cols), '?')) . ")";
         $values = array_map(fn ($v) => is_scalar($v) ? $v : serialize($v), array_values($this->_rs));
-
-        return $stmt->execute($values) ? $this->db->lastInsertId() : false;
+        return $this->db->prepare($sql)->execute($values) ? $this->db->lastInsertId() : false;
     }
 
     public function update(): bool

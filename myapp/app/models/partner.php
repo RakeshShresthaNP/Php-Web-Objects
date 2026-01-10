@@ -17,60 +17,48 @@ final class partner extends model
 
     public function __construct(int $id = 0)
     {
-        parent::__construct('mst_partners');
+        parent::__construct('mst_partners', 'id');
 
         if ($id > 0) {
             $this->where('id', $id)->find();
         }
     }
 
-    public function getAllConfigByHost(string $hostname)
+    public function getAllConfigByHost(string $hostname): mixed
     {
-        $sql = "SELECT 
-                    JSON_OBJECT(
-                        'id', p.id, 
-                        'c_name', p.c_name,
-                        'hostname', p.hostname,
-                        'sitetitle', p.sitetitle,
-                        'email', p.email,
-                        'phone1', p.phone1,
-                        'phone2', p.phone2,
-                        'contactfax', p.contactfax,
-                        'address1', p.address1,
-                        'address2', p.address2,
-                        'city', p.city,
-                        'state', p.state,
-                        'country', p.country,
-                        'zip', p.zip,
-                        'settings', COALESCE(
-                            (
-                                SELECT JSON_ARRAYAGG(
-                                    JSON_OBJECT(
-                                        'id', ps.id, 
-                                        'secretkey', ps.secretkey,
-                                        'mailhost', ps.mailhost, 
-                                        'mailport', ps.mailport,
-                                        'mailusername', ps.mailusername, 
-                                        'mailpassword', ps.mailpassword,
-                                        'geoip_api_key', ps.geoip_api_key,
-                                        'firebase_api_key', ps.firebase_api_key,
-                                        'gemini_api_key', ps.gemini_api_key
-                                    )
-                                )
-                                FROM mst_partner_settings ps 
-                                WHERE ps.partner_id = p.id
-                            ), 
-                            JSON_ARRAY() -- Returns [] if no settings found
-                        )
-                    ) AS partners
-                FROM mst_partners p WHERE p.hostname=?";
+        $schema = [
+            'id' => 'id',
+            'c_name' => 'c_name',
+            'hostname' => 'hostname',
+            'sitetitle' => 'sitetitle',
+            'email' => 'email',
+            'phone1' => 'phone1',
+            'phone2' => 'phone2',
+            'contactfax' => 'contactfax',
+            'address1' => 'address1',
+            'address2' => 'address2',
+            'city' => 'city',
+            'state' => 'state',
+            'country' => 'country',
+            'zip' => 'zip',
+            'settings' => [
+                'table' => 'mst_partner_settings',
+                'foreign_key' => 'partner_id',
+                'fields' => [
+                    'id' => 'id',
+                    'secretkey' => 'secretkey',
+                    'mailhost' => 'mailhost',
+                    'mailport' => 'mailport',
+                    'mailusername' => 'mailusername',
+                    'mailpassword' => 'mailpassword',
+                    'geoip_api_key' => 'geoip_api_key',
+                    'firebase_api_key' => 'firebase_api_key',
+                    'gemini_api_key' => 'gemini_api_key'
+                ]
+            ]
+        ];
 
-        $stmt = $this->db->prepare($sql);
-
-        $stmt->bindValue(1, $hostname);
-
-        $stmt->execute();
-
-        return $stmt->fetchColumn();
+        // findGraph returns a decoded object directly
+        return $this->where('hostname', $hostname)->findGraph($schema);
     }
 }

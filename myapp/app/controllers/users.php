@@ -20,11 +20,20 @@ final class cUsers extends cController
 
     public function manage_index()
     {
-        $data['pagename'] = 'Users';
+        $data['users'] = 'Users';
+
+        $currentPage = (int) ($_GET['page'] ?? 1);
+        $perPage = (int) ($_GET['perpage'] ?? 1);
 
         $user = new model('mst_users');
-        $data['users'] = $user->select('*', 'perms <> ?', 'superadmin');
 
+        $pusers = $user->select('*')
+            ->where('perms', '<>', 'superadmin')
+            ->paginate($currentPage, $perPage);
+
+        $data['users'] = $pusers->items;
+        $data['links'] = links($pusers->meta);
+        
         $this->res->view($data);
     }
 

@@ -31,7 +31,7 @@ Simple/Easy to learn and high-performance, lightweight PHP MVC framework that br
 
 ### 2. Database and Storage
 * **Universal PDO Support:** Native multi-database compatibility.
-* **High-Speed ORM:** Lightweight Model class optimized for streamlined CRUD operations.
+* **High-Speed ORM:** Lightweight Model class optimized for streamlined CRUD operations inspired by Laravel.
 * **Modular Caching:** Handlers for Redis, Memcached, and local SessionStorage.
 * **Cloud Integration:** Native bridge for Amazon S3 storage and file management.
 

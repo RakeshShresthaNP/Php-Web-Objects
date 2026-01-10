@@ -504,7 +504,7 @@ final class Request
             $pdata = $cache->get($hostname);
         } else {
             $data = new partner();
-            $pdata = json_decode($data->getAllConfigByHost($hostname));
+            $pdata = $data->getAllConfigByHost($hostname);
 
             $cache->set($hostname, $pdata);
         }

@@ -72,7 +72,11 @@
 								</tr>
 							</tfoot>
 						</table>
+
 					</div>
+					<div class="mt-3">
+                        <?php echo $links ?>
+                    </div>
 					<!-- /.card-body -->
 				</div>
 				<!-- /.card -->

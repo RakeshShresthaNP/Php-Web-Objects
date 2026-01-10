@@ -12,7 +12,7 @@
  */
 declare(strict_types = 1);
 
-final class User extends model
+final class user extends model
 {
 
     public function __construct(int $id = 0)
@@ -20,7 +20,7 @@ final class User extends model
         parent::__construct('mst_users', 'id');
 
         if ($id > 0) {
-            $this->where('id', $id)->find();
+            $this->where('id', '=', $id)->find();
         }
     }
 
