@@ -30,8 +30,30 @@ Simple/Easy to learn and high-performance, lightweight PHP MVC framework that br
 ---
 
 ### 2. Database and Storage
-* **Universal PDO Support:** Native multi-database compatibility.
-* **High-Speed ORM:** Lightweight Model class optimized for streamlined CRUD operations inspired by Laravel.
+
+The integrated ORM is optimized for minimal memory footprint and fast execution, specifically designed to solve the N+1 query problem by leveraging MySQL's native JSON capabilities.
+
+* **Universal PDO Support:** Native multi-database compatibility for secure, prepared statements.
+* **One-Query Nesting:** Fetch parents and children (1:N) as a single nested JSON object using the built-in Graph Engine.
+
+#### ORM Usage Example
+```php
+$user = new User();
+// Standard CRUD
+$users = $user->select('id, username')->whereNot('role', 'admin')->find();
+
+// High-Performance GraphQL-Style Nesting
+$schema = [
+    'id' => 'id',
+    'settings' => [
+        'table' => 'mst_partner_settings',
+        'foreign_key' => 'partner_id',
+        'fields' => ['mailhost' => 'mailhost']
+    ]
+];
+$results = $user->paginateGraph($schema, 1, 10);
+```
+
 * **Modular Caching:** Handlers for Redis, Memcached, and local SessionStorage.
 * **Cloud Integration:** Native bridge for Amazon S3 storage and file management.
 
