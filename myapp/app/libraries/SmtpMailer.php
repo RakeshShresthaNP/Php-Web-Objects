@@ -21,6 +21,14 @@ final class SmtpMailer
 
     private $connection;
 
+    private string $host = '';
+
+    private int $port = '';
+
+    private string $username = '';
+
+    private string $password = '';
+
     private string $fromEmail;
 
     private string $fromName = 'Sender';
@@ -39,50 +47,55 @@ final class SmtpMailer
 
     private string $boundary;
 
-    public function __construct(private readonly string $host, private readonly int $port, private readonly string $username, private readonly string $password, private readonly string $encryption = 'tls')
+    public function __construct(mixed $setting, string $encryption = 'tls')
     {
-        $this->fromEmail = $this->username;
+        $this->fromEmail = $setting->mailusername;
+        $this->host = $setting->mailhost;
+        $this->port = (int) $setting->mailport;
+        $this->username = $setting->mailusername;
+        $this->password = $setting->mailpassword;
+
         $this->boundary = "PHP_MIXED_" . md5((string) microtime(true));
     }
 
-    public function setFrom(string $email, string $name = ''): self
+    public function setFrom(string $email, string $name = ''): static
     {
         $this->fromEmail = $email;
         $this->fromName = $name ?: $email;
         return $this;
     }
 
-    public function addTo(string $email): self
+    public function addTo(string $email): static
     {
         $this->to[] = $email;
         return $this;
     }
 
-    public function setCc(array $emails): self
+    public function setCc(array $emails): static
     {
         $this->cc = $emails;
         return $this;
     }
 
-    public function setBcc(array $emails): self
+    public function setBcc(array $emails): static
     {
         $this->bcc = $emails;
         return $this;
     }
 
-    public function setSubject(string $subject): self
+    public function setSubject(string $subject): static
     {
         $this->subject = $subject;
         return $this;
     }
 
-    public function setMessage(string $htmlMessage): self
+    public function setMessage(string $htmlMessage): static
     {
         $this->message = $htmlMessage;
         return $this;
     }
 
-    public function addAttachment(string $filePath): self
+    public function addAttachment(string $filePath): static
     {
         if (! file_exists($filePath)) {
             throw new SmtpException("Attachment file not found: $filePath");

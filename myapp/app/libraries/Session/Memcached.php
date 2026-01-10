@@ -26,7 +26,7 @@ final class MemcachedSessionHandler implements SessionHandlerInterface
             $this->_memcached->addserver('127.0.0.1', 11211);
             $this->_ttl = SESS_TIMEOUT;
         } else {
-            throw new ApiException('Redis not loaded', 404);
+            throw new ApiException('Memcached not loaded', 404);
         }
     }
 

@@ -328,20 +328,25 @@ function customError(int $errno, string $errstr, string $errfile, int $errline):
         'line' => $errline,
         'context' => 'Execution Terminated'
     ];
+    
+    throw new Exception($errstr, $errno);
 
     // Write to the log file (using your existing writeLog function)
     writeLog('error_' . date('Y_m_d'), $logData);
 
-    // Clear any existing output buffers to prevent a "messy" page
-    if (ob_get_length()) {
-        ob_clean();
+    if (DEBUG) {
+
+        // Clear any existing output buffers to prevent a "messy" page
+        if (ob_get_length()) {
+            ob_clean();
+        }
+
+        // Modern status code for errors
+        http_response_code(500);
+
+        // Stop execution completely
+        exit(1);
     }
-
-    // Modern status code for errors
-    http_response_code(500);
-
-    // Stop execution completely
-    exit(1);
 }
 
 set_error_handler("customError");

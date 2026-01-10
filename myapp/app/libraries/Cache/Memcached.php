@@ -25,7 +25,7 @@ final class Cache_Memcached
             $this->_memcached = new Memcached();
             $this->_memcached->addserver('127.0.0.1', 11211);
         } else {
-            throw new ApiException('Redis not loaded', 404);
+            throw new ApiException('Memcached not loaded', 404);
         }
     }
 

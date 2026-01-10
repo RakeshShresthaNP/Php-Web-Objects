@@ -136,7 +136,11 @@ final class cLogin extends cController
 
             $mail->setMessage($message);
 
-            $mail->send();
+            try {
+                $mail->send();
+            } catch (Exception $e) {
+                writeLog('error', 'couldnot send email');
+            }
 
             $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">Your password has been mailed to you!</div>');
         }

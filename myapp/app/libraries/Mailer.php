@@ -240,11 +240,15 @@ final class Mailer
 
         if ($this->hasAttachments()) {
             $headers .= $this->assembleAttachmentHeaders();
-            return mail($to, $this->_subject, "", $headers, $this->_parameters);
+            if (mail($to, $this->_subject, "", $headers, $this->_parameters))
+                return true;
         }
 
         $message = wordwrap($this->_message, $this->_wrap);
-        return mail($to, $this->_subject, $message, $headers, $this->_parameters);
+        if (mail($to, $this->_subject, $message, $headers, $this->_parameters))
+            return true;
+
+        return false;
     }
 
     public function formatHeader(string $email, ?string $name = ''): string

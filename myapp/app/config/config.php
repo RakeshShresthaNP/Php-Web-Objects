@@ -11,8 +11,6 @@
  */
 declare(strict_types = 1);
 
-ini_set('apc.cache_by_default', 0);
-
 define('SYSTEM_TIMEZONE', 'Asia/Kathmandu');
 
 if ($_SERVER['SERVER_NAME'] == 'localhost') {
@@ -61,5 +59,3 @@ define('CONT_DIR', APP_DIR . 'controllers/');
 define('LIBS_DIR', APP_DIR . 'libraries/');
 define('VIEW_DIR', APP_DIR . 'views/');
 define('MODS_DIR', APP_DIR . 'models/');
-
-define('SECRET_KEY', 'PHpisVeryCOOLDear1234##Isitso');
