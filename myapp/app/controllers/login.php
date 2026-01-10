@@ -29,9 +29,10 @@ final class cLogin extends cController
             $this->res->redirect($this->user->homepath);
         }
 
-        $user = new user();
-
         if ($this->req->isPost()) {
+
+            $muser = new user();
+
             // Validate input
             $username = isset($_POST['username']) ? trim($_POST['username']) : '';
             $password = isset($_POST['password']) ? $_POST['password'] : '';
@@ -41,9 +42,9 @@ final class cLogin extends cController
                 return;
             }
 
-            $user->select('*', 'email=?', $username);
+            $user = $muser->where('email', $username)->find();
 
-            if (! $user->exist()) {
+            if (! $user) {
                 $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">LOGIN FAILED!</div>');
                 return;
             }
@@ -70,13 +71,11 @@ final class cLogin extends cController
                 return;
             }
 
-            $cuser = $user->get();
+            setCurrentUser($user);
 
-            setCurrentUser($cuser);
+            $cutype = $user->perms;
 
-            $cutype = $cuser->perms;
-
-            $this->res->redirect($cuser->homepath);
+            $this->res->redirect($user->homepath);
 
             $data['username'] = $username;
             $data['user'] = $user;
@@ -98,9 +97,9 @@ final class cLogin extends cController
             $this->res->redirect($this->user->homepath);
         }
 
-        $user = new user();
-
         if ($this->req->isPost()) {
+            $muser = new user();
+
             $username = isset($_POST['username']) ? trim($_POST['username']) : '';
 
             if (empty($username)) {
@@ -108,9 +107,9 @@ final class cLogin extends cController
                 return;
             }
 
-            $user->select('*', 'email=?', $username);
+            $user = $user->where('email', $username)->find();
 
-            if (! $user->exist()) {
+            if (! $user) {
                 $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User does not exist!</div>');
                 return;
             }

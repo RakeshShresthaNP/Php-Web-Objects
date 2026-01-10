@@ -25,7 +25,7 @@ final class cAuth extends cController
         } else {
             throw new ApiException('Invalid partner setting format.', 401);
         }
-        
+
         $header = json_encode([
             'typ' => 'JWT',
             'alg' => 'HS256'
@@ -66,16 +66,14 @@ final class cAuth extends cController
                 throw new ApiException('Username and password are required', 405);
             }
 
-            $user = new user();
+            $muser = new user();
 
             $username = $fdata['username'];
             $password = $fdata['password'];
 
-            $user->select('*', 'email=?', array(
-                $username
-            ));
+            $user = $muser->where('email', $username)->find();
 
-            if ($user->exist()) {
+            if ($user) {
                 $passwordValid = false;
 
                 if (password_verify($password, $user->password)) {

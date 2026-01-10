@@ -629,8 +629,7 @@ final class Request
             $cdata = $cache->get($this->controller);
         } else {
             $data = new model('sys_modules');
-            $data->select('*', 'c_name=?', $this->controller);
-            $cdata = $data->get();
+            $cdata = $data->where('c_name', $this->controller)->find();
 
             $cache->set($this->controller, $cdata);
         }
@@ -689,8 +688,7 @@ final class Request
             $mdata = $cache->get($this->controller . '_' . $this->method);
         } else {
             $data = new model('sys_methods');
-            $data->select('*', 'c_name=?', $this->controller . '_' . $this->method);
-            $mdata = $data->get();
+            $mdata = $data->where('c_name', $this->controller . '_' . $this->method)->find();
 
             $cache->set($this->controller . '_' . $this->method, $mdata);
         }

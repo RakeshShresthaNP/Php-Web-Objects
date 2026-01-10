@@ -10,167 +10,168 @@
  #
  # Redistributions must retain the above copyright notice.
  */
+declare(strict_types = 1);
+
 class model
 {
 
-    protected ?Pdo $db = null;
+    protected ?PDO $db = null;
 
-    private array $_rs = array();
+    private array $_rs = [];
 
-    private string $_pk;
+    private array $_where = [];
 
-    private string $_table;
+    private array $_bindings = [];
 
-    private string $_sql = '';
+    private array $_joins = [];
 
-    public function __construct(string $table = '', string $pk = 'id')
+    private string $_order = '';
+
+    private string $_limit = '';
+
+    public function __construct(protected string $table, protected string $pk = 'id')
     {
-        $this->_pk = $pk;
-        $this->_table = $table;
-        $this->db = db();
+        $this->db = db(); // Assumes a global db() function returning PDO
     }
 
-    public function __set(string $key, $val): void
+    // Modern PHP 8.4 short-syntax magic methods
+    public function __set(string $key, mixed $val): void
     {
         $this->_rs[$key] = $val;
     }
 
-    public function __get(string $key)
+    public function __get(string $key): mixed
     {
-        return isset($this->_rs[$key]) ? $this->_rs[$key] : '';
+        $this->_rs[$key] ?? null;
     }
 
-    public function select(string $selectwhat = '*', string $wherewhat = '', $bindings = null)
+    // --- Query Builder ---
+    public function where(string $column, string $operator, mixed $value = null): self
     {
-        if (is_scalar($bindings)) {
-            $bindings = mb_trim($bindings) ? array(
-                $bindings
-            ) : array();
+        if ($value === null) {
+            [
+                $value,
+                $operator
+            ] = [
+                $operator,
+                '='
+            ];
         }
-        $sql = 'SELECT ' . $selectwhat . ' FROM ' . $this->_table;
-        if ($wherewhat) {
-            $sql .= ' WHERE ' . $wherewhat;
-        }
+        $this->_where[] = "{$column} {$operator} ?";
+        $this->_bindings[] = $value;
+        return $this;
+    }
+
+    public function join(string $table, string $first, string $operator, string $second, string $type = 'INNER'): self
+    {
+        $this->_joins[] = " {$type} JOIN {$table} ON {$first} {$operator} {$second}";
+        return $this;
+    }
+
+    public function orderBy(string $column, string $direction = 'ASC'): self
+    {
+        $this->_order = " ORDER BY {$column} " . (strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC');
+        return $this;
+    }
+
+    public function limit(int $limit, int $offset = 0): self
+    {
+        $this->_limit = " LIMIT {$offset}, {$limit}";
+        return $this;
+    }
+
+    // --- Execution ---
+    public function find(string $select = '*'): array|object|null
+    {
+        $sql = "SELECT {$select} FROM {$this->table}" . implode('', $this->_joins);
+        if ($this->_where)
+            $sql .= " WHERE " . implode(' AND ', $this->_where);
+        $sql .= $this->_order . $this->_limit;
 
         $stmt = $this->db->prepare($sql);
+        $stmt->execute($this->_bindings);
 
-        $i = 0;
-        if ($wherewhat) {
-            foreach ($bindings as $v) {
-                $stmt->bindValue(++ $i, $v);
-            }
+        $this->resetQuery();
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (! $results)
+            return null;
+        if (count($results) === 1) {
+            $this->_rs = $results[0];
+            return (object) $this->_rs;
         }
-
-        $stmt->execute();
-
-        if ($stmt->rowCount() == 1) {
-            $this->_rs = $stmt->fetch(PDO::FETCH_ASSOC);
-        } else {
-            return $stmt->fetchAll();
-        }
+        return $results;
     }
 
-    public function insert()
+    public function paginate(int $page = 1, int $perPage = 15): object
     {
-        $_pk = $this->_pk;
+        $total = $this->count();
+        $page = max(1, $page);
 
-        $s1 = $s2 = '';
+        $this->limit($perPage, ($page - 1) * $perPage);
+        $data = $this->find();
+        $items = is_array($data) ? $data : ($data ? [
+            $data
+        ] : []);
 
-        foreach ($this->_rs as $k => $v) {
-            if ($k != $_pk || $v) {
-                $s1 .= ',' . $k;
-                $s2 .= ',?';
-            }
-        }
+        return (object) [
+            'items' => $items,
+            'total' => $total,
+            'last_page' => ceil($total / $perPage),
+            'current_page' => $page
+        ];
+    }
 
-        $sql = 'INSERT INTO ' . $this->_table . ' (' . mb_substr($s1, 1) . ') VALUES (' . mb_substr($s2, 1) . ')';
-
+    public function count(): int
+    {
+        $sql = "SELECT COUNT(*) FROM {$this->table}" . implode('', $this->_joins);
+        if ($this->_where)
+            $sql .= " WHERE " . implode(' AND ', $this->_where);
         $stmt = $this->db->prepare($sql);
-
-        $i = 0;
-
-        foreach ($this->_rs as $k => $v) {
-            if ($k != $_pk || $v) {
-                $stmt->bindValue(++ $i, is_scalar($v) ? $v : serialize($v));
-            }
-        }
-
-        $stmt->execute();
-
-        return $this->db->lastInsertId();
+        $stmt->execute($this->_bindings);
+        return (int) $stmt->fetchColumn();
     }
 
-    public function update()
+    // --- Persistence ---
+    public function save(): bool|string
     {
-        $_pk = $this->_pk;
-
-        $s = '';
-
-        foreach ($this->_rs as $k => $v) {
-            if ($k != $_pk)
-                $s .= ',' . $k . '=?';
-        }
-
-        $s = mb_substr($s, 1);
-
-        $sql = 'UPDATE ' . $this->_table . ' SET ' . $s . ' WHERE ' . $this->_pk . '=?';
-
-        $stmt = $this->db->prepare($sql);
-
-        $i = 0;
-
-        foreach ($this->_rs as $k => $v) {
-            if ($k != $_pk)
-                $stmt->bindValue(++ $i, is_scalar($v) ? $v : serialize($v));
-        }
-
-        $stmt->bindValue(++ $i, $this->_rs[$this->_pk]);
-
-        return $stmt->execute();
+        isset($this->_rs[$this->pk]) ? $this->update() : $this->insert();
     }
 
-    public function delete()
+    public function insert(): string|false
     {
-        $sql = 'DELETE FROM ' . $this->_table . ' WHERE ' . $this->_pk . '=?';
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(1, $this->_rs[$this->_pk]);
-
-        return $stmt->execute();
+        $cols = array_keys($this->_rs);
+        $sql = "INSERT INTO {$this->table} (" . implode(',', $cols) . ") VALUES (" . implode(',', array_fill(0, count($cols), '?')) . ")";
+        $values = array_map(fn ($v) => is_scalar($v) ? $v : serialize($v), array_values($this->_rs));
+        return $this->db->prepare($sql)->execute($values) ? $this->db->lastInsertId() : false;
     }
 
-    public function exist(bool $checkdb = false): int
+    public function update(): bool
     {
-        if ((int) $this->{$this->_pk} >= 1) {
-            return 1;
-        }
+        $data = $this->_rs;
+        $id = $data[$this->pk];
+        unset($data[$this->pk]);
 
-        if ($checkdb) {
-            $sql = 'SELECT 1 FROM ' . $this->_table . ' WHERE ' . $this->_pk . '=?';
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([
-                $this->{$this->_pk}
-            ]);
-            return $stmt->rowCount();
-        }
-
-        return 0;
+        $fields = array_map(fn ($k) => "{$k}=?", array_keys($data));
+        $sql = "UPDATE {$this->table} SET " . implode(',', $fields) . " WHERE {$this->pk}=?";
+        $values = [
+            ...array_map(fn ($v) => is_scalar($v) ? $v : serialize($v), array_values($data)),
+            $id
+        ];
+        return $this->db->prepare($sql)->execute($values);
     }
 
-    public function get(): object
+    public function trash(): bool
     {
-        return (object) $this->_rs;
+        return $this->update();
     }
 
-    public function assign(array &$arr = array(), bool $checkfield = false)
+    private function resetQuery(): void
     {
-        foreach ($arr as $key => $val) {
-            if ($checkfield) {
-                if (isset($this->$key)) {
-                    $this->$key = cleanHtml($val);
-                }
-            } else {
-                $this->$key = cleanHtml($val);
-            }
-        }
+        $this->_where = [];
+        $this->_bindings = [];
+        $this->_joins = [];
+        $this->_order = '';
+        $this->_limit = '';
     }
 }

@@ -10,28 +10,33 @@
  #
  # Redistributions must retain the above copyright notice.
  */
-final class user extends model
+declare(strict_types = 1);
+
+final class User extends model
 {
 
     public function __construct(int $id = 0)
     {
-        parent::__construct('mst_users');
+        parent::__construct('mst_users', 'id');
 
-        if ($id)
-            $this->select('*', 'id=?', $id);
+        if ($id > 0) {
+            $this->where('id', $id)->find();
+        }
     }
 
-    public function insert()
+    public function insert(): string|false
     {
-        $this->perms = 'user';
-        $this->status = '1';
-        $this->d_created = date('Y-m-d H:i:s');
-        $this->d_updated = $this->d_created;
+        $this->perms ??= 'user';
+        $this->status ??= '1';
+
+        $now = date('Y-m-d H:i:s');
+        $this->d_created = $now;
+        $this->d_updated = $now;
 
         return parent::insert();
     }
 
-    public function update()
+    public function update(): bool
     {
         $this->d_updated = date('Y-m-d H:i:s');
 

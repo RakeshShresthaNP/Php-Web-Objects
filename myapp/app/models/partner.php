@@ -10,6 +10,8 @@
  #
  # Redistributions must retain the above copyright notice.
  */
+declare(strict_types = 1);
+
 final class partner extends model
 {
 
@@ -17,8 +19,9 @@ final class partner extends model
     {
         parent::__construct('mst_partners');
 
-        if ($id)
-            $this->select('*', 'id=?', $id);
+        if ($id > 0) {
+            $this->where('id', $id)->find();
+        }
     }
 
     public function getAllConfigByHost(string $hostname)
