@@ -12,22 +12,25 @@
  */
 declare(strict_types = 1);
 
-class model
+class Model
 {
 
     protected ?PDO $db = null;
 
-    private array $_rs = [];
+    protected array $_rs = [];
 
-    private array $_where = [];
+    protected array $_where = [];
 
-    private array $_bindings = [];
+    protected array $_bindings = [];
 
-    private array $_joins = [];
+    protected array $_joins = [];
 
-    private string $_order = '';
+    protected string $_order = '';
 
-    private string $_limit = '';
+    protected string $_limit = '';
+
+    // Defaulting to string for comma-separated fields
+    protected string $selectedFields = '*';
 
     public function __construct(protected string $table, protected string $pk = 'id')
     {
@@ -44,7 +47,15 @@ class model
         $this->_rs[$key] ?? null;
     }
 
-    // --- Query Builder ---
+    /**
+     * Fluent method to set fields as a comma-separated string
+     */
+    public function select(string $fields): self
+    {
+        $this->selectedFields = $fields;
+        return $this;
+    }
+
     public function where(string $column, string $operator, mixed $value = null): self
     {
         if ($value === null) {
@@ -69,7 +80,8 @@ class model
 
     public function orderBy(string $column, string $direction = 'ASC'): self
     {
-        $this->_order = " ORDER BY {$column} " . (strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC');
+        $dir = strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC';
+        $this->_order = " ORDER BY {$column} {$dir}";
         return $this;
     }
 
@@ -79,12 +91,24 @@ class model
         return $this;
     }
 
-    // --- Execution ---
-    public function find(string $select = '*'): array|object|null
+    /**
+     * Executes the query.
+     * Uses the provided string, or falls back to $this->selectedFields
+     */
+    public function find(?string $columns = null): array|object|null
     {
-        $sql = "SELECT {$select} FROM {$this->table}" . implode('', $this->_joins);
-        if ($this->_where)
+        if ($this->useSoftDeletes) {
+            $this->where("{$this->table}.{$this->deletedAtColumn}", "IS", null);
+        }
+
+        $fieldString = $columns ?? $this->selectedFields;
+
+        $sql = "SELECT {$fieldString} FROM {$this->table}" . implode('', $this->_joins);
+
+        if ($this->_where) {
             $sql .= " WHERE " . implode(' AND ', $this->_where);
+        }
+
         $sql .= $this->_order . $this->_limit;
 
         $stmt = $this->db->prepare($sql);
@@ -95,74 +119,98 @@ class model
 
         if (! $results)
             return null;
+
         if (count($results) === 1) {
             $this->_rs = $results[0];
             return (object) $this->_rs;
         }
+
         return $results;
     }
 
-    public function paginate(int $page = 1, int $perPage = 15): object
+    public function paginate(int $page = 1, int $perPage = 15, ?string $columns = null): object
     {
         $total = $this->count();
         $page = max(1, $page);
 
         $this->limit($perPage, ($page - 1) * $perPage);
-        $data = $this->find();
+        $data = $this->find($columns);
+
         $items = is_array($data) ? $data : ($data ? [
             $data
         ] : []);
 
         return (object) [
             'items' => $items,
-            'total' => $total,
-            'last_page' => ceil($total / $perPage),
-            'current_page' => $page
+            'meta' => (object) [
+                'total_records' => $total,
+                'total_pages' => (int) ceil($total / $perPage),
+                'current_page' => $page,
+                'per_page' => $perPage
+            ]
         ];
     }
 
     public function count(): int
     {
         $sql = "SELECT COUNT(*) FROM {$this->table}" . implode('', $this->_joins);
-        if ($this->_where)
+        if ($this->_where) {
             $sql .= " WHERE " . implode(' AND ', $this->_where);
+        }
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute($this->_bindings);
+
         return (int) $stmt->fetchColumn();
     }
 
-    // --- Persistence ---
+    // --- Persistence Methods ---
     public function save(): bool|string
     {
-        isset($this->_rs[$this->pk]) ? $this->update() : $this->insert();
+        return isset($this->_rs[$this->pk]) ? $this->update() : $this->insert();
     }
 
     public function insert(): string|false
     {
-        $cols = array_keys($this->_rs);
-        $sql = "INSERT INTO {$this->table} (" . implode(',', $cols) . ") VALUES (" . implode(',', array_fill(0, count($cols), '?')) . ")";
+        $columns = array_keys($this->_rs);
+        $placeholders = array_fill(0, count($columns), '?');
+
+        $sql = "INSERT INTO {$this->table} (" . implode(',', $columns) . ")
+                VALUES (" . implode(',', $placeholders) . ")";
+
+        $stmt = $this->db->prepare($sql);
         $values = array_map(fn ($v) => is_scalar($v) ? $v : serialize($v), array_values($this->_rs));
-        return $this->db->prepare($sql)->execute($values) ? $this->db->lastInsertId() : false;
+
+        return $stmt->execute($values) ? $this->db->lastInsertId() : false;
     }
 
     public function update(): bool
     {
+        if (! isset($this->_rs[$this->pk]))
+            return false;
+
         $data = $this->_rs;
         $id = $data[$this->pk];
         unset($data[$this->pk]);
 
         $fields = array_map(fn ($k) => "{$k}=?", array_keys($data));
         $sql = "UPDATE {$this->table} SET " . implode(',', $fields) . " WHERE {$this->pk}=?";
-        $values = [
-            ...array_map(fn ($v) => is_scalar($v) ? $v : serialize($v), array_values($data)),
-            $id
-        ];
+
+        $values = array_map(fn ($v) => is_scalar($v) ? $v : serialize($v), array_values($data));
+        $values[] = $id;
+
         return $this->db->prepare($sql)->execute($values);
     }
 
-    public function trash(): bool
+    public function delete(): bool
     {
-        return $this->update();
+        if (! isset($this->_rs[$this->pk]))
+            return false;
+
+        $sql = "DELETE FROM {$this->table} WHERE {$this->pk}=?";
+        $values[] = $this->_rs[$this->pk];
+
+        return $this->db->prepare($sql)->execute($values);
     }
 
     private function resetQuery(): void
@@ -172,5 +220,13 @@ class model
         $this->_joins = [];
         $this->_order = '';
         $this->_limit = '';
+        $this->selectedFields = '*';
+    }
+
+    public function assign(array $arr): void
+    {
+        foreach ($arr as $key => $val) {
+            $this->$key = $val;
+        }
     }
 }
