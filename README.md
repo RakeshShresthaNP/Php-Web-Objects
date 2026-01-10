@@ -38,9 +38,9 @@ A PHP Web Objects framework provides lightweight, fluent model class optimized f
 
 #### ORM Usage Example
 ```php
-$user = new User();
+$user = new partner();
 // Standard CRUD
-$users = $user->select('id, username')->whereNot('role', 'admin')->find();
+$users = $user->select('id, username')->find();
 
 // High-Performance GraphQL-Style Nesting
 $schema = [
