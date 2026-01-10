@@ -26,14 +26,17 @@ final class cUsers extends cController
         $perPage = (int) ($_GET['perpage'] ?? 1);
 
         $user = new model('mst_users');
+        $partner = new partner();
 
         $pusers = $user->select('*')
             ->where('perms', '<>', 'superadmin')
             ->paginate($currentPage, $perPage);
+        $partners = $partner->getAllPartnersAsGraph();
 
         $data['users'] = $pusers->items;
         $data['links'] = links($pusers->meta);
-        
+        $data['partners'] = $partners->items;
+
         $this->res->view($data);
     }
 

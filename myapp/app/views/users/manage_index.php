@@ -72,11 +72,45 @@
 								</tr>
 							</tfoot>
 						</table>
+						<div class="mt-3">
+                            <?php echo $links ?>
+                        </div>
 
+						<h3>Partner Configuration</h3>
+
+						<table class="table table-bordered table-hover">
+							<thead class="table-dark">
+								<tr>
+									<th>ID</th>
+									<th>Partner Name</th>
+									<th>Hostname</th>
+									<th>Email</th>
+									<th>Settings (Nested)</th>
+								</tr>
+							</thead>
+							<tbody>
+                            <?php foreach ($partners as $p) { ?>
+                                <tr>
+									<td><?php echo  $p->id ?></td>
+									<td><strong><?php echo  $p->c_name ?></strong></td>
+									<td><code><?php echo  $p->hostname ?></code></td>
+									<td><?php echo  $p->email ?></td>
+									<td>
+                                    <?php if (!empty($p->settings)): ?>
+                                    <ul class="small mb-0">
+                                        <?php foreach ($p->settings as $set): ?>
+                                    <li>Host: <?php echo  $set->mailhost ?></li>
+                                    <?php endforeach; ?>
+                                    </ul>
+                                    <?php else: ?>
+                                    <span class="text-muted">No settings</span>
+                                    <?php endif; ?>
+                                    </td>
+								</tr>
+								<?php } ?>
+							</tbody>
+						</table>
 					</div>
-					<div class="mt-3">
-                        <?php echo $links ?>
-                    </div>
 					<!-- /.card-body -->
 				</div>
 				<!-- /.card -->
