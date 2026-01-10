@@ -31,10 +31,9 @@ class model
 
     public function __construct(protected string $table, protected string $pk = 'id')
     {
-        $this->db = db(); // Assumes a global db() function returning PDO
+        $this->db = db();
     }
 
-    // Modern PHP 8.4 short-syntax magic methods
     public function __set(string $key, mixed $val): void
     {
         $this->_rs[$key] = $val;
