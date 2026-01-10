@@ -18,13 +18,6 @@ final class cUsers extends cController
         parent::__construct();
     }
 
-    public function index()
-    {
-        $data['pagename'] =  $this->partner->sitetitle;
-
-        $this->res->view($data);
-    }
-
     public function manage_index()
     {
         $data['pagename'] = 'Users';

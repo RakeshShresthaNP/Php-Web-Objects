@@ -18,7 +18,7 @@ final class cTimezone extends cController
         parent::__construct();
     }
 
-    public function api_getTimezone()
+    public function api_gettimezone()
     {
         $data['data'] = null;
 

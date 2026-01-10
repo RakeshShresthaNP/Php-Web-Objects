@@ -44,12 +44,11 @@ final class partner extends model
                                 SELECT JSON_ARRAYAGG(
                                     JSON_OBJECT(
                                         'id', ps.id, 
-                                        'mailtype', ps.mailtype,
+                                        'secretkey', ps.secretkey,
                                         'mailhost', ps.mailhost, 
                                         'mailport', ps.mailport,
                                         'mailusername', ps.mailusername, 
                                         'mailpassword', ps.mailpassword,
-                                        'mailencryption', ps.mailencryption, 
                                         'geoip_api_key', ps.geoip_api_key,
                                         'firebase_api_key', ps.firebase_api_key,
                                         'gemini_api_key', ps.gemini_api_key

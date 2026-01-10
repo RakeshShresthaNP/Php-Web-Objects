@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `documents` (
   `id` uuid NOT NULL,
   `partner_id` int(11) NOT NULL DEFAULT 0,
   `user_id` bigint(20) unsigned DEFAULT NULL,
-  `filename` varchar(255) NOT NULL,
+  `filename` varchar(255) DEFAULT NULL,
   `s3path` varchar(512) DEFAULT NULL,
   `mimetype` varchar(50) DEFAULT NULL,
   `status` enum('pending','processing','completed','failed') DEFAULT NULL,
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS `marketdatas` (
   `c_name` varchar(10) NOT NULL COMMENT 'ticker',
   `price` decimal(18,8) NOT NULL,
   `volume` bigint(20) DEFAULT NULL,
-  `dtimestamp` timestamp NOT NULL,
+  `dtimestamp` timestamp NULL DEFAULT NULL,
   `d_created` timestamp NULL DEFAULT current_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
   `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -118,25 +118,26 @@ DELETE FROM `mlmodelmetadatas`;
 CREATE TABLE IF NOT EXISTS `mst_partners` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `c_name` varchar(64) DEFAULT NULL,
-  `hostname` varchar(256) NOT NULL,
-  `sitetitle` varchar(256) NOT NULL,
-  `email` varchar(256) NOT NULL,
-  `phone1` varchar(32) NOT NULL DEFAULT '',
+  `hostname` varchar(256) DEFAULT NULL,
+  `sitetitle` varchar(256) DEFAULT NULL,
+  `email` varchar(256) DEFAULT NULL,
+  `phone1` varchar(32) DEFAULT '',
   `phone2` varchar(32) DEFAULT NULL,
   `contactfax` varchar(32) DEFAULT NULL,
-  `address1` varchar(64) NOT NULL DEFAULT '',
+  `address1` varchar(64) DEFAULT '',
   `address2` varchar(64) DEFAULT NULL,
-  `city` varchar(32) NOT NULL DEFAULT '',
-  `state` varchar(32) NOT NULL DEFAULT '',
-  `country` varchar(32) NOT NULL DEFAULT 'US',
-  `zip` varchar(32) NOT NULL DEFAULT '',
-  `remarks` varchar(128) NOT NULL DEFAULT '',
+  `city` varchar(32) DEFAULT '',
+  `state` varchar(32) DEFAULT '',
+  `country` varchar(32) DEFAULT 'US',
+  `zip` varchar(32) DEFAULT '',
+  `remarks` varchar(128) DEFAULT '',
   `d_created` timestamp NULL DEFAULT current_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
   `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `key_partners` (`c_name`,`hostname`)
+  UNIQUE KEY `key_partnershost` (`hostname`),
+  KEY `key_partners` (`c_name`,`email`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
 -- Dumping data for table pwo.mst_partners: 2 rows
@@ -151,12 +152,11 @@ INSERT INTO `mst_partners` (`id`, `c_name`, `hostname`, `sitetitle`, `email`, `p
 CREATE TABLE IF NOT EXISTS `mst_partner_settings` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `partner_id` int(11) NOT NULL,
-  `mailtype` varchar(256) DEFAULT NULL,
+  `secretkey` varchar(256) DEFAULT NULL,
   `mailhost` varchar(256) DEFAULT NULL,
   `mailport` varchar(256) DEFAULT NULL,
   `mailusername` varchar(256) DEFAULT NULL,
   `mailpassword` varchar(256) DEFAULT NULL,
-  `mailencryption` varchar(256) DEFAULT NULL,
   `geoip_api_key` varchar(256) DEFAULT NULL,
   `firebase_api_key` varchar(256) DEFAULT NULL,
   `gemini_api_key` varchar(256) DEFAULT NULL,
@@ -171,8 +171,8 @@ CREATE TABLE IF NOT EXISTS `mst_partner_settings` (
 -- Dumping data for table pwo.mst_partner_settings: 1 rows
 DELETE FROM `mst_partner_settings`;
 /*!40000 ALTER TABLE `mst_partner_settings` DISABLE KEYS */;
-INSERT INTO `mst_partner_settings` (`id`, `partner_id`, `mailtype`, `mailhost`, `mailport`, `mailusername`, `mailpassword`, `mailencryption`, `geoip_api_key`, `firebase_api_key`, `gemini_api_key`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
-	(1, 1, '', '', '', '', '', '', '', '', '', '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
+INSERT INTO `mst_partner_settings` (`id`, `partner_id`, `secretkey`, `mailhost`, `mailport`, `mailusername`, `mailpassword`, `geoip_api_key`, `firebase_api_key`, `gemini_api_key`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
+	(1, 1, '', '', '', '', '', '', '', '', '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
 /*!40000 ALTER TABLE `mst_partner_settings` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.mst_reportpivots
@@ -216,13 +216,13 @@ DELETE FROM `mst_reports`;
 CREATE TABLE IF NOT EXISTS `mst_users` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `partner_id` int(10) unsigned NOT NULL DEFAULT 0,
-  `c_name` varchar(50) NOT NULL,
-  `email` varchar(100) NOT NULL,
+  `c_name` varchar(50) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
   `phone` varchar(100) DEFAULT NULL,
-  `homepath` varchar(100) NOT NULL,
-  `realname` varchar(100) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `perms` varchar(255) NOT NULL,
+  `homepath` varchar(100) DEFAULT NULL,
+  `realname` varchar(100) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
+  `perms` varchar(255) DEFAULT NULL,
   `status` tinyint(1) DEFAULT 1,
   `d_created` timestamp NULL DEFAULT current_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
@@ -246,7 +246,7 @@ INSERT INTO `mst_users` (`id`, `partner_id`, `c_name`, `email`, `phone`, `homepa
 CREATE TABLE IF NOT EXISTS `sys_auditlogs` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint(20) unsigned DEFAULT NULL,
-  `actionname` varchar(50) NOT NULL COMMENT 'LOGIN, DOC_DELETE',
+  `actionname` varchar(50) DEFAULT NULL COMMENT 'LOGIN, DOC_DELETE',
   `entitytype` varchar(50) DEFAULT NULL COMMENT 'users, invoices',
   `entityid` varchar(50) DEFAULT NULL,
   `datadiff` json NOT NULL CHECK (json_valid(`datadiff`)),
@@ -256,7 +256,7 @@ CREATE TABLE IF NOT EXISTS `sys_auditlogs` (
   `country` char(2) GENERATED ALWAYS AS (json_value(`ipdetails`,'$.country_name')) VIRTUAL,
   `os` varchar(50) GENERATED ALWAYS AS (json_value(`devicedetails`,'$.os_title')) VIRTUAL,
   `browser` varchar(50) GENERATED ALWAYS AS (json_value(`devicedetails`,'$.browser_tiltle')) VIRTUAL,
-  `hashchain` char(64) NOT NULL COMMENT 'SHA-256 of current and previous record datadiff field',
+  `hashchain` char(64) DEFAULT NULL COMMENT 'SHA-256 of current and previous record datadiff field',
   `d_created` timestamp NULL DEFAULT current_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
   `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -279,17 +279,48 @@ CREATE TABLE IF NOT EXISTS `sys_methods` (
   `controllermethod` varchar(32) DEFAULT NULL,
   `description` text DEFAULT NULL,
   `perms` varchar(255) DEFAULT NULL,
+  `status` tinyint(4) DEFAULT NULL,
   `d_created` timestamp NULL DEFAULT current_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
   `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `key_methods` (`c_name`,`module_id`,`controllername`,`controllermethod`,`perms`)
+  UNIQUE KEY `key_usersc_name` (`controllername`,`controllermethod`),
+  KEY `key_methods` (`c_name`,`module_id`,`status`,`perms`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
--- Dumping data for table pwo.sys_methods: 0 rows
+-- Dumping data for table pwo.sys_methods: 28 rows
 DELETE FROM `sys_methods`;
 /*!40000 ALTER TABLE `sys_methods` DISABLE KEYS */;
+INSERT INTO `sys_methods` (`id`, `c_name`, `module_id`, `controllername`, `controllermethod`, `description`, `perms`, `status`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
+	(1, 'home_index', 2, 'home', 'index', '', 'none', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(2, 'home_manage_index', 2, 'home', 'manage_index', '', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(3, 'home_dashboard_index', 2, 'home', 'dashboard_index', '', 'admin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(4, 'login_index', 3, 'login', 'index', '', 'none', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(5, 'login_forgotpass', 3, 'login', 'forgotpass', '', 'none', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(6, 'login_logout', 3, 'login', 'logout', '', 'none', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(7, 'pages_index', 4, 'pages', 'index', '', 'none', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(8, 'pages_dashboard_advancedforms', 4, 'pages', 'dashboard_advancedforms', '', 'admin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(9, 'pages_dashboard_simpletables', 4, 'pages', 'dashboard_simpletables', '', 'admin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(10, 'pages_manage_advancedforms', 4, 'pages', 'manage_advancedforms', '', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(11, 'pages_manage_simpletables', 4, 'pages', 'manage_simpletables', '', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(12, 'users_manage_index', 5, 'users', 'manage_index', '', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(13, 'users_manage_add', 5, 'users', 'manage_add', '', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(14, 'users_manage_edit', 5, 'users', 'manage_edit', '', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(15, 'users_manage_disable', 5, 'users', 'manage_disable', '', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(16, 'users_manage_enable', 5, 'users', 'manage_enable', '', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(17, 'auth_api_login', 1, 'auth', 'api_login', '', 'none', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(18, 'auth_api_refresh', 1, 'auth', 'api_refresh', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(19, 'auth_api_logout', 1, 'auth', 'api_logout', '', 'none', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(20, 'auth_api_codes', 1, 'auth', 'api_codes', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(21, 'user_api_info', 6, 'user', 'api_info', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(22, 'profile_api_search', 7, 'profile', 'api_search', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(23, 'timezone_api_gettimezone', 8, 'timezone', 'api_gettimezone', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(24, 'financetest_index', 11, 'financetest', 'index', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(25, 'geminitest_index', 12, 'geminitest', 'index', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(26, 'mathtest_index', 10, 'mathtest', 'index', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(27, 'mltest_index', 9, 'mltest', 'index', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1),
+	(28, 'planimport_api_importhr', 13, 'planimport', 'api_importhr', '', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-10 02:54:14', 1);
 /*!40000 ALTER TABLE `sys_methods` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.sys_modules
@@ -303,7 +334,8 @@ CREATE TABLE IF NOT EXISTS `sys_modules` (
   `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `key_modules` (`c_name`,`perms`)
+  UNIQUE KEY `key_modulescname` (`c_name`),
+  KEY `key_modules` (`status`,`perms`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
 -- Dumping data for table pwo.sys_modules: 13 rows
@@ -333,7 +365,7 @@ CREATE TABLE IF NOT EXISTS `sys_sessions` (
   PRIMARY KEY (`id`)
 ) ENGINE=MEMORY DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
 
--- Dumping data for table pwo.sys_sessions: 0 rows
+-- Dumping data for table pwo.sys_sessions: 1 rows
 DELETE FROM `sys_sessions`;
 /*!40000 ALTER TABLE `sys_sessions` DISABLE KEYS */;
 /*!40000 ALTER TABLE `sys_sessions` ENABLE KEYS */;

@@ -18,13 +18,6 @@ final class cPlanImport extends cController
         parent::__construct();
     }
 
-    public function index()
-    {
-        $data['pagename'] =  $this->partner->sitetitle;
-
-        $this->res->view($data);
-    }
-
     public function api_importhr()
     {
         // Validate file upload
