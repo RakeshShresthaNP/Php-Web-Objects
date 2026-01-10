@@ -20,6 +20,12 @@ final class cAuth extends cController
 
     private function _generateToken(&$udata)
     {
+        if (isset($this->partner->settings[0]->secretkey)) {
+            $secret_key = $this->partner->settings[0]->secretkey;
+        } else {
+            throw new ApiException('Invalid partner setting format.', 401);
+        }
+        
         $header = json_encode([
             'typ' => 'JWT',
             'alg' => 'HS256'
@@ -35,7 +41,7 @@ final class cAuth extends cController
         $base64UrlPayload = base64_jwt_encode($payload);
 
         // Create Signature Hash
-        $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, SECRET_KEY, true);
+        $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, $secret_key, true);
 
         // Encode Signature to Base64Url String
         $base64UrlSignature = base64_jwt_encode($signature);

@@ -320,33 +320,7 @@ if (! function_exists('array_map_recursive')) {
 
 function customError(int $errno, string $errstr, string $errfile, int $errline): void
 {
-    // Build the log data as an array for cleaner writeLog handling
-    $logData = [
-        'errno' => $errno,
-        'message' => $errstr,
-        'file' => $errfile,
-        'line' => $errline,
-        'context' => 'Execution Terminated'
-    ];
-    
-    throw new Exception($errstr, $errno);
-
-    // Write to the log file (using your existing writeLog function)
-    writeLog('error_' . date('Y_m_d'), $logData);
-
-    if (DEBUG) {
-
-        // Clear any existing output buffers to prevent a "messy" page
-        if (ob_get_length()) {
-            ob_clean();
-        }
-
-        // Modern status code for errors
-        http_response_code(500);
-
-        // Stop execution completely
-        exit(1);
-    }
+    throw new ApiException($errstr . ' ' . $errfile . ' ' . $errline, $errno);
 }
 
 set_error_handler("customError");
@@ -599,6 +573,12 @@ final class Request
             return null;
         }
 
+        if (isset($this->partner->settings[0]->secretkey)) {
+            $secret_key = $this->partner->settings[0]->secretkey;
+        } else {
+            throw new ApiException('Invalid partner setting.', 401);
+        }
+
         // split the token
         $tokenParts = explode('.', $jwt);
         if (count($tokenParts) !== 3) {
@@ -610,7 +590,7 @@ final class Request
         $signatureProvided = $tokenParts[2];
 
         // build a signature based on the header and payload using the secret
-        $signature = hash_hmac('sha256', $header . "." . $payload, SECRET_KEY, true);
+        $signature = hash_hmac('sha256', $header . "." . $payload, $secret_key, true);
         $base64UrlSignature = base64_jwt_encode($signature);
 
         // verify it matches the signature provided in the token
@@ -701,6 +681,51 @@ final class Request
             $this->method = MAIN_METHOD;
         } else {
             $this->method = mb_strtolower($methodname);
+        }
+
+        $cache = cache();
+
+        if ($cache->valid($this->controller . '_' . $this->method)) {
+            $mdata = $cache->get($this->controller . '_' . $this->method);
+        } else {
+            $data = new model('sys_methods');
+            $data->select('*', 'c_name=?', $this->controller . '_' . $this->method);
+            $mdata = $data->get();
+
+            $cache->set($this->controller . '_' . $this->method, $mdata);
+        }
+
+        if ($mdata->status == 2) {
+            if ($this->apimode) {
+                throw new ApiException('Method Does not Exist', 503);
+            } else {
+                throw new Exception('Method Does not Exist', 503);
+            }
+        }
+
+        $ismethodallowed = false;
+
+        if ($mdata->perms == "none") {
+            $ismethodallowed = true;
+        } else {
+            $p1 = explode(",", $this->cusertype);
+            $p2 = explode(",", $mdata->perms);
+
+            // array_intersect finds common values between the two arrays
+            // If the resulting array is not empty, there is a match
+            if (! empty(array_intersect($p1, $p2))) {
+                $ismethodallowed = true;
+            } else {
+                $ismethodallowed = false;
+            }
+        }
+
+        if (! $ismethodallowed) {
+            if ($this->apimode) {
+                throw new ApiException('Access to method: ' . $this->controller . '_' . $this->method . ' not allowed!', 503);
+            } else {
+                res()->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">Access to module: ' . $this->controller . ' not allowed!</div>');
+            }
         }
 
         return $this->method;
@@ -886,16 +911,6 @@ final class Application
 
         $request->getPartner($_SERVER['SERVER_NAME']);
 
-        $pathPrefixes = unserialize(PATH_PREFIX);
-
-        $request->pathprefix = '';
-        $request->controller = ($c = array_shift($uriparts)) ? mb_strtolower($c) : MAIN_CONTROLLER;
-
-        if (in_array($request->controller, $pathPrefixes)) {
-            $request->pathprefix = mb_strtolower($request->controller) . '_';
-            $request->controller = ($c = array_shift($uriparts)) ? $c : MAIN_CONTROLLER;
-        }
-
         $user = $request->getPayloadData();
 
         if ($user) {
@@ -908,6 +923,16 @@ final class Application
                 $request->cusertype = $request->user->perms;
             }
             $request->apimode = false;
+        }
+
+        $pathPrefixes = unserialize(PATH_PREFIX);
+
+        $request->pathprefix = '';
+        $request->controller = ($c = array_shift($uriparts)) ? mb_strtolower($c) : MAIN_CONTROLLER;
+
+        if (in_array($request->controller, $pathPrefixes)) {
+            $request->pathprefix = mb_strtolower($request->controller) . '_';
+            $request->controller = ($c = array_shift($uriparts)) ? $c : MAIN_CONTROLLER;
         }
 
         $request->method = ($c = array_shift($uriparts)) ? $request->pathprefix . mb_str_replace($pathPrefixes, '', $c) : $request->pathprefix . MAIN_METHOD;
