@@ -280,6 +280,93 @@ class model
         $stmt->execute(array_merge($this->_bindings, $this->_havingBindings));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+// --- Batch & Quick Operations ---
+
+/**
+ * Update records directly based on the current WHERE clause
+ */
+public function updateWhere(array $data): bool
+{
+    if (empty($this->_where)) return false; // Safety: Don't update everything by mistake
+    
+    if ($this->timestamps) $data[$this->updatedAtColumn] = date('Y-m-d H:i:s');
+    
+    $fields = array_map(fn($k) => "{$k}=?", array_keys($data));
+    $sql = "UPDATE {$this->table} SET " . implode(',', $fields) . " WHERE " . implode(' ', $this->_where);
+    
+    $values = array_merge($this->mapValues($data), $this->_bindings);
+    $stmt = $this->db->prepare($sql);
+    $result = $stmt->execute($values);
+    $this->resetQuery();
+    return $result;
+}
+
+/**
+ * Delete records directly based on the current WHERE clause
+ */
+public function deleteWhere(): bool
+{
+    if (empty($this->_where)) return false; // Safety
+    
+    if ($this->softDelete) {
+        $sql = "UPDATE {$this->table} SET {$this->deletedAtColumn} = ? WHERE " . implode(' ', $this->_where);
+        $values = array_merge([date('Y-m-d H:i:s')], $this->_bindings);
+    } else {
+        $sql = "DELETE FROM {$this->table} WHERE " . implode(' ', $this->_where);
+        $values = $this->_bindings;
+    }
+    
+    $stmt = $this->db->prepare($sql);
+    $result = $stmt->execute($values);
+    $this->resetQuery();
+    return $result;
+}
+
+/**
+ * Quick delete by Primary Key
+ */
+public function deleteById(mixed $id): bool
+{
+    $this->resetQuery();
+    return $this->where($this->pk, $id)->deleteWhere();
+}
+
+    
+
+    // --- Transaction Control ---
+
+public function beginTransaction(): bool 
+{ 
+    return $this->db->beginTransaction(); 
+}
+
+public function commit(): bool 
+{ 
+    return $this->db->commit(); 
+}
+
+public function rollBack(): bool 
+{ 
+    return $this->db->rollBack(); 
+}
+
+/**
+ * A helper to run a closure within a transaction automatically
+ */
+public function transaction(callable $callback): mixed
+{
+    try {
+        $this->beginTransaction();
+        $result = $callback($this);
+        $this->commit();
+        return $result;
+    } catch (\Exception $e) {
+        $this->rollBack();
+        throw $e;
+    }
+}
+
 
 }
+
 
