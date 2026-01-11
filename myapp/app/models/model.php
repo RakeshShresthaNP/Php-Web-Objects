@@ -272,4 +272,14 @@ class model
         $this->_order = $this->_limit = $this->_groupBy = '';
         $this->selectedFields = '*';
     }
+    
+    public function explain(): array
+    {
+        $sql = "EXPLAIN " . $this->buildSelectSql($this->selectedFields) . $this->_order . $this->_limit;
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(array_merge($this->_bindings, $this->_havingBindings));
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 }
+
