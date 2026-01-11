@@ -282,42 +282,49 @@ class model
     }
 // --- Batch & Quick Operations ---
 
-/**
- * Update records directly based on the current WHERE clause
+    /**
+ * Update records directly using a referenced data array
  */
-public function updateWhere(array $data): bool
+public function updateWhere(array &$data): bool
 {
-    if (empty($this->_where)) return false; // Safety: Don't update everything by mistake
+    // Safety: prevent accidental global updates if no where clause is set
+    if (empty($this->_where)) return false; 
     
-    if ($this->timestamps) $data[$this->updatedAtColumn] = date('Y-m-d H:i:s');
+    if ($this->timestamps) {
+        $data[$this->updatedAtColumn] = date('Y-m-d H:i:s');
+    }
     
     $fields = array_map(fn($k) => "{$k}=?", array_keys($data));
     $sql = "UPDATE {$this->table} SET " . implode(',', $fields) . " WHERE " . implode(' ', $this->_where);
     
-    $values = array_merge($this->mapValues($data), $this->_bindings);
+    // Process values (handling JSON casting by reference)
+    $mappedValues = $this->mapValues($data);
+    $values = array_merge($mappedValues, $this->_bindings);
+    
     $stmt = $this->db->prepare($sql);
     $result = $stmt->execute($values);
+    
     $this->resetQuery();
     return $result;
 }
 
 /**
- * Delete records directly based on the current WHERE clause
+ * deleteWhere already uses internal $this->_bindings (which are populated by reference elsewhere)
  */
 public function deleteWhere(): bool
 {
-    if (empty($this->_where)) return false; // Safety
+    if (empty($this->_where)) return false;
     
     if ($this->softDelete) {
+        $now = date('Y-m-d H:i:s');
         $sql = "UPDATE {$this->table} SET {$this->deletedAtColumn} = ? WHERE " . implode(' ', $this->_where);
-        $values = array_merge([date('Y-m-d H:i:s')], $this->_bindings);
+        $values = array_merge([$now], $this->_bindings);
     } else {
         $sql = "DELETE FROM {$this->table} WHERE " . implode(' ', $this->_where);
         $values = $this->_bindings;
     }
     
-    $stmt = $this->db->prepare($sql);
-    $result = $stmt->execute($values);
+    $result = $this->db->prepare($sql)->execute($values);
     $this->resetQuery();
     return $result;
 }
@@ -329,9 +336,7 @@ public function deleteById(mixed $id): bool
 {
     $this->resetQuery();
     return $this->where($this->pk, $id)->deleteWhere();
-}
-
-    
+}  
 
     // --- Transaction Control ---
 
@@ -368,5 +373,6 @@ public function transaction(callable $callback): mixed
 
 
 }
+
 
 
