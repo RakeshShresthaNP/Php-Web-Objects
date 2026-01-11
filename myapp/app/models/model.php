@@ -14,40 +14,24 @@ declare(strict_types = 1);
 
 class model
 {
-
     protected ?PDO $db = null;
-
     private array $_rs = [];
-
     private array $_where = [];
-
     private array $_bindings = [];
-
     private array $_joins = [];
-
     private string $_order = '';
-
     private string $_limit = '';
-
     private string $_groupBy = '';
-
     private array $_having = [];
-
     private array $_havingBindings = [];
-
     private string $selectedFields = '*';
-
     private bool $_ignoreSoftDelete = false;
 
     // Feature Flags & Custom Column Naming
     protected bool $timestamps = true;
-
     protected bool $softDelete = false;
-
     protected string $createdAtColumn = 'd_created';
-
     protected string $updatedAtColumn = 'd_updated';
-
     protected string $deletedAtColumn = 'd_deleted';
 
     public function __construct(protected string $table, protected string $pk = 'id')
@@ -71,20 +55,19 @@ class model
     public function __sleep(): array
     {
         return [
-            '_rs',
-            'table',
-            'pk',
-            'timestamps',
-            'softDelete',
-            'createdAtColumn',
-            'updatedAtColumn',
-            'deletedAtColumn'
+            '_rs', 'table', 'pk', 'timestamps', 'softDelete',
+            'createdAtColumn', 'updatedAtColumn', 'deletedAtColumn'
         ];
     }
 
     public function __debugInfo(): array
     {
-        return $this->_rs;
+        return [
+            'table'    => $this->table,
+            'data'     => $this->_rs,
+            'sql'      => $this->buildSelectSql($this->selectedFields) . $this->_order . $this->_limit,
+            'bindings' => array_merge($this->_bindings, $this->_havingBindings)
+        ];
     }
 
     public function getData(): array
@@ -108,13 +91,7 @@ class model
     public function where(string $column, mixed $operator, mixed $value = null): self
     {
         if ($value === null && $operator !== null)
-            [
-                $value,
-                $operator
-            ] = [
-                $operator,
-                '='
-            ];
+            [$value, $operator] = [$operator, '='];
         $prefix = empty($this->_where) ? "" : "AND ";
         $this->_where[] = "{$prefix}{$column} {$operator} ?";
         $this->_bindings[] = $value;
@@ -124,13 +101,7 @@ class model
     public function orWhere(string $column, mixed $operator, mixed $value = null): self
     {
         if ($value === null)
-            [
-                $value,
-                $operator
-            ] = [
-                $operator,
-                '='
-            ];
+            [$value, $operator] = [$operator, '='];
         $prefix = empty($this->_where) ? "" : "OR ";
         $this->_where[] = "{$prefix}{$column} {$operator} ?";
         $this->_bindings[] = $value;
@@ -144,22 +115,25 @@ class model
         return $this;
     }
 
-     public function whereBetween(string $column, array $values, string $boolean = 'AND', bool $not = false): self
+    public function whereIn(string $column, array $values, string $boolean = 'AND'): self
     {
-        // Ensure we have exactly two values for the range
-        if (count($values) !== 2) {
-            return $this; 
-        }
+        if (empty($values)) return $this;
+        $prefix = empty($this->_where) ? "" : "{$boolean} ";
+        $placeholders = implode(',', array_fill(0, count($values), '?'));
+        $this->_where[] = "{$prefix}{$column} IN ({$placeholders})";
+        $this->_bindings = array_merge($this->_bindings, $values);
+        return $this;
+    }
 
+    // --- NEW: Between Methods ---
+    public function whereBetween(string $column, array $values, string $boolean = 'AND', bool $not = false): self
+    {
+        if (count($values) !== 2) return $this;
         $prefix = empty($this->_where) ? "" : "{$boolean} ";
         $type = $not ? 'NOT BETWEEN' : 'BETWEEN';
-        
         $this->_where[] = "{$prefix}{$column} {$type} ? AND ?";
-        
-        // Add both values to the bindings array
         $this->_bindings[] = $values[0];
         $this->_bindings[] = $values[1];
-
         return $this;
     }
 
@@ -173,19 +147,28 @@ class model
         return $this->whereBetween($column, $values, 'AND', true);
     }
 
-    public function orWhereNotBetween(string $column, array $values): self
+    // --- NEW: Subqueries & Count ---
+    public function whereExists(callable $callback, string $boolean = 'AND', bool $not = false): self
     {
-        return $this->whereBetween($column, $values, 'OR', true);
+        $type = $not ? 'NOT EXISTS' : 'EXISTS';
+        $prefix = empty($this->_where) ? "" : "{$boolean} ";
+        $query = new self($this->table, $this->pk);
+        $callback($query);
+        $subSql = $query->buildSelectSql($query->selectedFields);
+        $this->_where[] = "{$prefix}{$type} ({$subSql})";
+        $this->_bindings = array_merge($this->_bindings, $query->_bindings);
+        return $this;
     }
 
-    public function whereIn(string $column, array $values, string $boolean = 'AND'): self
+    public function withCount(string $table, string $foreignKey, string $alias = null): self
     {
-        if (empty($values))
-            return $this;
-        $prefix = empty($this->_where) ? "" : "{$boolean} ";
-        $placeholders = implode(',', array_fill(0, count($values), '?'));
-        $this->_where[] = "{$prefix}{$column} IN ({$placeholders})";
-        $this->_bindings = array_merge($this->_bindings, $values);
+        $alias = $alias ?? "{$table}_count";
+        $subQuery = "(SELECT COUNT(*) FROM {$table} WHERE {$table}.{$foreignKey} = p.{$this->pk})";
+        if ($this->selectedFields === '*') {
+            $this->selectedFields = "p.*, {$subQuery} AS {$alias}";
+        } else {
+            $this->selectedFields .= ", {$subQuery} AS {$alias}";
+        }
         return $this;
     }
 
@@ -203,8 +186,7 @@ class model
 
     public function search(array $columns, string $term): self
     {
-        if (empty($term))
-            return $this;
+        if (empty($term)) return $this;
         return $this->whereGroup(function ($q) use ($columns, $term) {
             foreach ($columns as $column)
                 $q->orWhere($column, 'LIKE', "%{$term}%");
@@ -221,6 +203,11 @@ class model
     {
         $this->_joins[] = " {$type} JOIN {$table} ON {$first} {$operator} {$second}";
         return $this;
+    }
+
+    public function leftJoin(string $table, string $first, string $operator, string $second): self
+    {
+        return $this->join($table, $first, $operator, $second, 'LEFT');
     }
 
     public function groupBy(string ...$columns): self
@@ -266,16 +253,12 @@ class model
         $this->resetQuery();
 
         $results = $stmt->fetchAll();
-        if (! $results)
-            return null;
+        if (! $results) return null;
 
         $instances = array_map(function ($obj) {
             $instance = new static($this->table, $this->pk);
-
-            // Explicitly convert to array before passing
             $data = (array) $obj;
             $instance->assign($data);
-
             return $instance;
         }, $results);
 
@@ -291,9 +274,7 @@ class model
         $this->limit($perPage, ($page - 1) * $perPage);
         $data = $this->find();
         return (object) [
-            'items' => is_array($data) ? $data : ($data ? [
-                $data
-            ] : []),
+            'items' => is_array($data) ? $data : ($data ? [$data] : []),
             'meta' => (object) [
                 'total_records' => $total,
                 'total_pages' => (int) ceil($total / $perPage),
@@ -351,9 +332,13 @@ class model
         foreach ($schema as $key => $val) {
             $parts[] = "'{$key}'";
             if (is_array($val)) {
-                $subFields = $this->parseGraphSchema($val['fields'], 'sub');
-                $softFilter = $this->softDelete ? " AND sub.{$this->deletedAtColumn} IS NULL" : "";
-                $parts[] = "COALESCE((SELECT JSON_ARRAYAGG({$subFields}) FROM {$val['table']} sub WHERE sub.{$val['foreign_key']} = {$alias}.{$this->pk}{$softFilter}), JSON_ARRAY())";
+                if (isset($val['type']) && $val['type'] === 'count') {
+                    $parts[] = "(SELECT COUNT(*) FROM {$val['table']} sub WHERE sub.{$val['foreign_key']} = {$alias}.{$this->pk})";
+                } else {
+                    $subFields = $this->parseGraphSchema($val['fields'], 'sub');
+                    $softFilter = $this->softDelete ? " AND sub.{$this->deletedAtColumn} IS NULL" : "";
+                    $parts[] = "COALESCE((SELECT JSON_ARRAYAGG({$subFields}) FROM {$val['table']} sub WHERE sub.{$val['foreign_key']} = {$alias}.{$this->pk}{$softFilter}), JSON_ARRAY())";
+                }
             } else {
                 $parts[] = (str_contains($val, '(')) ? $val : "{$alias}.{$val}";
             }
@@ -380,10 +365,8 @@ class model
 
     public function update(): bool
     {
-        if (! isset($this->_rs[$this->pk]))
-            return false;
-        if ($this->timestamps)
-            $this->_rs[$this->updatedAtColumn] = date('Y-m-d H:i:s');
+        if (! isset($this->_rs[$this->pk])) return false;
+        if ($this->timestamps) $this->_rs[$this->updatedAtColumn] = date('Y-m-d H:i:s');
         $data = $this->_rs;
         $id = $data[$this->pk];
         unset($data[$this->pk]);
@@ -396,69 +379,39 @@ class model
 
     public function delete(): bool
     {
-        if (! isset($this->_rs[$this->pk]))
-            return false;
+        if (! isset($this->_rs[$this->pk])) return false;
         if ($this->softDelete) {
             $this->{$this->deletedAtColumn} = date('Y-m-d H:i:s');
             return $this->update();
         }
         $sql = "DELETE FROM {$this->table} WHERE {$this->pk}=?";
-        return $this->db->prepare($sql)->execute([
-            $this->_rs[$this->pk]
-        ]);
+        return $this->db->prepare($sql)->execute([$this->_rs[$this->pk]]);
     }
 
-    /**
-     * Update multiple records based on the current WHERE conditions.
-     * Usage: $model->where('status', 'pending')->updateWhere(['status' => 'active']);
-     */
     public function updateWhere(array $data): bool
     {
-        if (empty($this->_where))
-            return false; // Safety: prevent global updates
-
-        if ($this->timestamps) {
-            $data[$this->updatedAtColumn] = date('Y-m-d H:i:s');
-        }
-
+        if (empty($this->_where)) return false; 
+        if ($this->timestamps) $data[$this->updatedAtColumn] = date('Y-m-d H:i:s');
         $fields = array_map(fn ($k) => "{$k}=?", array_keys($data));
-        $sql = "UPDATE {$this->table} SET " . implode(',', $fields);
-        $sql .= " WHERE " . implode(' ', $this->_where);
-
+        $sql = "UPDATE {$this->table} SET " . implode(',', $fields) . " WHERE " . implode(' ', $this->_where);
         $values = array_values($data);
         $stmt = $this->db->prepare($sql);
         $result = $stmt->execute(array_merge($values, $this->_bindings));
-
         $this->resetQuery();
         return $result;
     }
 
-    /**
-     * Delete multiple records based on the current WHERE conditions.
-     * Respects Soft Deletes.
-     */
     public function deleteWhere(): bool
     {
-        if (empty($this->_where))
-            return false; // Safety: prevent global deletes
-
-        if ($this->softDelete) {
-            return $this->updateWhere([
-                $this->deletedAtColumn => date('Y-m-d H:i:s')
-            ]);
-        }
-
+        if (empty($this->_where)) return false; 
+        if ($this->softDelete) return $this->updateWhere([$this->deletedAtColumn => date('Y-m-d H:i:s')]);
         $sql = "DELETE FROM {$this->table} WHERE " . implode(' ', $this->_where);
         $stmt = $this->db->prepare($sql);
         $result = $stmt->execute($this->_bindings);
-
         $this->resetQuery();
         return $result;
     }
 
-    /**
-     * Quick delete by ID without needing to instantiate/find first.
-     */
     public function deleteById(int|string $id): bool
     {
         return $this->where($this->pk, $id)->deleteWhere();
@@ -467,20 +420,16 @@ class model
     // --- Relationship Helpers ---
     public function hasMany(string $relatedClass, string $foreignKey): array|null
     {
-        if (! isset($this->_rs[$this->pk]))
-            return null;
+        if (! isset($this->_rs[$this->pk])) return null;
         $related = new $relatedClass();
         return $related->where($foreignKey, $this->_rs[$this->pk])->find();
     }
 
     public function belongsTo(string $relatedClass, string $localKey): object|null
     {
-        if (! isset($this->_rs[$localKey]))
-            return null;
+        if (! isset($this->_rs[$localKey])) return null;
         $related = new $relatedClass();
-        return $related->where($related->pk, $this->_rs[$localKey])
-            ->limit(1)
-            ->find();
+        return $related->where($related->pk, $this->_rs[$localKey])->limit(1)->find();
     }
 
     private function resetQuery(): void
@@ -499,8 +448,6 @@ class model
 
     public function assign(array &$arr): void
     {
-        foreach ($arr as $key => $val)
-            $this->$key = $val;
+        foreach ($arr as $key => $val) $this->$key = $val;
     }
 }
-
