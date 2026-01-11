@@ -545,28 +545,71 @@ class model
     public function assign(array &$arr): void
     {
         foreach ($arr as $key => $val) {
-            // Automatically decode if the column is cast to JSON
+            // Automatically decode if column is cast to JSON
             if (isset($this->casts[$key]) && $this->casts[$key] === 'json' && is_string($val)) {
-                $this->$key = json_decode($val, true);
+                $this->_rs[$key] = json_decode($val, true);
             } else {
-                $this->$key = $val;
+                $this->_rs[$key] = $val;
             }
         }
     }
 
-    // Update the value mapping in insert() and update() to use the cast check
+    public function insert(): string|false
+    {
+        if ($this->timestamps) {
+            $this->_rs[$this->createdAtColumn] = $this->_rs[$this->updatedAtColumn] = date('Y-m-d H:i:s');
+        }
+        
+        $cols = array_keys($this->_rs);
+        $placeholders = implode(',', array_fill(0, count($cols), '?'));
+        $sql = "INSERT INTO {$this->table} (" . implode(',', $cols) . ") VALUES ({$placeholders})";
+        
+        $values = $this->mapValues($this->_rs);
+        return $this->db->prepare($sql)->execute($values) ? $this->db->lastInsertId() : false;
+    }
+
+    public function update(): bool
+    {
+        if (!isset($this->_rs[$this->pk])) return false;
+        
+        if ($this->timestamps) {
+            $this->_rs[$this->updatedAtColumn] = date('Y-m-d H:i:s');
+        }
+        
+        $data = $this->_rs;
+        $id = $data[$this->pk];
+        unset($data[$this->pk]);
+        
+        $fields = array_map(fn($k) => "{$k}=?", array_keys($data));
+        $sql = "UPDATE {$this->table} SET " . implode(',', $fields) . " WHERE {$this->pk}=?";
+        
+        $values = $this->mapValues($data);
+        $values[] = $id; // Append ID for the WHERE clause
+        
+        return $this->db->prepare($sql)->execute($values);
+    }
+
+        /**
+     * Maps the internal record data to SQL-ready values.
+     * Automatically JSON encodes arrays or columns defined in $casts.
+     */
     private function mapValues(array $data): array
     {
-        return array_map(function ($key, $v) {
-            if (is_array($v) || (isset($this->casts[$key]) && $this->casts[$key] === 'json')) {
-                return json_encode($v);
+        $mapped = [];
+        foreach ($data as $key => $value) {
+            if (is_array($value) || (isset($this->casts[$key]) && $this->casts[$key] === 'json')) {
+                $mapped[] = json_encode($value);
+            } else {
+                $mapped[] = is_scalar($value) ? $value : json_encode($value);
             }
-            return $v;
-        }, array_keys($data), array_values($data));
+        }
+        return $mapped;
     }
 
 
+
 }
+
 
 
 
