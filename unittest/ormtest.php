@@ -8,7 +8,7 @@ function db()
 {
     static $pdo;
     if (! $pdo) {
-        $pdo = new PDO("mysql:host=localhost;dbname=testorm", "root", "Nepal@123");
+        $pdo = new PDO("mysql:host=localhost;dbname=testorm", "root", "");
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
     return $pdo;
