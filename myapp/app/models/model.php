@@ -562,7 +562,14 @@ class model
     {
         $mapped = [];
         foreach ($data as $key => &$val) {
-            $mapped[] = (is_array($val) || (isset($this->casts[$key]) && $this->casts[$key] === 'json')) ? json_encode($val) : $val;
+            $isJsonCast = isset($this->casts[$key]) && $this->casts[$key] === 'json';
+
+            // Only encode if it's an array OR if it's a json-cast field that isn't already a string
+            if (is_array($val) || ($isJsonCast && ! is_string($val))) {
+                $mapped[] = json_encode($val);
+            } else {
+                $mapped[] = $val;
+            }
         }
         return $mapped;
     }
