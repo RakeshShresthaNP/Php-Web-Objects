@@ -166,10 +166,7 @@ Traditional frameworks require downloading thousands of external files to achiev
 
 > **Why it matters:** Lower library size means faster deployment, smaller Docker images, and lower storage costs on cloud providers.
 
-### Database Recommended Best Practises when using php web objects framework
-* Use Views for querying information
-* Use Stored Procedures for complex queries
-* Use Triggers
+
 
 
 
