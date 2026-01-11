@@ -136,6 +136,35 @@ class model
         return $this;
     }
 
+    public function whereDate(string $column, mixed $operator, mixed $value = null, string $boolean = 'AND'): self
+    {
+        if ($value === null && $operator !== null) {
+            [$value, $operator] = [$operator, '='];
+        }
+
+        $prefix = empty($this->_where) ? "" : "{$boolean} ";
+        // DATE() strips the time (H:i:s) from the database column for the comparison
+        $this->_where[] = "{$prefix}DATE({$column}) {$operator} ?";
+        $this->_bindings[] = $value;
+
+        return $this;
+    }
+ 
+    public function whereColumn(string $first, string $operator, string $second, string $boolean = 'AND'): self
+    {
+        $prefix = empty($this->_where) ? "" : "{$boolean} ";
+        // Notice: We do not use a '?' placeholder here because $second is a column name, not a value.
+        $this->_where[] = "{$prefix}{$first} {$operator} {$second}";
+
+        return $this;
+    }
+
+    public function orWhereColumn(string $first, string $operator, string $second): self
+    {
+        return $this->whereColumn($first, $operator, $second, 'OR');
+    }
+
+
     // --- NEW: Between Methods ---
     public function whereBetween(string $column, array $values, string $boolean = 'AND', bool $not = false): self
     {
@@ -256,6 +285,17 @@ class model
         return $sql;
     }
 
+    private array $_eagerLoads = [];
+
+    public function with(string $relation, string $relatedClass, string $foreignKey): self
+    {
+        $this->_eagerLoads[$relation] = [
+            'class' => $relatedClass,
+            'foreignKey' => $foreignKey
+        ];
+        return $this;
+    }
+ 
     public function find(): array|static|null
     {
         $sql = $this->buildSelectSql($this->selectedFields) . $this->_order . $this->_limit;
@@ -264,17 +304,37 @@ class model
         $this->resetQuery();
 
         $results = $stmt->fetchAll();
-        if (! $results) return null;
+        if (!$results) return null;
 
         $instances = array_map(function ($obj) {
             $instance = new static($this->table, $this->pk);
-            $data = (array) $obj;
-            $instance->assign($data);
+            $instance->assign((array)$obj);
             return $instance;
         }, $results);
 
+        // --- Eager Loading Logic ---
+        if (!empty($instances) && !empty($this->_eagerLoads)) {
+            $ids = array_map(fn($inst) => $inst->{$this->pk}, $instances);
+            
+            foreach ($this->_eagerLoads as $relation => $config) {
+                $relatedModel = new $config['class']();
+                // Fetch ALL related records for ALL found IDs in one query
+                $relatedRecords = $relatedModel->whereIn($config['foreignKey'], $ids)->find();
+                
+                if (!is_array($relatedRecords)) $relatedRecords = $relatedRecords ? [$relatedRecords] : [];
+
+                // Map them back to the parents
+                foreach ($instances as $instance) {
+                    $instance->{$relation} = array_filter($relatedRecords, function($rel) use ($instance, $config) {
+                        return $rel->{$config['foreignKey']} == $instance->{$this->pk};
+                    });
+                }
+            }
+        }
+
         if (str_contains($this->_limit, 'LIMIT 1') || count($instances) === 1)
             return $instances[0];
+            
         return $instances;
     }
 
@@ -468,6 +528,7 @@ class model
     private function resetQuery(): void
     {
         $this->_where = [];
+     $this->_eagerLoads = [];
         $this->_bindings = [];
         $this->_joins = [];
         $this->_order = '';
@@ -478,11 +539,34 @@ class model
         $this->selectedFields = '*';
         $this->_ignoreSoftDelete = false;
     }
+ 
+    protected array $casts = []; // Define which columns should be JSON (e.g. ['meta' => 'json'])
 
     public function assign(array &$arr): void
     {
-        foreach ($arr as $key => $val) $this->$key = $val;
+        foreach ($arr as $key => $val) {
+            // Automatically decode if the column is cast to JSON
+            if (isset($this->casts[$key]) && $this->casts[$key] === 'json' && is_string($val)) {
+                $this->$key = json_decode($val, true);
+            } else {
+                $this->$key = $val;
+            }
+        }
     }
+
+    // Update the value mapping in insert() and update() to use the cast check
+    private function mapValues(array $data): array
+    {
+        return array_map(function ($key, $v) {
+            if (is_array($v) || (isset($this->casts[$key]) && $this->casts[$key] === 'json')) {
+                return json_encode($v);
+            }
+            return $v;
+        }, array_keys($data), array_values($data));
+    }
+
+
 }
+
 
 
