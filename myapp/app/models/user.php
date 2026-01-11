@@ -38,17 +38,11 @@ final class user extends model
         $this->perms ??= 'user';
         $this->status ??= '1';
 
-        $now = date('Y-m-d H:i:s');
-        $this->d_created = $now;
-        $this->d_updated = $now;
-
         return parent::insert();
     }
 
     public function update(): bool
     {
-        $this->d_updated = date('Y-m-d H:i:s');
-
         return parent::update();
     }
 }

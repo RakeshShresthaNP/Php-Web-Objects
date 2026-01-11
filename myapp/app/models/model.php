@@ -17,7 +17,7 @@ class model
 
     protected ?PDO $db = null;
 
-    protected array $_rs = [];
+    private array $_rs = [];
 
     private array $_where = [];
 
@@ -209,7 +209,7 @@ class model
     }
 
     // --- Core Execution ---
-    protected function buildSelectSql(string $fields, string $alias = 'p'): string
+    private function buildSelectSql(string $fields, string $alias = 'p'): string
     {
         if ($this->softDelete && ! $this->_ignoreSoftDelete) {
             $this->whereNull("{$alias}.{$this->deletedAtColumn}");
@@ -311,7 +311,7 @@ class model
         ];
     }
 
-    protected function parseGraphSchema(array &$schema, string $alias): string
+    private function parseGraphSchema(array &$schema, string $alias): string
     {
         $parts = [];
         foreach ($schema as $key => $val) {
