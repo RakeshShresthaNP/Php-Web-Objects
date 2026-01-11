@@ -45,7 +45,7 @@ final class cLogin extends cController
             $user = $muser->where('email', $username)->find();
 
             if (! $user) {
-                $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">LOGIN FAILED!</div>');
+                $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">USER NOT FOUND!</div>');
                 return;
             }
 
@@ -62,7 +62,7 @@ final class cLogin extends cController
             }
 
             if ($user->status == 2) {
-                $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">LOGIN FAILED!</div>');
+                $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">USER DISABLED!</div>');
                 return;
             }
 
@@ -115,7 +115,7 @@ final class cLogin extends cController
             }
 
             if ($user->status == 2) {
-                $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User does not exist!</div>');
+                $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User is disableddoes not exist!</div>');
                 return;
             }
 

@@ -36,16 +36,16 @@ function cache(): object
     return Cache::getContext(CACHE_TYPE);
 }
 
-function setCurrentUser(?stdClass &$userdata = null): void
+function setCurrentUser(?user &$userdata = null): void
 {
-    Session::getContext(SESS_TYPE)->set('authUser', $userdata);
+    Session::getContext(SESS_TYPE)->set('authUser', $userdata?->getData());
 }
 
 function getCurrentUser(): ?object
 {
     $authUser = Session::getContext(SESS_TYPE)->get('authUser');
     if ($authUser) {
-        return $authUser;
+        return (object) $authUser;
     } else {
         return null;
     }

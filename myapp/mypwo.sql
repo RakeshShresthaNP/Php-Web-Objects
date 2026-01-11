@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS `mst_partner_settings` (
 DELETE FROM `mst_partner_settings`;
 /*!40000 ALTER TABLE `mst_partner_settings` DISABLE KEYS */;
 INSERT INTO `mst_partner_settings` (`id`, `partner_id`, `secretkey`, `mailhost`, `mailport`, `mailusername`, `mailpassword`, `geoip_api_key`, `firebase_api_key`, `gemini_api_key`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
-	(1, 1, '', '', '', '', '', '', '', '', '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
+	(1, 1, 'PHPisCool', 'smtp.gmail.com', '587', '', '', '', '', '', '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
 /*!40000 ALTER TABLE `mst_partner_settings` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.mst_reportpivots

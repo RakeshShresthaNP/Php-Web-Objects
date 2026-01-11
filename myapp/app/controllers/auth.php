@@ -26,6 +26,10 @@ final class cAuth extends cController
             throw new ApiException('Invalid partner setting format.', 401);
         }
 
+        if (! $secret_key) {
+            throw new ApiException('Partner setting is blank.', 401);
+        }
+
         $header = json_encode([
             'typ' => 'JWT',
             'alg' => 'HS256'
@@ -81,11 +85,11 @@ final class cAuth extends cController
                 }
 
                 if (! $passwordValid) {
-                    throw new ApiException('Error Login', 405);
+                    throw new ApiException('Incorrect Password', 405);
                 }
 
                 if ($user->status == 2) {
-                    throw new ApiException('Error Login', 405);
+                    throw new ApiException('User Disabled', 405);
                 }
 
                 if ($user->perms != 'superadmin' && $user->partner_id != $this->partner->id) {
@@ -107,7 +111,7 @@ final class cAuth extends cController
 
                 $this->res->json($data);
             } else {
-                throw new ApiException('Error Login', 405);
+                throw new ApiException('User not found', 405);
             }
         } else {
             throw new ApiException('Invalid request method', 400);

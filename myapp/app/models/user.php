@@ -15,12 +15,21 @@ declare(strict_types = 1);
 final class user extends model
 {
 
-    public function __construct(int $id = 0)
+    public function __construct($id = 0)
     {
         parent::__construct('mst_users', 'id');
 
         if ($id > 0) {
-            $this->where('id', '=', $id)->find();
+            // Find the data
+            $res = $this->where('id', $id)
+                ->limit(1)
+                ->find();
+
+            // If data is found, 'hydrate' this specific instance
+            if ($res) {
+                $data = $res->getData();
+                $this->assign($data);
+            }
         }
     }
 
