@@ -173,6 +173,24 @@ class model
         return $this;
     }
 
+    public function whereExists(string $table, callable $callback, string $boolean = 'AND', bool $not = false): self
+    {
+        // 1. Create a fresh instance for the subquery targeting the specific table
+        $sub = new self($table);
+        $callback($sub);
+
+        // 2. Build the "SELECT 1" part of the EXISTS clause
+        // We use "sub" alias inside to avoid collision with parent aliases
+        $subSql = $sub->buildSelectSql("1", "sub");
+        $type = $not ? 'NOT EXISTS' : 'EXISTS';
+
+        $prefix = empty($this->_where) ? "" : "{$boolean} ";
+        $this->_where[] = "{$prefix}{$type} ({$subSql})";
+        $this->_bindings = array_merge($this->_bindings, $sub->_bindings);
+
+        return $this;
+    }
+
     public function having(string $column, string $operator, mixed $value): self
     {
         $prefix = empty($this->_having) ? "" : "AND ";
@@ -187,7 +205,7 @@ class model
         return $this;
     }
 
-    public function search(array &$columns, string $term): self
+    public function search(array $columns, string $term): self
     {
         if (empty($term))
             return $this;
@@ -283,11 +301,17 @@ class model
     public function findGraph(array &$schema, string $alias = 'p'): mixed
     {
         $jsonExpr = $this->parseGraphSchema($schema, $alias);
-        $stmt = $this->db->prepare($this->buildSelectSql($jsonExpr . " AS graph_data", $alias));
+        $sql = $this->buildSelectSql($jsonExpr . " AS graph_data", $alias) . $this->_order . $this->_limit;
+
+        $stmt = $this->db->prepare($sql);
         $stmt->execute(array_merge($this->_bindings, $this->_havingBindings));
         $this->resetQuery();
+
         $result = $stmt->fetchColumn();
-        return $result ? json_decode($result) : null;
+
+        // If the SQL returns a string, decode it.
+        // If it's a "LIMIT 1" query, it returns a single object.
+        return $result ? json_decode($result, false) : null;
     }
 
     public function paginateGraph(array &$schema, int $page = 1, int $perPage = 15): object
@@ -320,24 +344,74 @@ class model
         ];
     }
 
+    /**
+     * Generates the complex JSON_OBJECT SQL string for hierarchical data.
+     * Handles Deep Nesting, Aggregates with filters, and Parent-Link lookups.
+     */
     private function parseGraphSchema(array &$schema, string $alias): string
     {
         $parts = [];
         foreach ($schema as $key => &$val) {
+            // Add the JSON Key
             $parts[] = "'{$key}'";
+
             if (is_array($val)) {
-                if (isset($val['type']) && $val['type'] === 'count') {
-                    $parts[] = "(SELECT COUNT(*) FROM {$val['table']} sub WHERE sub.{$val['foreign_key']} = {$alias}.{$this->pk})";
-                } else {
-                    $subFields = $this->parseGraphSchema($val['fields'], 'sub');
-                    $softFilter = $this->softDelete ? " AND sub.{$this->deletedAtColumn} IS NULL" : "";
-                    $parts[] = "COALESCE((SELECT JSON_ARRAYAGG({$subFields}) FROM {$val['table']} sub WHERE sub.{$val['foreign_key']} = {$alias}.{$this->pk}{$softFilter}), JSON_ARRAY())";
+                // Create a unique scope for this level's subquery to avoid name collisions
+                $subAlias = $alias . "_sub";
+
+                // --- 1. HANDLE AGGREGATES (COUNT, SUM, AVG, MIN, MAX) ---
+                if (isset($val['type']) && in_array($val['type'], [
+                    'count',
+                    'sum',
+                    'avg',
+                    'min',
+                    'max'
+                ])) {
+                    $type = strtoupper($val['type']);
+                    // COUNT targets (*), others target the specific column scoped to the sub-table
+                    $col = ($type === 'COUNT') ? '*' : "{$subAlias}.{$val['column']}";
+
+                    // Optional WHERE filter inside the aggregate subquery
+                    $extraFilter = "";
+                    if (isset($val['where'])) {
+                        $filterStr = is_array($val['where']) ? implode(' AND ', $val['where']) : $val['where'];
+                        $extraFilter = " AND ({$filterStr})";
+                    }
+
+                    $parts[] = "COALESCE((
+                    SELECT {$type}({$col})
+                    FROM {$val['table']} {$subAlias}
+                    WHERE {$subAlias}.{$val['foreign_key']} = {$alias}.{$this->pk}{$extraFilter}
+                ), 0)";
+                } // --- 2. HANDLE BELONGS-TO (Lookup Parent Info) ---
+                elseif (isset($val['link_to_parent']) && $val['link_to_parent'] === true) {
+                    $subFields = $this->parseGraphSchema($val['fields'], $subAlias);
+                    $parts[] = "(
+                    SELECT {$subFields}
+                    FROM {$val['table']} {$subAlias}
+                    WHERE {$subAlias}.{$this->pk} = {$alias}.{$val['foreign_key']}
+                    LIMIT 1
+                )";
+                } // --- 3. HANDLE HAS-MANY (Recursive Collections) ---
+                else {
+                    $subFields = $this->parseGraphSchema($val['fields'], $subAlias);
+                    $softFilter = ($this->softDelete) ? " AND {$subAlias}.{$this->deletedAtColumn} IS NULL" : "";
+
+                    $parts[] = "COALESCE((
+                    SELECT JSON_ARRAYAGG({$subFields})
+                    FROM {$val['table']} {$subAlias}
+                    WHERE {$subAlias}.{$val['foreign_key']} = {$alias}.{$this->pk}{$softFilter}
+                ), JSON_ARRAY())";
                 }
             } else {
+                // --- 4. SIMPLE COLUMNS OR RAW SQL ---
+                // If the value contains parentheses, treat as raw SQL; otherwise, prefix with current table alias
                 $parts[] = (str_contains($val, '(')) ? $val : "{$alias}.{$val}";
             }
         }
-        return "JSON_OBJECT(" . implode(', ', $parts) . ")";
+
+        // Wrap the parts into a MariaDB JSON_OBJECT
+        return "JSON_OBJECT(" . implode(',', $parts) . ")";
     }
 
     // --- Persistence & Transactions ---
@@ -371,7 +445,7 @@ class model
         return $this->db->prepare($sql)->execute($values);
     }
 
-    public function updateWhere(array &$data): bool
+    public function updateWhere(array $data): bool
     {
         if (empty($this->_where))
             return false;
