@@ -3,29 +3,64 @@ declare(strict_types = 1);
 
 class model
 {
+
     protected ?PDO $db = null;
+
     private array $_rs = [];
+
     private array $_where = [];
+
     private array $_bindings = [];
+
     private array $_joins = [];
+
     private string $_order = '';
+
     private string $_limit = '';
+
     private string $_groupBy = '';
+
     private array $_having = [];
+
     private array $_havingBindings = [];
+
     private string $selectedFields = '*';
+
     private bool $_ignoreSoftDelete = false;
 
     protected bool $timestamps = true;
+
     protected bool $softDelete = false;
+
     protected string $createdAtColumn = 'd_created';
+
     protected string $updatedAtColumn = 'd_updated';
+
     protected string $deletedAtColumn = 'd_deleted';
+
     protected array $casts = [];
 
     public function __construct(protected string $table, protected string $pk = 'id')
     {
+        // Assumes a global or accessible db() function returning a PDO instance
         $this->db = db();
+    }
+
+    public function __sleep(): array
+    {
+        // We explicitly list what to save.
+        // We leave 'db' out so it doesn't crash.
+        return [
+            'table',
+            'pk',
+            '_rs',
+            'casts',
+            'timestamps',
+            'softDelete',
+            'createdAtColumn',
+            'updatedAtColumn',
+            'deletedAtColumn'
+        ];
     }
 
     // --- Memory-Efficient Assignment ---
@@ -40,26 +75,68 @@ class model
         }
     }
 
-    public function __get(string $key): mixed { return $this->_rs[$key] ?? null; }
-    public function __set(string $key, mixed $val): void { $this->_rs[$key] = $val; }
-    public function getData(): array { return $this->_rs; }
+    public function __get(string $key): mixed
+    {
+        return $this->_rs[$key] ?? null;
+    }
 
-    // --- Query Builder (Where/Having/Joins) ---
-    public function select(string $fields = '*'): self { $this->selectedFields = $fields; return $this; }
-    public function selectRaw(string $expression): self { $this->selectedFields = $expression; return $this; }
+    public function __set(string $key, mixed $val): void
+    {
+        $this->_rs[$key] = $val;
+    }
+
+    public function getData(): array
+    {
+        return $this->_rs;
+    }
+
+    // --- Query Builder ---
+    public function select(string $fields = '*'): self
+    {
+        $this->selectedFields = $fields;
+        return $this;
+    }
+
+    public function selectRaw(string $expression): self
+    {
+        $this->selectedFields = $expression;
+        return $this;
+    }
 
     public function where(string $column, mixed $operator, mixed $value = null): self
     {
-        if ($value === null && $operator !== null) [$value, $operator] = [$operator, '='];
+        if ($value === null && $operator !== null)
+            [
+                $value,
+                $operator
+            ] = [
+                $operator,
+                '='
+            ];
         $prefix = empty($this->_where) ? "" : "AND ";
         $this->_where[] = "{$prefix}{$column} {$operator} ?";
         $this->_bindings[] = $value;
         return $this;
     }
 
+    public function whereRaw(string $sql, array $bindings = [], string $boolean = 'AND'): self
+    {
+        $prefix = empty($this->_where) ? "" : "{$boolean} ";
+        $this->_where[] = "{$prefix}({$sql})";
+        $this->_bindings = array_merge($this->_bindings, $bindings);
+        return $this;
+    }
+
     public function orWhere(string $column, mixed $operator, mixed $value = null): self
     {
-        if ($value === null) [$value, $operator] = [$operator, '='];
+        if ($value === null)
+            [
+                $value,
+                $operator
+            ] = [
+                $operator,
+                '='
+            ];
         $prefix = empty($this->_where) ? "" : "OR ";
         $this->_where[] = "{$prefix}{$column} {$operator} ?";
         $this->_bindings[] = $value;
@@ -75,7 +152,8 @@ class model
 
     public function whereIn(string $column, array &$values, string $boolean = 'AND'): self
     {
-        if (empty($values)) return $this;
+        if (empty($values))
+            return $this;
         $prefix = empty($this->_where) ? "" : "{$boolean} ";
         $placeholders = implode(',', array_fill(0, count($values), '?'));
         $this->_where[] = "{$prefix}{$column} IN ({$placeholders})";
@@ -85,7 +163,8 @@ class model
 
     public function whereBetween(string $column, array &$values, string $boolean = 'AND', bool $not = false): self
     {
-        if (count($values) !== 2) return $this;
+        if (count($values) !== 2)
+            return $this;
         $prefix = empty($this->_where) ? "" : "{$boolean} ";
         $type = $not ? 'NOT BETWEEN' : 'BETWEEN';
         $this->_where[] = "{$prefix}{$column} {$type} ? AND ?";
@@ -110,9 +189,11 @@ class model
 
     public function search(array &$columns, string $term): self
     {
-        if (empty($term)) return $this;
+        if (empty($term))
+            return $this;
         return $this->whereGroup(function ($q) use (&$columns, $term) {
-            foreach ($columns as &$column) $q->orWhere($column, 'LIKE', "%{$term}%");
+            foreach ($columns as &$column)
+                $q->orWhere($column, 'LIKE', "%{$term}%");
         });
     }
 
@@ -120,7 +201,7 @@ class model
     {
         $nested = new self($this->table, $this->pk);
         $callback($nested);
-        if (!empty($nested->_where)) {
+        if (! empty($nested->_where)) {
             $prefix = empty($this->_where) ? "" : "AND ";
             $this->_where[] = "{$prefix}(" . implode(' ', $nested->_where) . ")";
             $this->_bindings = array_merge($this->_bindings, $nested->_bindings);
@@ -128,7 +209,7 @@ class model
         return $this;
     }
 
-    public function withCount(string $table, string $foreignKey, string $alias = null): self
+    public function withCount(string $table, string $foreignKey, ?string $alias = null): self
     {
         $alias = $alias ?? "{$table}_count";
         $subQuery = "(SELECT COUNT(*) FROM {$table} WHERE {$table}.{$foreignKey} = p.{$this->pk})";
@@ -136,9 +217,23 @@ class model
         return $this;
     }
 
-    public function groupBy(string ...$columns): self { $this->_groupBy = " GROUP BY " . implode(', ', $columns); return $this; }
-    public function orderBy(string $column, string $direction = 'ASC'): self { $this->_order = " ORDER BY {$column} " . (strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC'); return $this; }
-    public function limit(int $limit, int $offset = 0): self { $this->_limit = " LIMIT {$offset}, {$limit}"; return $this; }
+    public function groupBy(string ...$columns): self
+    {
+        $this->_groupBy = " GROUP BY " . implode(', ', $columns);
+        return $this;
+    }
+
+    public function orderBy(string $column, string $direction = 'ASC'): self
+    {
+        $this->_order = " ORDER BY {$column} " . (strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC');
+        return $this;
+    }
+
+    public function limit(int $limit, int $offset = 0): self
+    {
+        $this->_limit = " LIMIT {$offset}, {$limit}";
+        return $this;
+    }
 
     // --- Execution ---
     public function find(): array|static|null
@@ -148,7 +243,8 @@ class model
         $stmt->execute(array_merge($this->_bindings, $this->_havingBindings));
         $this->resetQuery();
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        if (!$results) return null;
+        if (! $results)
+            return null;
         $instances = [];
         foreach ($results as &$row) {
             $instance = new static($this->table, $this->pk);
@@ -164,8 +260,15 @@ class model
         $this->limit($perPage, (max(1, $page) - 1) * $perPage);
         $data = $this->find();
         return (object) [
-            'items' => is_array($data) ? $data : ($data ? [$data] : []),
-            'meta' => (object) ['total_records' => $total, 'total_pages' => (int) ceil($total / $perPage), 'current_page' => $page, 'per_page' => $perPage]
+            'items' => is_array($data) ? $data : ($data ? [
+                $data
+            ] : []),
+            'meta' => (object) [
+                'total_records' => $total,
+                'total_pages' => (int) ceil($total / $perPage),
+                'current_page' => $page,
+                'per_page' => $perPage
+            ]
         ];
     }
 
@@ -189,16 +292,31 @@ class model
 
     public function paginateGraph(array &$schema, int $page = 1, int $perPage = 15): object
     {
+        // 1. Get the total count for metadata
         $total = $this->count();
+
+        // 2. Set the limits for the current page
         $this->limit($perPage, (max(1, $page) - 1) * $perPage);
+
+        // 3. Build the complex JSON object query
         $jsonExpr = $this->parseGraphSchema($schema, 'p');
-        $stmt = $this->db->prepare($this->buildSelectSql($jsonExpr . " AS graph_data", 'p') . $this->_order . $this->_limit);
+        $sql = $this->buildSelectSql($jsonExpr . " AS graph_data", 'p') . $this->_order . $this->_limit;
+
+        $stmt = $this->db->prepare($sql);
         $stmt->execute(array_merge($this->_bindings, $this->_havingBindings));
         $this->resetQuery();
+
+        // 4. Fetch results (each row is a JSON string from MySQL)
         $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
         return (object) [
             'items' => array_map(fn ($json) => json_decode($json), $rows),
-            'meta' => (object) ['total_records' => $total, 'total_pages' => (int) ceil($total / $perPage), 'current_page' => $page, 'per_page' => $perPage]
+            'meta' => (object) [
+                'total_records' => $total,
+                'total_pages' => (int) ceil($total / $perPage),
+                'current_page' => $page,
+                'per_page' => $perPage
+            ]
         ];
     }
 
@@ -222,12 +340,16 @@ class model
         return "JSON_OBJECT(" . implode(', ', $parts) . ")";
     }
 
-    // --- Persistence ---
-    public function save(): bool|string { return isset($this->_rs[$this->pk]) ? $this->update() : $this->insert(); }
+    // --- Persistence & Transactions ---
+    public function save(): bool|string
+    {
+        return isset($this->_rs[$this->pk]) ? (string) $this->update() : $this->insert();
+    }
 
     public function insert(): string|false
     {
-        if ($this->timestamps) $this->_rs[$this->createdAtColumn] = $this->_rs[$this->updatedAtColumn] = date('Y-m-d H:i:s');
+        if ($this->timestamps)
+            $this->_rs[$this->createdAtColumn] = $this->_rs[$this->updatedAtColumn] = date('Y-m-d H:i:s');
         $cols = array_keys($this->_rs);
         $sql = "INSERT INTO {$this->table} (" . implode(',', $cols) . ") VALUES (" . implode(',', array_fill(0, count($cols), '?')) . ")";
         return $this->db->prepare($sql)->execute($this->mapValues($this->_rs)) ? $this->db->lastInsertId() : false;
@@ -235,13 +357,131 @@ class model
 
     public function update(): bool
     {
-        if (!isset($this->_rs[$this->pk])) return false;
-        if ($this->timestamps) $this->_rs[$this->updatedAtColumn] = date('Y-m-d H:i:s');
-        $data = $this->_rs; $id = $data[$this->pk]; unset($data[$this->pk]);
-        $fields = array_map(fn($k) => "{$k}=?", array_keys($data));
+        if (! isset($this->_rs[$this->pk]))
+            return false;
+        if ($this->timestamps)
+            $this->_rs[$this->updatedAtColumn] = date('Y-m-d H:i:s');
+        $data = $this->_rs;
+        $id = $data[$this->pk];
+        unset($data[$this->pk]);
+        $fields = array_map(fn ($k) => "{$k}=?", array_keys($data));
         $sql = "UPDATE {$this->table} SET " . implode(',', $fields) . " WHERE {$this->pk}=?";
-        $values = $this->mapValues($data); $values[] = $id;
+        $values = $this->mapValues($data);
+        $values[] = $id;
         return $this->db->prepare($sql)->execute($values);
+    }
+
+    public function updateWhere(array &$data): bool
+    {
+        if (empty($this->_where))
+            return false;
+        if ($this->timestamps)
+            $data[$this->updatedAtColumn] = date('Y-m-d H:i:s');
+        $fields = array_map(fn ($k) => "{$k}=?", array_keys($data));
+        $sql = "UPDATE {$this->table} SET " . implode(', ', $fields) . " WHERE " . implode(' ', $this->_where);
+        $values = array_merge($this->mapValues($data), $this->_bindings);
+        $result = $this->db->prepare($sql)->execute($values);
+        $this->resetQuery();
+        return $result;
+    }
+
+    public function delete(): bool
+    {
+        if (! isset($this->_rs[$this->pk]))
+            return false;
+        if ($this->softDelete) {
+            $this->_rs[$this->deletedAtColumn] = date('Y-m-d H:i:s');
+            $sql = "UPDATE {$this->table} SET {$this->deletedAtColumn} = ? WHERE {$this->pk} = ?";
+            return $this->db->prepare($sql)->execute([
+                $this->_rs[$this->deletedAtColumn],
+                $this->_rs[$this->pk]
+            ]);
+        }
+        $sql = "DELETE FROM {$this->table} WHERE {$this->pk} = ?";
+        return $this->db->prepare($sql)->execute([
+            $this->_rs[$this->pk]
+        ]);
+    }
+
+    public function deleteWhere(): bool
+    {
+        if (empty($this->_where))
+            return false;
+        if ($this->softDelete) {
+            $sql = "UPDATE {$this->table} SET {$this->deletedAtColumn} = ? WHERE " . implode(' ', $this->_where);
+            $values = array_merge([
+                date('Y-m-d H:i:s')
+            ], $this->_bindings);
+        } else {
+            $sql = "DELETE FROM {$this->table} WHERE " . implode(' ', $this->_where);
+            $values = $this->_bindings;
+        }
+        $result = $this->db->prepare($sql)->execute($values);
+        $this->resetQuery();
+        return $result;
+    }
+
+    public function deleteById(mixed $id): bool
+    {
+        return $this->where($this->pk, $id)->deleteWhere();
+    }
+
+    public function restore(): bool
+    {
+        if (! $this->softDelete || ! isset($this->_rs[$this->pk]))
+            return false;
+        $sql = "UPDATE {$this->table} SET {$this->deletedAtColumn} = NULL WHERE {$this->pk} = ?";
+        return $this->db->prepare($sql)->execute([
+            $this->_rs[$this->pk]
+        ]);
+    }
+
+    public function transaction(callable $callback): mixed
+    {
+        try {
+            $this->db->beginTransaction();
+            $result = $callback($this);
+            $this->db->commit();
+            return $result;
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+
+    // --- Helpers & Debugging ---
+    public function toSql(string $type = 'select', array &$data = []): string
+    {
+        $sql = '';
+        $bindings = $this->_bindings;
+
+        if ($type === 'select') {
+            $sql = $this->buildSelectSql($this->selectedFields) . $this->_order . $this->_limit;
+            $bindings = array_merge($this->_bindings, $this->_havingBindings);
+        } elseif ($type === 'update') {
+            if ($this->timestamps)
+                $data[$this->updatedAtColumn] = date('Y-m-d H:i:s');
+            $fields = array_map(fn ($k) => "{$k}=?", array_keys($data));
+            $sql = "UPDATE {$this->table} SET " . implode(', ', $fields);
+            if (! empty($this->_where))
+                $sql .= " WHERE " . implode(' ', $this->_where);
+            $bindings = array_merge($this->mapValues($data), $this->_bindings);
+        } elseif ($type === 'delete') {
+            if ($this->softDelete) {
+                $sql = "UPDATE {$this->table} SET {$this->deletedAtColumn} = ? WHERE " . implode(' ', $this->_where);
+                $bindings = array_merge([
+                    date('Y-m-d H:i:s')
+                ], $this->_bindings);
+            } else {
+                $sql = "DELETE FROM {$this->table} WHERE " . implode(' ', $this->_where);
+            }
+        }
+
+        foreach ($bindings as $val) {
+            $escaped = is_null($val) ? 'NULL' : (is_numeric($val) ? $val : "'" . addslashes((string) $val) . "'");
+            $sql = preg_replace('/\?/', (string) $escaped, $sql, 1);
+        }
+        return $sql . ";";
     }
 
     private function mapValues(array &$data): array
@@ -256,13 +496,16 @@ class model
     private function buildSelectSql(string $fields, string $alias = 'p'): string
     {
         $where = $this->_where;
-        if ($this->softDelete && !$this->_ignoreSoftDelete) {
+        if ($this->softDelete && ! $this->_ignoreSoftDelete) {
             array_unshift($where, (empty($where) ? "" : "AND ") . "{$alias}.{$this->deletedAtColumn} IS NULL");
         }
         $sql = "SELECT {$fields} FROM {$this->table} {$alias} " . implode('', $this->_joins);
-        if (!empty($where)) $sql .= " WHERE " . implode(' ', $where);
-        if ($this->_groupBy) $sql .= $this->_groupBy;
-        if ($this->_having) $sql .= " HAVING " . implode(' ', $this->_having);
+        if (! empty($where))
+            $sql .= " WHERE " . implode(' ', $where);
+        if ($this->_groupBy)
+            $sql .= $this->_groupBy;
+        if ($this->_having)
+            $sql .= " HAVING " . implode(' ', $this->_having);
         return $sql;
     }
 
@@ -272,7 +515,7 @@ class model
         $this->_order = $this->_limit = $this->_groupBy = '';
         $this->selectedFields = '*';
     }
-    
+
     public function explain(): array
     {
         $sql = "EXPLAIN " . $this->buildSelectSql($this->selectedFields) . $this->_order . $this->_limit;
@@ -280,149 +523,4 @@ class model
         $stmt->execute(array_merge($this->_bindings, $this->_havingBindings));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-// --- Batch & Quick Operations ---
-
-    /**
- * Update records directly using a referenced data array
- */
-public function updateWhere(array &$data): bool
-{
-    // Safety: prevent accidental global updates if no where clause is set
-    if (empty($this->_where)) return false; 
-    
-    if ($this->timestamps) {
-        $data[$this->updatedAtColumn] = date('Y-m-d H:i:s');
-    }
-    
-    $fields = array_map(fn($k) => "{$k}=?", array_keys($data));
-    $sql = "UPDATE {$this->table} SET " . implode(',', $fields) . " WHERE " . implode(' ', $this->_where);
-    
-    // Process values (handling JSON casting by reference)
-    $mappedValues = $this->mapValues($data);
-    $values = array_merge($mappedValues, $this->_bindings);
-    
-    $stmt = $this->db->prepare($sql);
-    $result = $stmt->execute($values);
-    
-    $this->resetQuery();
-    return $result;
 }
-
-/**
- * deleteWhere already uses internal $this->_bindings (which are populated by reference elsewhere)
- */
-public function deleteWhere(): bool
-{
-    if (empty($this->_where)) return false;
-    
-    if ($this->softDelete) {
-        $now = date('Y-m-d H:i:s');
-        $sql = "UPDATE {$this->table} SET {$this->deletedAtColumn} = ? WHERE " . implode(' ', $this->_where);
-        $values = array_merge([$now], $this->_bindings);
-    } else {
-        $sql = "DELETE FROM {$this->table} WHERE " . implode(' ', $this->_where);
-        $values = $this->_bindings;
-    }
-    
-    $result = $this->db->prepare($sql)->execute($values);
-    $this->resetQuery();
-    return $result;
-}
-
-/**
- * Quick delete by Primary Key
- */
-public function deleteById(mixed $id): bool
-{
-    $this->resetQuery();
-    return $this->where($this->pk, $id)->deleteWhere();
-}  
-
-    // --- Transaction Control ---
-
-public function beginTransaction(): bool 
-{ 
-    return $this->db->beginTransaction(); 
-}
-
-public function commit(): bool 
-{ 
-    return $this->db->commit(); 
-}
-
-public function rollBack(): bool 
-{ 
-    return $this->db->rollBack(); 
-}
-
-/**
- * A helper to run a closure within a transaction automatically
- */
-public function transaction(callable $callback): mixed
-{
-    try {
-        $this->beginTransaction();
-        $result = $callback($this);
-        $this->commit();
-        return $result;
-    } catch (\Exception $e) {
-        $this->rollBack();
-        throw $e;
-    }
-}
-
-    public function toSql(string $type = 'select', array &$data = []): string
-{
-    $sql = '';
-    $bindings = $this->_bindings;
-
-    if ($type === 'select') {
-        $sql = $this->buildSelectSql($this->selectedFields);
-        if ($this->_order) $sql .= $this->_order;
-        if ($this->_limit) $sql .= $this->_limit;
-        $bindings = array_merge($this->_bindings, $this->_havingBindings);
-    } 
-    elseif ($type === 'update') {
-        if ($this->timestamps) $data[$this->updatedAtColumn] = date('Y-m-d H:i:s');
-        $fields = array_map(fn($k) => "{$k}=?", array_keys($data));
-        $sql = "UPDATE {$this->table} SET " . implode(', ', $fields);
-        if (!empty($this->_where)) $sql .= " WHERE " . implode(' ', $this->_where);
-        $bindings = array_merge($this->mapValues($data), $this->_bindings);
-    } 
-    elseif ($type === 'delete') {
-        if ($this->softDelete) {
-            $sql = "UPDATE {$this->table} SET {$this->deletedAtColumn} = ? WHERE " . implode(' ', $this->_where);
-            $bindings = array_merge([date('Y-m-d H:i:s')], $this->_bindings);
-        } else {
-            $sql = "DELETE FROM {$this->table} WHERE " . implode(' ', $this->_where);
-        }
-    }
-
-    // Safely inject bindings for phpMyAdmin preview
-    foreach ($bindings as $val) {
-        $escaped = is_null($val) ? 'NULL' : (is_numeric($val) ? $val : "'" . addslashes((string)$val) . "'");
-        $sql = preg_replace('/\?/', (string)$escaped, $sql, 1);
-    }
-
-    return $sql . ";";
-}
-
-    public function whereRaw(string $sql, array $bindings = [], string $boolean = 'AND'): self
-{
-    $prefix = empty($this->_where) ? "" : "{$boolean} ";
-    $this->_where[] = "{$prefix}({$sql})";
-    $this->_bindings = array_merge($this->_bindings, $bindings);
-    return $this;
-}
-
-public function orWhereRaw(string $sql, array $bindings = []): self
-{
-    return $this->whereRaw($sql, $bindings, 'OR');
-}
-
-
-}
-
-
-
-
