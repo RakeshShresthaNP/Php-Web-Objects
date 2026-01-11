@@ -427,6 +427,28 @@ class model
     {
         return $this->where($this->pk, $id)->deleteWhere();
     }
+ 
+    /**
+     * Execute a callback within a database transaction.
+     */
+    public function transaction(callable $callback): mixed
+    {
+        try {
+            $this->db->beginTransaction();
+            
+            // Execute the logic passed into the function
+            $result = $callback($this);
+            
+            $this->db->commit();
+            return $result;
+        } catch (\Throwable $e) {
+            // Roll back changes if any exception or error occurs
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $e;
+        }
+    }
 
     // --- Relationship Helpers ---
     public function hasMany(string $relatedClass, string $foreignKey): array|null
@@ -462,4 +484,5 @@ class model
         foreach ($arr as $key => $val) $this->$key = $val;
     }
 }
+
 
