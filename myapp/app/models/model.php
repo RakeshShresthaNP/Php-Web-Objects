@@ -374,6 +374,62 @@ class model
         ]);
     }
 
+    /**
+     * Update multiple records based on the current WHERE conditions.
+     * Usage: $model->where('status', 'pending')->updateWhere(['status' => 'active']);
+     */
+    public function updateWhere(array $data): bool
+    {
+        if (empty($this->_where))
+            return false; // Safety: prevent global updates
+
+        if ($this->timestamps) {
+            $data[$this->updatedAtColumn] = date('Y-m-d H:i:s');
+        }
+
+        $fields = array_map(fn ($k) => "{$k}=?", array_keys($data));
+        $sql = "UPDATE {$this->table} SET " . implode(',', $fields);
+        $sql .= " WHERE " . implode(' ', $this->_where);
+
+        $values = array_values($data);
+        $stmt = $this->db->prepare($sql);
+        $result = $stmt->execute(array_merge($values, $this->_bindings));
+
+        $this->resetQuery();
+        return $result;
+    }
+
+    /**
+     * Delete multiple records based on the current WHERE conditions.
+     * Respects Soft Deletes.
+     */
+    public function deleteWhere(): bool
+    {
+        if (empty($this->_where))
+            return false; // Safety: prevent global deletes
+
+        if ($this->softDelete) {
+            return $this->updateWhere([
+                $this->deletedAtColumn => date('Y-m-d H:i:s')
+            ]);
+        }
+
+        $sql = "DELETE FROM {$this->table} WHERE " . implode(' ', $this->_where);
+        $stmt = $this->db->prepare($sql);
+        $result = $stmt->execute($this->_bindings);
+
+        $this->resetQuery();
+        return $result;
+    }
+
+    /**
+     * Quick delete by ID without needing to instantiate/find first.
+     */
+    public function deleteById(int|string $id): bool
+    {
+        return $this->where($this->pk, $id)->deleteWhere();
+    }
+
     // --- Relationship Helpers ---
     public function hasMany(string $relatedClass, string $foreignKey): array|null
     {
