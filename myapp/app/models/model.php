@@ -62,11 +62,22 @@ class model
 
     public function __debugInfo(): array
     {
+        $sql = $this->buildSelectSql($this->selectedFields) . $this->_order . $this->_limit;
+        $bindings = array_merge($this->_bindings, $this->_havingBindings);
+
+        // Map bindings into the SQL string for a "copy-paste" ready version
+        $rawSql = $sql;
+        foreach ($bindings as $binding) {
+            $value = is_string($binding) ? "'{$binding}'" : $binding;
+            $rawSql = preg_replace('/\?/', (string)$value, $rawSql, 1);
+        }
+
         return [
-            'table'    => $this->table,
-            'data'     => $this->_rs,
-            'sql'      => $this->buildSelectSql($this->selectedFields) . $this->_order . $this->_limit,
-            'bindings' => array_merge($this->_bindings, $this->_havingBindings)
+            'table'   => $this->table,
+            'data'    => $this->_rs,
+            'sql'     => $sql,
+            'raw_sql' => $rawSql,
+            'params'  => $bindings
         ];
     }
 
@@ -451,3 +462,4 @@ class model
         foreach ($arr as $key => $val) $this->$key = $val;
     }
 }
+
