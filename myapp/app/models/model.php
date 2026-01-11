@@ -371,8 +371,58 @@ public function transaction(callable $callback): mixed
     }
 }
 
+    public function toSql(string $type = 'select', array &$data = []): string
+{
+    $sql = '';
+    $bindings = $this->_bindings;
+
+    if ($type === 'select') {
+        $sql = $this->buildSelectSql($this->selectedFields);
+        if ($this->_order) $sql .= $this->_order;
+        if ($this->_limit) $sql .= $this->_limit;
+        $bindings = array_merge($this->_bindings, $this->_havingBindings);
+    } 
+    elseif ($type === 'update') {
+        if ($this->timestamps) $data[$this->updatedAtColumn] = date('Y-m-d H:i:s');
+        $fields = array_map(fn($k) => "{$k}=?", array_keys($data));
+        $sql = "UPDATE {$this->table} SET " . implode(', ', $fields);
+        if (!empty($this->_where)) $sql .= " WHERE " . implode(' ', $this->_where);
+        $bindings = array_merge($this->mapValues($data), $this->_bindings);
+    } 
+    elseif ($type === 'delete') {
+        if ($this->softDelete) {
+            $sql = "UPDATE {$this->table} SET {$this->deletedAtColumn} = ? WHERE " . implode(' ', $this->_where);
+            $bindings = array_merge([date('Y-m-d H:i:s')], $this->_bindings);
+        } else {
+            $sql = "DELETE FROM {$this->table} WHERE " . implode(' ', $this->_where);
+        }
+    }
+
+    // Safely inject bindings for phpMyAdmin preview
+    foreach ($bindings as $val) {
+        $escaped = is_null($val) ? 'NULL' : (is_numeric($val) ? $val : "'" . addslashes((string)$val) . "'");
+        $sql = preg_replace('/\?/', (string)$escaped, $sql, 1);
+    }
+
+    return $sql . ";";
+}
+
+    public function whereRaw(string $sql, array $bindings = [], string $boolean = 'AND'): self
+{
+    $prefix = empty($this->_where) ? "" : "{$boolean} ";
+    $this->_where[] = "{$prefix}({$sql})";
+    $this->_bindings = array_merge($this->_bindings, $bindings);
+    return $this;
+}
+
+public function orWhereRaw(string $sql, array $bindings = []): self
+{
+    return $this->whereRaw($sql, $bindings, 'OR');
+}
+
 
 }
+
 
 
 
