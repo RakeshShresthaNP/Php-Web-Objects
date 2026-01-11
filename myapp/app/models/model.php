@@ -144,6 +144,40 @@ class model
         return $this;
     }
 
+     public function whereBetween(string $column, array $values, string $boolean = 'AND', bool $not = false): self
+    {
+        // Ensure we have exactly two values for the range
+        if (count($values) !== 2) {
+            return $this; 
+        }
+
+        $prefix = empty($this->_where) ? "" : "{$boolean} ";
+        $type = $not ? 'NOT BETWEEN' : 'BETWEEN';
+        
+        $this->_where[] = "{$prefix}{$column} {$type} ? AND ?";
+        
+        // Add both values to the bindings array
+        $this->_bindings[] = $values[0];
+        $this->_bindings[] = $values[1];
+
+        return $this;
+    }
+
+    public function orWhereBetween(string $column, array $values): self
+    {
+        return $this->whereBetween($column, $values, 'OR');
+    }
+
+    public function whereNotBetween(string $column, array $values): self
+    {
+        return $this->whereBetween($column, $values, 'AND', true);
+    }
+
+    public function orWhereNotBetween(string $column, array $values): self
+    {
+        return $this->whereBetween($column, $values, 'OR', true);
+    }
+
     public function whereIn(string $column, array $values, string $boolean = 'AND'): self
     {
         if (empty($values))
@@ -469,3 +503,4 @@ class model
             $this->$key = $val;
     }
 }
+
