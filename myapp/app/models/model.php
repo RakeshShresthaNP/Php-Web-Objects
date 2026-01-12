@@ -384,45 +384,6 @@ class model
                 $type = $val['type'] ?? null;
 
                 if (in_array($type, [
-                    'rownumber',
-                    'lead',
-                    'lag',
-                    'percent_change',
-                    'running_total',
-                    'moving_average'
-                ])) {
-                    $partition = isset($val['partition_by']) ? "PARTITION BY " . trim($val['partition_by']) . " " : "";
-
-                    $rawOrder = $val['order_by'] ?? $this->_order;
-                    $cleanOrder = trim(str_ireplace('ORDER BY', '', (string) $rawOrder));
-                    if (empty($cleanOrder))
-                        $cleanOrder = "{$alias}.{$this->pk}";
-
-                    $colName = $val['column'] ?? $this->pk;
-                    $col = str_contains($colName, '.') ? $colName : "{$alias}.{$colName}";
-
-                    // MariaDB/MySQL are whitespace sensitive inside JSON_OBJECT for window functions
-                    if ($type === 'rownumber') {
-                        $currentVal = "ROW_NUMBER() OVER({$partition}ORDER BY {$cleanOrder})";
-                    } elseif ($type === 'running_total') {
-                        $currentVal = "SUM({$col}) OVER({$partition}ORDER BY {$cleanOrder} ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)";
-                    } elseif ($type === 'percent_change') {
-                        // Optimized for MariaDB Parser
-                        $lagExpr = "LAG({$col},1,0) OVER({$partition}ORDER BY {$cleanOrder})";
-                        $currentVal = "ROUND((({$col}-{$lagExpr})/NULLIF({$lagExpr},0))*100,2)";
-                    } elseif ($type === 'moving_average') {
-                        $rows = (int) ($val['rows'] ?? 3);
-                        $currentVal = "AVG({$col}) OVER({$partition}ORDER BY {$cleanOrder} ROWS BETWEEN {$rows} PRECEDING AND CURRENT ROW)";
-                    } elseif (in_array($type, [
-                        'lead',
-                        'lag'
-                    ])) {
-                        $func = strtoupper($type);
-                        $offset = (int) ($val['offset'] ?? 1);
-                        $defaultPart = isset($val['default']) ? "," . (is_numeric($val['default']) ? $val['default'] : "'{$val['default']}'") : "";
-                        $currentVal = "{$func}({$col},{$offset}{$defaultPart}) OVER({$partition}ORDER BY {$cleanOrder})";
-                    }
-                } elseif (in_array($type, [
                     'count',
                     'sum',
                     'avg',
