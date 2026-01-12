@@ -557,6 +557,24 @@ class model
         return $sql . ";";
     }
 
+    public function toGraphSql(array &$schema, string $alias = 'p'): string
+    {
+        $jsonExpr = $this->parseGraphSchema($schema, $alias);
+
+        // This builds the full query including WHERE, JOINs, and Analytics
+        $sql = $this->buildSelectSql($jsonExpr . " AS graph_data", $alias) . $this->_order . $this->_limit;
+
+        $bindings = array_merge($this->_bindings, $this->_havingBindings);
+
+        // Replace placeholders with actual values for easy copy-pasting into Sequel Ace/TablePlus
+        foreach ($bindings as $val) {
+            $escaped = is_null($val) ? 'NULL' : (is_numeric($val) ? $val : "'" . addslashes((string) $val) . "'");
+            $sql = preg_replace('/\?/', (string) $escaped, $sql, 1);
+        }
+
+        return $sql . ";";
+    }
+
     private function mapValues(array &$data): array
     {
         $mapped = [];
@@ -609,7 +627,7 @@ class model
         $this->join("({$rawSql}) {$alias}", "{$alias}.{$foreignKey}", "=", "{$primaryAlias}.{$localKey}", "LEFT");
         return $this;
     }
-    
+
     private function resetQuery(): void
     {
         $this->_where = $this->_bindings = $this->_joins = $this->_having = $this->_havingBindings = [];
