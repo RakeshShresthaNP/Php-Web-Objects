@@ -602,15 +602,14 @@ class model
     /**
      * Injected into model.php
      */
-    public function withAnalytics(string $alias, string $rawSql, string $foreignKey, string $localKey = null): self
+    public function withAnalytics(string $alias, string $rawSql, string $foreignKey, string $localKey = null, string $primaryAlias = 'p'): self
     {
         $localKey = $localKey ?? $this->pk;
-        // Explicitly define the join: Subquery alias + foreign key = Table alias + local key
-        // We use 'p' as the default table alias consistent with your buildSelectSql()
-        $this->join("({$rawSql}) {$alias}", "{$alias}.{$foreignKey}", "=", "p.{$localKey}", "LEFT");
+        // We use the $primaryAlias parameter to match whatever you pass to findGraph
+        $this->join("({$rawSql}) {$alias}", "{$alias}.{$foreignKey}", "=", "{$primaryAlias}.{$localKey}", "LEFT");
         return $this;
     }
-
+    
     private function resetQuery(): void
     {
         $this->_where = $this->_bindings = $this->_joins = $this->_having = $this->_havingBindings = [];

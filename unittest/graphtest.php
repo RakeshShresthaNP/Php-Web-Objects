@@ -307,8 +307,8 @@ it("Analytics: Growth and Time-Series", function () {
     $m = new model('orders');
 
     $schema = [
-        'id' => 'p.id',
-        'current_amount' => 'p.total_amount',
+        'id' => 'u.id',
+        'current_amount' => 'u.total_amount',
         // We move the "0" logic here to avoid the LAG(...,0) parser bug
         'prev_amount' => 'COALESCE(stats.prev_val, 0)',
         'growth_pct' => 'COALESCE(stats.pct, 0)'
@@ -321,7 +321,7 @@ it("Analytics: Growth and Time-Series", function () {
         NULLIF(LAG(total_amount, 1) OVER (PARTITION BY user_id ORDER BY d_created), 0)) * 100, 2) as pct
         FROM orders";
 
-    $results = $m->withAnalytics('stats', $subQuery, 'id', 'id', 'p')->findGraph($schema, 'p');
+    $results = $m->withAnalytics('stats', $subQuery, 'id', 'id', 'u')->findGraph($schema, 'u');
 
     if ($results) {
         $data = is_array($results) ? $results[0] : $results;
@@ -333,8 +333,8 @@ it("Schema Config: Lead/Lag Multi-Directional", function () {
     $m = new model('orders');
 
     $schema = [
-        'id' => 'p.id',
-        'current_sale' => 'p.total_amount',
+        'id' => 'u.id',
+        'current_sale' => 'u.total_amount',
         'previous_sale' => 'COALESCE(stats.prev_sale, 0)',
         'next_sale' => 'COALESCE(stats.next_sale, 0)'
     ];
@@ -345,7 +345,7 @@ it("Schema Config: Lead/Lag Multi-Directional", function () {
         LEAD(total_amount, 1) OVER (PARTITION BY user_id ORDER BY d_created) as next_sale
         FROM orders";
 
-    $results = $m->withAnalytics('stats', $subQuery, 'id', 'id', 'p')->findGraph($schema, 'p');
+    $results = $m->withAnalytics('stats', $subQuery, 'id', 'id', 'u')->findGraph($schema, 'u');
 
     if ($results)
         echo "   - Time Series Verified\n<br>";
@@ -371,9 +371,9 @@ it("The Final Boss: High Precision Check", function () {
     // Using CAST to ensure we don't get 0.00 for small averages
     $subQuery = "SELECT user_id, CAST(AVG(total_amount) OVER (PARTITION BY user_id) AS DECIMAL(10,2)) as moving_avg FROM orders";
 
-    $results = $m->withAnalytics('stats', $subQuery, 'user_id', 'id', 'p')
+    $results = $m->withAnalytics('stats', $subQuery, 'user_id', 'id', 'u')
         ->limit(1)
-        ->findGraph($megaSchema, 'p');
+        ->findGraph($megaSchema, 'u');
 
     if (! $results)
         throw new Exception("Final Boss Failed: No data.");
@@ -422,9 +422,9 @@ it("The Final Boss: Pre-Calculation", function () {
 
     // 3. Execution
     // We tell the model: Join subquery 'stats' where stats.user_id = users.id
-    $results = $m->withAnalytics('stats', $subQuery, 'user_id', 'id')
+    $results = $m->withAnalytics('stats', $subQuery, 'user_id', 'id', 'u')
         ->limit(5)
-        ->findGraph($megaSchema, 'p');
+        ->findGraph($megaSchema, 'u');
 
     if (! $results) {
         throw new Exception("Final Boss Failed: No data returned.");
