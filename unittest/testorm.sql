@@ -14,23 +14,18 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
--- Dumping structure for table testorm.categories
+-- Dumping structure for table meworm.categories
 CREATE TABLE IF NOT EXISTS `categories` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table testorm.categories: ~3 rows (approximately)
-DELETE FROM `categories`;
-INSERT INTO `categories` (`id`, `name`, `description`, `created_at`) VALUES
-	(1, 'Electronics', 'Gadgets, phones, and laptops', '2026-01-11 14:41:26'),
-	(2, 'Home & Kitchen', 'Appliances and furniture', '2026-01-11 14:41:26'),
-	(3, 'Digital Services', 'Software licenses and subscriptions', '2026-01-11 14:41:26');
+-- Data exporting was unselected.
 
--- Dumping structure for table testorm.comments
+-- Dumping structure for table meworm.comments
 CREATE TABLE IF NOT EXISTS `comments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `order_id` int(11) NOT NULL,
@@ -41,16 +36,11 @@ CREATE TABLE IF NOT EXISTS `comments` (
   `d_updated` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `d_deleted` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=Aria AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria AUTO_INCREMENT=102 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
--- Dumping data for table testorm.comments: 1 rows
-DELETE FROM `comments`;
-/*!40000 ALTER TABLE `comments` DISABLE KEYS */;
-INSERT INTO `comments` (`id`, `order_id`, `user_id`, `comment_text`, `metadata`, `d_created`, `d_updated`, `d_deleted`) VALUES
-	(1, 1, 1, 'Great!', NULL, '2026-01-11 20:32:44', '2026-01-11 20:32:44', NULL);
-/*!40000 ALTER TABLE `comments` ENABLE KEYS */;
+-- Data exporting was unselected.
 
--- Dumping structure for table testorm.orders
+-- Dumping structure for table meworm.orders
 CREATE TABLE IF NOT EXISTS `orders` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
@@ -64,17 +54,11 @@ CREATE TABLE IF NOT EXISTS `orders` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `order_ref` (`order_ref`),
   KEY `fk_order_user` (`user_id`)
-) ENGINE=Aria AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria AUTO_INCREMENT=105 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
--- Dumping data for table testorm.orders: 2 rows
-DELETE FROM `orders`;
-/*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` (`id`, `user_id`, `order_ref`, `total_amount`, `status`, `d_created`, `d_updated`, `d_deleted`, `category_id`) VALUES
-	(1, 1, 'REF1', 1000.00, 'pending', '2026-01-11 20:32:44', '2026-01-11 20:34:13', NULL, 1),
-	(3, 3, 'tt123', 500.00, 'pending', '2026-01-11 15:41:47', '2026-01-11 15:41:47', NULL, NULL);
-/*!40000 ALTER TABLE `orders` ENABLE KEYS */;
+-- Data exporting was unselected.
 
--- Dumping structure for table testorm.order_items
+-- Dumping structure for table meworm.order_items
 CREATE TABLE IF NOT EXISTS `order_items` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `order_id` int(11) NOT NULL,
@@ -82,16 +66,11 @@ CREATE TABLE IF NOT EXISTS `order_items` (
   `quantity` int(11) NOT NULL DEFAULT 1,
   `unit_price` decimal(10,2) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=Aria AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria AUTO_INCREMENT=102 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
--- Dumping data for table testorm.order_items: 1 rows
-DELETE FROM `order_items`;
-/*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
-INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `unit_price`) VALUES
-	(1, 1, 1, 1, 1000.00);
-/*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
+-- Data exporting was unselected.
 
--- Dumping structure for table testorm.products
+-- Dumping structure for table meworm.products
 CREATE TABLE IF NOT EXISTS `products` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
@@ -103,16 +82,11 @@ CREATE TABLE IF NOT EXISTS `products` (
   `d_deleted` datetime DEFAULT NULL,
   `category_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=Aria AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria AUTO_INCREMENT=104 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
--- Dumping data for table testorm.products: 1 rows
-DELETE FROM `products`;
-/*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` (`id`, `name`, `price`, `stock`, `category`, `d_created`, `d_updated`, `d_deleted`, `category_id`) VALUES
-	(1, 'Laptop', 1000.00, 0, 'Tech', '2026-01-11 20:32:44', '2026-01-11 15:58:53', NULL, 1);
-/*!40000 ALTER TABLE `products` ENABLE KEYS */;
+-- Data exporting was unselected.
 
--- Dumping structure for table testorm.site_analytics
+-- Dumping structure for table meworm.site_analytics
 CREATE TABLE IF NOT EXISTS `site_analytics` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `page_path` varchar(255) DEFAULT NULL,
@@ -122,17 +96,27 @@ CREATE TABLE IF NOT EXISTS `site_analytics` (
   `device_type` enum('mobile','desktop','tablet') DEFAULT NULL,
   `d_created` datetime DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=132 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table testorm.site_analytics: ~4 rows (approximately)
-DELETE FROM `site_analytics`;
-INSERT INTO `site_analytics` (`id`, `page_path`, `user_id`, `session_id`, `ip_address`, `device_type`, `d_created`) VALUES
-	(1, '/home', 1, NULL, NULL, 'desktop', '2026-01-10 10:00:00'),
-	(2, '/products', 1, NULL, NULL, 'desktop', '2026-01-10 10:05:00'),
-	(3, '/home', 2, NULL, NULL, 'mobile', '2026-01-11 11:00:00'),
-	(4, '/cart', 2, NULL, NULL, 'mobile', '2026-01-11 11:02:00');
+-- Data exporting was unselected.
 
--- Dumping structure for table testorm.users
+-- Dumping structure for table meworm.site_visitors
+CREATE TABLE IF NOT EXISTS `site_visitors` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` varchar(255) DEFAULT NULL,
+  `path` varchar(255) DEFAULT NULL,
+  `duration_seconds` int(11) DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `created_at` (`created_at`),
+  KEY `user_id` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=255 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table meworm.users
 CREATE TABLE IF NOT EXISTS `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
@@ -143,16 +127,9 @@ CREATE TABLE IF NOT EXISTS `users` (
   `d_deleted` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=Aria AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria AUTO_INCREMENT=106 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
--- Dumping data for table testorm.users: 3 rows
-DELETE FROM `users`;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` (`id`, `name`, `email`, `settings`, `d_created`, `d_updated`, `d_deleted`) VALUES
-	(1, 'Rakesh', 'rakesh@test.com', NULL, '2026-01-11 21:43:53', '2026-01-11 21:43:53', NULL),
-	(2, 'Test', 'test@test.com', NULL, '2026-01-11 15:58:53', '2026-01-11 15:58:53', NULL),
-	(3, 'Transaction Test User', 'test@example.com', NULL, '2026-01-11 15:58:53', '2026-01-11 15:58:53', NULL);
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+-- Data exporting was unselected.
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

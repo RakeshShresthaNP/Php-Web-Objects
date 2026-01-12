@@ -351,15 +351,38 @@ class model
     private function parseGraphSchema(array &$schema, string $alias): string
     {
         $parts = [];
-        foreach ($schema as $key => &$val) {
-            // Add the JSON Key
+
+        // Configuration keys that should NEVER be part of the JSON output
+        $metaKeys = [
+            'table',
+            'alias',
+            'joins',
+            'group',
+            'order',
+            'limit',
+            'where',
+            'foreign_key',
+            'link_to_parent',
+            'type',
+            'column',
+            'fields',
+            'select'
+        ];
+
+        foreach ($schema as $key => $val) {
+            // 1. Skip metadata keys entirely
+            if (in_array($key, $metaKeys, true)) {
+                continue;
+            }
+
+            // 2. Add Key (Must be a string)
             $parts[] = "'{$key}'";
 
+            // 3. Add Value
             if (is_array($val)) {
-                // Create a unique scope for this level's subquery to avoid name collisions
-                $subAlias = $alias . "_sub";
+                $subAlias = $alias . "_" . $key;
 
-                // --- 1. HANDLE AGGREGATES (COUNT, SUM, AVG, MIN, MAX) ---
+                // --- A. AGGREGATES ---
                 if (isset($val['type']) && in_array($val['type'], [
                     'count',
                     'sum',
@@ -368,49 +391,31 @@ class model
                     'max'
                 ])) {
                     $type = strtoupper($val['type']);
-                    // COUNT targets (*), others target the specific column scoped to the sub-table
                     $col = ($type === 'COUNT') ? '*' : "{$subAlias}.{$val['column']}";
+                    $extraFilter = isset($val['where']) ? " AND (" . (is_array($val['where']) ? implode(' AND ', $val['where']) : $val['where']) . ")" : "";
 
-                    // Optional WHERE filter inside the aggregate subquery
-                    $extraFilter = "";
-                    if (isset($val['where'])) {
-                        $filterStr = is_array($val['where']) ? implode(' AND ', $val['where']) : $val['where'];
-                        $extraFilter = " AND ({$filterStr})";
+                    $parts[] = "COALESCE((SELECT {$type}({$col}) FROM {$val['table']} {$subAlias} WHERE {$subAlias}.{$val['foreign_key']} = {$alias}.{$this->pk}{$extraFilter}), 0)";
+                } // --- B. NESTED OBJECTS/ARRAYS ---
+                elseif (isset($val['fields'])) {
+                    $subFields = $this->parseGraphSchema($val['fields'], $subAlias);
+
+                    if (isset($val['link_to_parent']) && $val['link_to_parent'] === true) {
+                        $parts[] = "(SELECT {$subFields} FROM {$val['table']} {$subAlias} WHERE {$subAlias}.{$this->pk} = {$alias}.{$val['foreign_key']} LIMIT 1)";
+                    } else {
+                        $softFilter = ($this->softDelete) ? " AND {$subAlias}.{$this->deletedAtColumn} IS NULL" : "";
+                        $parts[] = "COALESCE((SELECT JSON_ARRAYAGG({$subFields}) FROM {$val['table']} {$subAlias} WHERE {$subAlias}.{$val['foreign_key']} = {$alias}.{$this->pk}{$softFilter}), JSON_ARRAY())";
                     }
-
-                    $parts[] = "COALESCE((
-                    SELECT {$type}({$col})
-                    FROM {$val['table']} {$subAlias}
-                    WHERE {$subAlias}.{$val['foreign_key']} = {$alias}.{$this->pk}{$extraFilter}
-                ), 0)";
-                } // --- 2. HANDLE BELONGS-TO (Lookup Parent Info) ---
-                elseif (isset($val['link_to_parent']) && $val['link_to_parent'] === true) {
-                    $subFields = $this->parseGraphSchema($val['fields'], $subAlias);
-                    $parts[] = "(
-                    SELECT {$subFields}
-                    FROM {$val['table']} {$subAlias}
-                    WHERE {$subAlias}.{$this->pk} = {$alias}.{$val['foreign_key']}
-                    LIMIT 1
-                )";
-                } // --- 3. HANDLE HAS-MANY (Recursive Collections) ---
-                else {
-                    $subFields = $this->parseGraphSchema($val['fields'], $subAlias);
-                    $softFilter = ($this->softDelete) ? " AND {$subAlias}.{$this->deletedAtColumn} IS NULL" : "";
-
-                    $parts[] = "COALESCE((
-                    SELECT JSON_ARRAYAGG({$subFields})
-                    FROM {$val['table']} {$subAlias}
-                    WHERE {$subAlias}.{$val['foreign_key']} = {$alias}.{$this->pk}{$softFilter}
-                ), JSON_ARRAY())";
+                } else {
+                    // Fallback for empty arrays to keep pair count even
+                    $parts[] = "NULL";
                 }
             } else {
-                // --- 4. SIMPLE COLUMNS OR RAW SQL ---
-                // If the value contains parentheses, treat as raw SQL; otherwise, prefix with current table alias
-                $parts[] = (str_contains($val, '(')) ? $val : "{$alias}.{$val}";
+                // --- C. RAW SQL / UDF AWARE ---
+                // Detect if it's a function call or already aliased
+                $parts[] = (str_contains((string) $val, '(') || str_contains((string) $val, '.')) ? $val : "{$alias}.{$val}";
             }
         }
 
-        // Wrap the parts into a MariaDB JSON_OBJECT
         return "JSON_OBJECT(" . implode(',', $parts) . ")";
     }
 
