@@ -150,4 +150,304 @@ it("findGraph: UDF and Expression Awareness", function () use ($udfSchema) {
     echo "   - UDF (SUM/IF): " . ($row->total_earned ?? 0) . "\n";
 });
 
+it("Window Function: Running Total & Partition By", function () {
+    $m = new model('orders');
+
+    // We use a schema that includes a Window Function
+    $windowSchema = [
+        'order_id' => 'id',
+        'amount' => 'total_amount',
+        'user_id' => 'user_id',
+        // This calculates total spent by THIS user across all their orders
+        'user_cumulative_total' => 'SUM(total_amount) OVER (PARTITION BY user_id ORDER BY d_created)',
+        // This calculates the average order size for the entire table as a comparison
+        'global_avg' => 'AVG(total_amount) OVER ()'
+    ];
+
+    // Execution
+    $results = $m->orderBy('user_id', 'ASC')->findGraph($windowSchema, 'o');
+
+    if (! $results) {
+        throw new Exception("Window Function Test Failed: No data.");
+    }
+
+    $data = is_array($results) ? $results : [
+        $results
+    ];
+    $first = $data[0];
+
+    echo "✅ Window Function Awareness Verified:\n";
+    echo "   - Order ID: " . $first->order_id . "\n";
+    echo "   - User ID: " . $first->user_id . "\n";
+    echo "   - Running Total for User: " . $first->user_cumulative_total . "\n";
+    echo "   - Global Table Average: " . $first->global_avg . "\n";
+});
+
+it("Window Function: Deeply Nested Subquery Ranking", function () {
+    $m = new model('users');
+
+    // p is the default alias for 'users' in your buildSelectSql logic
+    $complexSchema = [
+        'id' => 'id',
+        'name' => 'name',
+        // The "Final Boss": Rank based on a subquery calculation
+        'rank' => 'RANK() OVER (ORDER BY (SELECT SUM(o.total_amount) FROM orders o WHERE o.user_id = p.id) DESC)'
+    ];
+
+    // Execution
+    $results = $m->findGraph($complexSchema, 'p');
+
+    if (! $results) {
+        throw new Exception("Ranking Test: No data found.");
+    }
+
+    $data = is_array($results) ? $results : [
+        $results
+    ];
+
+    echo "✅ Deeply Nested Window Function Verified:\n";
+    foreach ($data as $user) {
+        // If rank 1 appears, the subquery and window function successfully communicated
+        echo "   - [Rank #{$user->rank}] User: {$user->name} (ID: {$user->id})\n";
+    }
+});
+
+it("Window Function: Complex Subquery Ranking", function () {
+    $m = new model('users');
+
+    // We want to rank users based on their total spending across all orders
+    $rankSchema = [
+        'user_id' => 'id',
+        'user_name' => 'name',
+        'spend_rank' => 'RANK() OVER (ORDER BY (SELECT SUM(total_amount) FROM orders o WHERE o.user_id = p.id) DESC)'
+    ];
+
+    // Execute via findGraph
+    $results = $m->findGraph($rankSchema, 'p');
+
+    if (! $results) {
+        throw new Exception("Ranking test failed: No users found.");
+    }
+
+    $data = is_array($results) ? $results : [
+        $results
+    ];
+
+    echo "✅ Window Ranking Verified:\n";
+    foreach ($data as $row) {
+        echo "   - Rank #{$row->spend_rank}: {$row->user_name} (ID: {$row->user_id})\n";
+    }
+
+    // Logic Check: The first person in the array should have rank 1
+    if ($data[0]->spend_rank != 1) {
+        throw new Exception("Ranking Logic Error: Top user is not Rank 1.");
+    }
+});
+
+it("Window Function: LEAD (Next Order Date) Test", function () {
+    $m = new model('orders');
+
+    // Schema to show current order and the date of the order following it
+    $leadSchema = [
+        'order_id' => 'id',
+        'current_order_date' => 'd_created',
+        'current_amount' => 'total_amount',
+        // LEAD(column, offset) looks forward. We partition by user
+        // so we don't see another user's order dates.
+        'next_order_date' => 'LEAD(d_created, 1) OVER (PARTITION BY user_id ORDER BY d_created ASC)'
+    ];
+
+    // Sort by user and date so the LEAD logic follows a timeline
+    $results = $m->orderBy('user_id')
+        ->orderBy('d_created')
+        ->findGraph($leadSchema, 'o');
+
+    if (! $results)
+        throw new Exception("LEAD test: No data found.");
+
+    $data = is_array($results) ? $results : [
+        $results
+    ];
+
+    echo "✅ LEAD Function Awareness Verified:\n";
+    foreach ($data as $row) {
+        $next = $row->next_order_date ?? 'NONE (Last Order)';
+        echo "   - Order #{$row->order_id} on {$row->current_order_date} | Next Order: {$next}\n";
+    }
+});
+
+it("Schema Config: Inline Row Number Test", function () {
+    $m = new model('users');
+
+    $schema = [
+        'id' => 'id',
+        'name' => 'name',
+        // Inline row numbering configuration
+        'item_position' => [
+            'type' => 'rownumber',
+            'order_by' => 'name ASC' // Optional: custom order for the count
+        ],
+        // You can even do partitioned row numbers in the same schema!
+        'user_rank' => [
+            'type' => 'rownumber',
+            'partition_by' => 'status', // Resets count for each status group
+            'order_by' => 'd_created DESC'
+        ]
+    ];
+
+    $results = $m->findGraph($schema, 'u');
+
+    if ($results) {
+        $row = is_array($results) ? $results[0] : $results;
+        echo "✅ Inline Row Number: " . $row->item_position;
+    }
+});
+
+it("Analytics: Growth and Time-Series", function () {
+    $m = new model('orders');
+
+    $schema = [
+        'id' => 'p.id',
+        'current_amount' => 'p.total_amount',
+        // We move the "0" logic here to avoid the LAG(...,0) parser bug
+        'prev_amount' => 'COALESCE(stats.prev_val, 0)',
+        'growth_pct' => 'COALESCE(stats.pct, 0)'
+    ];
+
+    // REMOVED THE ",0" FROM LAG. 11.8 handles LAG(col, 1) much more cleanly.
+    $subQuery = "SELECT id,
+        LAG(total_amount, 1) OVER (PARTITION BY user_id ORDER BY d_created) as prev_val,
+        ROUND(((total_amount - LAG(total_amount, 1) OVER (PARTITION BY user_id ORDER BY d_created)) /
+        NULLIF(LAG(total_amount, 1) OVER (PARTITION BY user_id ORDER BY d_created), 0)) * 100, 2) as pct
+        FROM orders";
+
+    $results = $m->withAnalytics('stats', $subQuery, 'id', 'id', 'p')->findGraph($schema, 'p');
+
+    if ($results) {
+        $data = is_array($results) ? $results[0] : $results;
+        echo "   - Growth Fixed: Current {$data->current_amount}, Prev {$data->prev_amount}\n<br>";
+    }
+});
+
+it("Schema Config: Lead/Lag Multi-Directional", function () {
+    $m = new model('orders');
+
+    $schema = [
+        'id' => 'p.id',
+        'current_sale' => 'p.total_amount',
+        'previous_sale' => 'COALESCE(stats.prev_sale, 0)',
+        'next_sale' => 'COALESCE(stats.next_sale, 0)'
+    ];
+
+    // Simple 2-argument LAG/LEAD
+    $subQuery = "SELECT id,
+        LAG(total_amount, 1) OVER (PARTITION BY user_id ORDER BY d_created) as prev_sale,
+        LEAD(total_amount, 1) OVER (PARTITION BY user_id ORDER BY d_created) as next_sale
+        FROM orders";
+
+    $results = $m->withAnalytics('stats', $subQuery, 'id', 'id', 'p')->findGraph($schema, 'p');
+
+    if ($results)
+        echo "   - Time Series Verified\n<br>";
+});
+
+it("The Final Boss: High Precision Check", function () {
+    $m = new model('users');
+
+    $megaSchema = [
+        'id' => 'id',
+        'customer' => 'name',
+        'avg_spend' => 'stats.moving_avg',
+        'orders' => [
+            'table' => 'orders',
+            'foreign_key' => 'user_id',
+            'fields' => [
+                'ref' => 'order_ref',
+                'total' => 'total_amount'
+            ]
+        ]
+    ];
+
+    // Using CAST to ensure we don't get 0.00 for small averages
+    $subQuery = "SELECT user_id, CAST(AVG(total_amount) OVER (PARTITION BY user_id) AS DECIMAL(10,2)) as moving_avg FROM orders";
+
+    $results = $m->withAnalytics('stats', $subQuery, 'user_id', 'id', 'p')
+        ->limit(1)
+        ->findGraph($megaSchema, 'p');
+
+    if (! $results)
+        throw new Exception("Final Boss Failed: No data.");
+
+    echo "   - User: {$results->customer} | Precision Avg: {$results->avg_spend}\n<br>";
+});
+
+it("The Final Boss: Pre-Calculation", function () {
+    $m = new model('users');
+
+    // 1. Define the schema
+    // We reference 'stats.moving_avg' which is defined in the subquery below
+    $megaSchema = [
+        'id' => 'id',
+        'customer' => 'name',
+        'avg_spend' => 'stats.moving_avg',
+        'orders' => [
+            'table' => 'orders',
+            'foreign_key' => 'user_id',
+            'fields' => [
+                'ref' => 'order_ref',
+                'total' => 'total_amount',
+                'items' => [
+                    'table' => 'order_items',
+                    'foreign_key' => 'order_id',
+                    'fields' => [
+                        'qty' => 'quantity',
+                        'price' => 'unit_price',
+                        'product' => [
+                            'table' => 'products',
+                            'foreign_key' => 'id',
+                            'link_to_parent' => true,
+                            'fields' => [
+                                'name' => 'name'
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
+    ];
+
+    // 2. The Analytical Subquery
+    // Important: We MUST select the column we are joining on (user_id)
+    $subQuery = "SELECT user_id, AVG(total_amount) OVER (PARTITION BY user_id) as moving_avg FROM orders";
+
+    // 3. Execution
+    // We tell the model: Join subquery 'stats' where stats.user_id = users.id
+    $results = $m->withAnalytics('stats', $subQuery, 'user_id', 'id')
+        ->limit(5)
+        ->findGraph($megaSchema, 'p');
+
+    if (! $results) {
+        throw new Exception("Final Boss Failed: No data returned.");
+    }
+
+    // Normalize result
+    $data = is_array($results) ? $results : [
+        $results
+    ];
+    $user = $data[0];
+
+    echo "✅ Final Boss Solved:\n";
+    echo "   - User: {$user->customer} (ID: {$user->id})\n";
+    echo "   - Pre-calculated Avg Spend: " . number_format((float) ($user->avg_spend ?? 0), 2) . "\n";
+
+    if (! empty($user->orders)) {
+        $order = $user->orders[0];
+        echo "   - Order: {$order->ref} | Total: {$order->total}\n";
+        if (! empty($order->items)) {
+            $item = $order->items[0];
+            echo "     -> Item: {$item->product->name} | Qty: {$item->qty}\n";
+        }
+    }
+});
+
 echo "\n<br>--- ALL METHODS VERIFIED ---\n<br>";

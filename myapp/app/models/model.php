@@ -304,7 +304,7 @@ class model
         $jsonExpr = $this->parseGraphSchema($schema, $alias);
 
         // Pass $alias to buildSelectSql
-        $sql = $this->buildSelectSql($jsonExpr . " AS graph_data", $alias) . $this->_order . $this->_limit;
+        $sql = $this->buildSelectSql($jsonExpr . " AS graph_data", $alias) . " " . $this->_order . $this->_limit;
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute(array_merge($this->_bindings, $this->_havingBindings));
@@ -393,7 +393,6 @@ class model
                 ])) {
                     $partition = isset($val['partition_by']) ? "PARTITION BY " . trim($val['partition_by']) . " " : "";
 
-                    // Ensure ORDER BY keyword isn't duplicated
                     $rawOrder = $val['order_by'] ?? $this->_order;
                     $cleanOrder = trim(str_ireplace('ORDER BY', '', (string) $rawOrder));
                     if (empty($cleanOrder))
@@ -402,30 +401,26 @@ class model
                     $colName = $val['column'] ?? $this->pk;
                     $col = str_contains($colName, '.') ? $colName : "{$alias}.{$colName}";
 
+                    // MariaDB/MySQL are whitespace sensitive inside JSON_OBJECT for window functions
                     if ($type === 'rownumber') {
-                        $currentVal = "ROW_NUMBER() OVER ({$partition}ORDER BY {$cleanOrder})";
+                        $currentVal = "ROW_NUMBER() OVER({$partition}ORDER BY {$cleanOrder})";
                     } elseif ($type === 'running_total') {
-                        $currentVal = "SUM({$col}) OVER ({$partition}ORDER BY {$cleanOrder} ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)";
+                        $currentVal = "SUM({$col}) OVER({$partition}ORDER BY {$cleanOrder} ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)";
                     } elseif ($type === 'percent_change') {
-                        // MariaDB 10.x requires explicit spaces after commas in LAG/LEAD
-                        $lagExpr = "LAG({$col}, 1, 0) OVER ({$partition}ORDER BY {$cleanOrder})";
-                        $currentVal = "ROUND((({$col} - {$lagExpr}) / NULLIF({$lagExpr}, 0)) * 100, 2)";
+                        // Optimized for MariaDB Parser
+                        $lagExpr = "LAG({$col},1,0) OVER({$partition}ORDER BY {$cleanOrder})";
+                        $currentVal = "ROUND((({$col}-{$lagExpr})/NULLIF({$lagExpr},0))*100,2)";
                     } elseif ($type === 'moving_average') {
                         $rows = (int) ($val['rows'] ?? 3);
-                        $currentVal = "AVG({$col}) OVER ({$partition}ORDER BY {$cleanOrder} ROWS BETWEEN {$rows} PRECEDING AND CURRENT ROW)";
+                        $currentVal = "AVG({$col}) OVER({$partition}ORDER BY {$cleanOrder} ROWS BETWEEN {$rows} PRECEDING AND CURRENT ROW)";
                     } elseif (in_array($type, [
                         'lead',
                         'lag'
                     ])) {
                         $func = strtoupper($type);
                         $offset = (int) ($val['offset'] ?? 1);
-                        $defaultPart = "";
-                        if (isset($val['default'])) {
-                            $rawDefault = is_numeric($val['default']) ? $val['default'] : "'{$val['default']}'";
-                            // CRITICAL: The space after the comma is required for some MariaDB versions
-                            $defaultPart = ", " . $rawDefault;
-                        }
-                        $currentVal = "{$func}({$col}, {$offset}{$defaultPart}) OVER ({$partition}ORDER BY {$cleanOrder})";
+                        $defaultPart = isset($val['default']) ? "," . (is_numeric($val['default']) ? $val['default'] : "'{$val['default']}'") : "";
+                        $currentVal = "{$func}({$col},{$offset}{$defaultPart}) OVER({$partition}ORDER BY {$cleanOrder})";
                     }
                 } elseif (in_array($type, [
                     'count',
@@ -437,7 +432,7 @@ class model
                     $func = strtoupper($type);
                     $targetCol = ($func === 'COUNT') ? '*' : (str_contains($val['column'] ?? '', '.') ? $val['column'] : "{$subAlias}." . ($val['column'] ?? $this->pk));
                     $extraFilter = isset($val['where']) ? " AND (" . (is_array($val['where']) ? implode(' AND ', $val['where']) : $val['where']) . ")" : "";
-                    $currentVal = "(SELECT COALESCE({$func}({$targetCol}), 0) FROM {$val['table']} {$subAlias} WHERE {$subAlias}.{$val['foreign_key']} = {$alias}.{$this->pk}{$extraFilter})";
+                    $currentVal = "(SELECT COALESCE({$func}({$targetCol}),0) FROM {$val['table']} {$subAlias} WHERE {$subAlias}.{$val['foreign_key']} = {$alias}.{$this->pk}{$extraFilter})";
                 } elseif (isset($val['fields'])) {
                     $subFields = $this->parseGraphSchema($val['fields'], $subAlias);
                     if (isset($val['link_to_parent']) && $val['link_to_parent'] === true) {
@@ -641,6 +636,18 @@ class model
             $sql .= " HAVING " . implode(' ', $this->_having);
 
         return $sql;
+    }
+
+    /**
+     * Injected into model.php
+     */
+    public function withAnalytics(string $alias, string $rawSql, string $foreignKey, string $localKey = null): self
+    {
+        $localKey = $localKey ?? $this->pk;
+        // Explicitly define the join: Subquery alias + foreign key = Table alias + local key
+        // We use 'p' as the default table alias consistent with your buildSelectSql()
+        $this->join("({$rawSql}) {$alias}", "{$alias}.{$foreignKey}", "=", "p.{$localKey}", "LEFT");
+        return $this;
     }
 
     private function resetQuery(): void
