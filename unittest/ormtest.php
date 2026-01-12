@@ -91,6 +91,26 @@ it("Advanced Filters (whereIn, whereBetween, whereRaw)", function () {
     }
 });
 
+it("Subquery: Manual whereRaw Exists Test", function () {
+    $m = new model('users');
+
+    // We manually write the "EXISTS" logic
+    // 'p' is the default alias for the main table in your model
+    $results = $m->select("p.name")
+        ->whereRaw("EXISTS (SELECT 1 FROM orders sub WHERE sub.user_id = p.id)")
+        ->find();
+
+    $data = is_array($results) ? $results : ($results ? [
+        $results
+    ] : []);
+
+    if (empty($data)) {
+        throw new Exception("whereRaw Exists failed: No data found.");
+    }
+
+    echo "   - Found Active User (via whereRaw): " . $data[0]->name . "\n";
+});
+
 it("Subquery: whereExists Method Test", function () {
     $m = new model('users');
 
