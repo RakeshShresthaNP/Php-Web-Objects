@@ -300,7 +300,10 @@ class model
     // --- Graph Engine ---
     public function findGraph(array &$schema, string $alias = 'p'): mixed
     {
+        // Use the same alias for the JSON structure AND the SELECT query
         $jsonExpr = $this->parseGraphSchema($schema, $alias);
+
+        // Pass $alias to buildSelectSql
         $sql = $this->buildSelectSql($jsonExpr . " AS graph_data", $alias) . $this->_order . $this->_limit;
 
         $stmt = $this->db->prepare($sql);
@@ -308,9 +311,6 @@ class model
         $this->resetQuery();
 
         $result = $stmt->fetchColumn();
-
-        // If the SQL returns a string, decode it.
-        // If it's a "LIMIT 1" query, it returns a single object.
         return $result ? json_decode($result, false) : null;
     }
 
@@ -348,11 +348,9 @@ class model
      * Generates the complex JSON_OBJECT SQL string for hierarchical data.
      * Handles Deep Nesting, Aggregates with filters, and Parent-Link lookups.
      */
-    private function parseGraphSchema(array &$schema, string $alias): string
+    private function parseGraphSchema(array $schema, string $alias): string
     {
         $parts = [];
-
-        // Configuration keys that should NEVER be part of the JSON output
         $metaKeys = [
             'table',
             'alias',
@@ -366,56 +364,96 @@ class model
             'type',
             'column',
             'fields',
-            'select'
+            'select',
+            'partition_by',
+            'order_by',
+            'offset',
+            'default',
+            'rows'
         ];
 
         foreach ($schema as $key => $val) {
-            // 1. Skip metadata keys entirely
-            if (in_array($key, $metaKeys, true)) {
+            if (in_array($key, $metaKeys, true))
                 continue;
-            }
 
-            // 2. Add Key (Must be a string)
-            $parts[] = "'{$key}'";
+            $currentKey = "'{$key}'";
+            $currentVal = "NULL";
 
-            // 3. Add Value
             if (is_array($val)) {
                 $subAlias = $alias . "_" . $key;
+                $type = $val['type'] ?? null;
 
-                // --- A. AGGREGATES ---
-                if (isset($val['type']) && in_array($val['type'], [
+                if (in_array($type, [
+                    'rownumber',
+                    'lead',
+                    'lag',
+                    'percent_change',
+                    'running_total',
+                    'moving_average'
+                ])) {
+                    $partition = isset($val['partition_by']) ? "PARTITION BY " . trim($val['partition_by']) . " " : "";
+
+                    // Ensure ORDER BY keyword isn't duplicated
+                    $rawOrder = $val['order_by'] ?? $this->_order;
+                    $cleanOrder = trim(str_ireplace('ORDER BY', '', (string) $rawOrder));
+                    if (empty($cleanOrder))
+                        $cleanOrder = "{$alias}.{$this->pk}";
+
+                    $colName = $val['column'] ?? $this->pk;
+                    $col = str_contains($colName, '.') ? $colName : "{$alias}.{$colName}";
+
+                    if ($type === 'rownumber') {
+                        $currentVal = "ROW_NUMBER() OVER ({$partition}ORDER BY {$cleanOrder})";
+                    } elseif ($type === 'running_total') {
+                        $currentVal = "SUM({$col}) OVER ({$partition}ORDER BY {$cleanOrder} ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)";
+                    } elseif ($type === 'percent_change') {
+                        // MariaDB 10.x requires explicit spaces after commas in LAG/LEAD
+                        $lagExpr = "LAG({$col}, 1, 0) OVER ({$partition}ORDER BY {$cleanOrder})";
+                        $currentVal = "ROUND((({$col} - {$lagExpr}) / NULLIF({$lagExpr}, 0)) * 100, 2)";
+                    } elseif ($type === 'moving_average') {
+                        $rows = (int) ($val['rows'] ?? 3);
+                        $currentVal = "AVG({$col}) OVER ({$partition}ORDER BY {$cleanOrder} ROWS BETWEEN {$rows} PRECEDING AND CURRENT ROW)";
+                    } elseif (in_array($type, [
+                        'lead',
+                        'lag'
+                    ])) {
+                        $func = strtoupper($type);
+                        $offset = (int) ($val['offset'] ?? 1);
+                        $defaultPart = "";
+                        if (isset($val['default'])) {
+                            $rawDefault = is_numeric($val['default']) ? $val['default'] : "'{$val['default']}'";
+                            // CRITICAL: The space after the comma is required for some MariaDB versions
+                            $defaultPart = ", " . $rawDefault;
+                        }
+                        $currentVal = "{$func}({$col}, {$offset}{$defaultPart}) OVER ({$partition}ORDER BY {$cleanOrder})";
+                    }
+                } elseif (in_array($type, [
                     'count',
                     'sum',
                     'avg',
                     'min',
                     'max'
                 ])) {
-                    $type = strtoupper($val['type']);
-                    $col = ($type === 'COUNT') ? '*' : "{$subAlias}.{$val['column']}";
+                    $func = strtoupper($type);
+                    $targetCol = ($func === 'COUNT') ? '*' : (str_contains($val['column'] ?? '', '.') ? $val['column'] : "{$subAlias}." . ($val['column'] ?? $this->pk));
                     $extraFilter = isset($val['where']) ? " AND (" . (is_array($val['where']) ? implode(' AND ', $val['where']) : $val['where']) . ")" : "";
-
-                    $parts[] = "COALESCE((SELECT {$type}({$col}) FROM {$val['table']} {$subAlias} WHERE {$subAlias}.{$val['foreign_key']} = {$alias}.{$this->pk}{$extraFilter}), 0)";
-                } // --- B. NESTED OBJECTS/ARRAYS ---
-                elseif (isset($val['fields'])) {
+                    $currentVal = "(SELECT COALESCE({$func}({$targetCol}), 0) FROM {$val['table']} {$subAlias} WHERE {$subAlias}.{$val['foreign_key']} = {$alias}.{$this->pk}{$extraFilter})";
+                } elseif (isset($val['fields'])) {
                     $subFields = $this->parseGraphSchema($val['fields'], $subAlias);
-
                     if (isset($val['link_to_parent']) && $val['link_to_parent'] === true) {
-                        $parts[] = "(SELECT {$subFields} FROM {$val['table']} {$subAlias} WHERE {$subAlias}.{$this->pk} = {$alias}.{$val['foreign_key']} LIMIT 1)";
+                        $currentVal = "(SELECT {$subFields} FROM {$val['table']} {$subAlias} WHERE {$subAlias}.{$this->pk} = {$alias}.{$val['foreign_key']} LIMIT 1)";
                     } else {
                         $softFilter = ($this->softDelete) ? " AND {$subAlias}.{$this->deletedAtColumn} IS NULL" : "";
-                        $parts[] = "COALESCE((SELECT JSON_ARRAYAGG({$subFields}) FROM {$val['table']} {$subAlias} WHERE {$subAlias}.{$val['foreign_key']} = {$alias}.{$this->pk}{$softFilter}), JSON_ARRAY())";
+                        $currentVal = "COALESCE((SELECT JSON_ARRAYAGG({$subFields}) FROM {$val['table']} {$subAlias} WHERE {$subAlias}.{$val['foreign_key']} = {$alias}.{$this->pk}{$softFilter}), JSON_ARRAY())";
                     }
-                } else {
-                    // Fallback for empty arrays to keep pair count even
-                    $parts[] = "NULL";
                 }
             } else {
-                // --- C. RAW SQL / UDF AWARE ---
-                // Detect if it's a function call or already aliased
-                $parts[] = (str_contains((string) $val, '(') || str_contains((string) $val, '.')) ? $val : "{$alias}.{$val}";
+                $currentVal = (str_contains((string) $val, '(') || str_contains((string) $val, '.')) ? $val : "{$alias}.{$val}";
             }
-        }
 
+            $parts[] = $currentKey;
+            $parts[] = (trim((string) $currentVal) === "") ? "NULL" : $currentVal;
+        }
         return "JSON_OBJECT(" . implode(',', $parts) . ")";
     }
 
@@ -583,15 +621,25 @@ class model
     {
         $where = $this->_where;
         if ($this->softDelete && ! $this->_ignoreSoftDelete) {
-            array_unshift($where, (empty($where) ? "" : "AND ") . "{$alias}.{$this->deletedAtColumn} IS NULL");
+            // Use the dynamic $alias instead of a hardcoded one
+            $softDeleteStr = "{$alias}.{$this->deletedAtColumn} IS NULL";
+            if (empty($where)) {
+                $where[] = $softDeleteStr;
+            } else {
+                // Prepend the soft delete condition properly
+                array_unshift($where, $softDeleteStr . " AND ");
+            }
         }
+
         $sql = "SELECT {$fields} FROM {$this->table} {$alias} " . implode('', $this->_joins);
-        if (! empty($where))
-            $sql .= " WHERE " . implode(' ', $where);
+        if (! empty($where)) {
+            $sql .= " WHERE " . implode('', $where);
+        }
         if ($this->_groupBy)
             $sql .= $this->_groupBy;
         if ($this->_having)
             $sql .= " HAVING " . implode(' ', $this->_having);
+
         return $sql;
     }
 
