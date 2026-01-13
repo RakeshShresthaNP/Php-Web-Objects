@@ -308,10 +308,14 @@ final class Loader
         $a = $classname[0];
 
         if ($a >= 'A' && $a <= 'Z') {
-            require_once LIBS_DIR . str_replace([
-                '\\',
-                '_'
-            ], '/', $classname) . '.php';
+            if (str_starts_with($classname, 'Event')) {
+                require_once EVENTS_DIR . mb_strtolower($classname) . '.php';
+            } else {
+                require_once LIBS_DIR . str_replace([
+                    '\\',
+                    '_'
+                ], '/', $classname) . '.php';
+            }
         } else {
             require_once MODS_DIR . mb_strtolower($classname) . '.php';
         }
@@ -338,36 +342,6 @@ final class Cache
     }
 }
 
-final class DB
-{
-
-    private static $_context = null;
-
-    public static function getContext(): object
-    {
-        if (self::$_context) {
-            return self::$_context;
-        }
-
-        list ($dbtype, $host, $user, $pass, $dbname) = unserialize(DB_CON);
-
-        $dsn = $dbtype . ':host=' . $host . ';dbname=' . $dbname;
-
-        try {
-            self::$_context = new PDO($dsn, $user, $pass);
-            self::$_context->exec('SET NAMES utf8');
-            self::$_context->setAttribute(PDO::ATTR_PERSISTENT, true);
-            self::$_context->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
-            self::$_context->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            self::$_context->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
-        } catch (PDOException $ex) {
-            throw new Exception($ex->getMessage(), $ex->getCode());
-        }
-
-        return self::$_context;
-    }
-}
-
 final class Session
 {
 
@@ -381,46 +355,6 @@ final class Session
         }
 
         return self::$_context;
-    }
-}
-
-final class View
-{
-
-    public static function assign(array &$vars = array(), string $viewname = ''): string
-    {
-        $req = req();
-        if (is_array($vars)) {
-            extract($vars);
-        }
-        ob_start();
-        if ($viewname == null) {
-            $viewname = $req->controller . '/' . $req->method;
-        }
-        include VIEW_DIR . mb_strtolower($viewname) . '.php';
-        return ob_get_clean();
-    }
-
-    public static function display(array &$vars = array(), string $viewname = ''): void
-    {
-        $req = req();
-        if ($viewname == null) {
-            $viewname = mb_strtolower($req->controller . '/' . $req->method);
-        }
-        if (! isset($vars['layout'])) {
-            $playout = 'layouts/' . $req->pathprefix . 'layout';
-            $vars['mainregion'] = self::assign($vars, $viewname);
-        } else {
-            if ($vars['layout']) {
-                $playout = $vars['layout'];
-            } else {
-                $playout = $viewname;
-            }
-        }
-        if (is_array($vars)) {
-            extract($vars);
-        }
-        include VIEW_DIR . mb_strtolower($playout) . '.php';
     }
 }
 
@@ -823,6 +757,8 @@ final class Response
 abstract class cController
 {
 
+    protected EventDispatcher $dispatcher;
+
     public ?Request $req = null;
 
     public ?Response $res = null;
@@ -843,6 +779,8 @@ abstract class cController
 
     public function __construct()
     {
+        $this->dispatcher = new EventDispatcher();
+
         $this->req = req();
         $this->res = res();
 

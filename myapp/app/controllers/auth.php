@@ -58,6 +58,15 @@ final class cAuth extends cController
 
     public function api_login()
     {
+        $ip = $this->currentuserip;
+        $isBlocked = db()->prepare("SELECT 1 FROM sys_blocked_ips WHERE ip_address = ?");
+        $isBlocked->execute([
+            $ip
+        ]);
+        if ($isBlocked->fetch()) {
+            throw new ApiException("Your IP is blocked.", 503);
+        }
+
         $fdata = json_decode(file_get_contents('php://input'), true);
 
         /* XSS Prevention */
@@ -85,14 +94,19 @@ final class cAuth extends cController
                 }
 
                 if (! $passwordValid) {
+                    $this->dispatcher->dispatchauto(new EventLogin($username, $ip, false));
+
                     throw new ApiException('Incorrect Password', 405);
                 }
 
                 if ($user->status == 2) {
+                    $this->dispatcher->dispatchauto(new EventLogin($username, $ip, false));
+
                     throw new ApiException('User Disabled', 405);
                 }
 
                 if ($user->perms != 'superadmin' && $user->partner_id != $this->partner->id) {
+                    $this->dispatcher->dispatchauto(new EventLogin($username, $ip, false));
                     throw new ApiException('Error Login', 405);
                 }
 
@@ -104,6 +118,8 @@ final class cAuth extends cController
                     'homepath' => $user->homepath,
                     'exp' => time() + 24 * 3600
                 );
+
+                $this->dispatcher->dispatchauto(new EventLogin($username, $ip, true));
 
                 $tdata['accessToken'] = $this->_generateToken($udata);
 

@@ -20,6 +20,15 @@ final class cLogin extends cController
 
     public function index()
     {
+        $ip = $this->currentuserip;
+        $isBlocked = db()->prepare("SELECT 1 FROM sys_blocked_ips WHERE ip_address = ?");
+        $isBlocked->execute([
+            $ip
+        ]);
+        if ($isBlocked->fetch()) {
+            die("Your IP is blocked.");
+        }
+
         $data = array();
 
         $data['username'] = '';
@@ -45,6 +54,8 @@ final class cLogin extends cController
             $user = $muser->where('email', $username)->find();
 
             if (! $user) {
+                $this->dispatcher->dispatchauto(new EventLogin($username, $ip, false));
+
                 $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">USER NOT FOUND!</div>');
                 return;
             }
@@ -57,21 +68,29 @@ final class cLogin extends cController
             }
 
             if (! $passwordValid) {
+                $this->dispatcher->dispatchauto(new EventLogin($username, $ip, false));
+
                 $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">WRONG PASSWORD!</div>');
                 return;
             }
 
             if ($user->status == 2) {
+                $this->dispatcher->dispatchauto(new EventLogin($username, $ip, false));
+
                 $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">USER DISABLED!</div>');
                 return;
             }
 
             if ($user->perms != 'superadmin' && $user->partner_id != $this->partner->id) {
+                $this->dispatcher->dispatchauto(new EventLogin($username, $ip, false));
+
                 $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User does not exist</div>');
                 return;
             }
 
             setCurrentUser($user);
+
+            $this->dispatcher->dispatchauto(new EventLogin($username, $ip, true));
 
             $cutype = $user->perms;
 
@@ -88,6 +107,15 @@ final class cLogin extends cController
 
     public function forgotpass()
     {
+        $ip = $this->currentuserip;
+        $isBlocked = db()->prepare("SELECT 1 FROM sys_blocked_ips WHERE ip_address = ?");
+        $isBlocked->execute([
+            $ip
+        ]);
+        if ($isBlocked->fetch()) {
+            die("Your IP is blocked.");
+        }
+
         $data = array();
 
         $data['username'] = '';
@@ -98,50 +126,46 @@ final class cLogin extends cController
         }
 
         if ($this->req->isPost()) {
-            $muser = new user();
-
-            $username = isset($_POST['username']) ? trim($_POST['username']) : '';
-
-            if (empty($username)) {
-                $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">Username is required!</div>');
-                return;
-            }
-
-            $user = $user->where('email', $username)->find();
-
-            if (! $user) {
-                $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User does not exist!</div>');
-                return;
-            }
-
-            if ($user->status == 2) {
-                $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User is disableddoes not exist!</div>');
-                return;
-            }
-
-            if ($user->perms != 'superadmin' && $user->partner_id != $this->partner->id) {
-                $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User does not exist</div>');
-                return;
-            }
-
-            $mail = new Mailer();
-            $mail->setFrom($this->partner->email, $this->partner->c_name);
-            $mail->setTO($user->username, $user->realname);
-            $mail->setSubject('Forgot Password');
-
-            $message = "Dear " . $user->realname . ",\r\n\r\nYour Forgot Password.\r\n\r\n";
-            $message .= "Details:\r\nEmail:  $user->email \r\nPassword:  \r\n ";
-            $message .= "\r\nLogin Url: " . getUrl('login');
-
-            $mail->setMessage($message);
-
             try {
-                $mail->send();
-            } catch (Exception $e) {
-                writeLog('error', 'couldnot send email');
-            }
+                $muser = new user();
 
-            $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">Your password has been mailed to you!</div>');
+                $username = isset($_POST['username']) ? trim($_POST['username']) : '';
+
+                if (empty($username)) {
+                    $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">Username is required!</div>');
+                    return;
+                }
+
+                $user = $muser->where('email', $username)->find();
+
+                if (! $user) {
+                    $this->dispatcher->dispatchauto(new EventForgotPassword($username, $ip, false));
+
+                    $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User does not exist!</div>');
+                    return;
+                }
+
+                if ($user->status == 2) {
+                    $this->dispatcher->dispatchauto(new EventForgotPassword($username, $ip, false));
+
+                    $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User is disableddoes not exist!</div>');
+                    return;
+                }
+
+                if ($user->perms != 'superadmin' && $user->partner_id != $this->partner->id) {
+                    $this->dispatcher->dispatchauto(new EventForgotPassword($username, $ip, false));
+
+                    $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User does not exist</div>');
+                    return;
+                }
+
+                $this->dispatcher->dispatchauto(new EventForgotPassword($username, $ip, true, $user, $this->partner));
+
+                $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">Your password has been mailed to you!</div>');
+            } catch (Exception $e) {
+                // Catch the "Please wait 5 minutes" message
+                $this->res->redirect('login/forgotpass', '<div class="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">' . $e->getMessage() . '</div>');
+            }
         }
 
         $this->res->view($data, 'main/login_forgotpass');

@@ -50,12 +50,14 @@ define('PATH_PREFIX', serialize(array(
 define('MAIN_CONTROLLER', 'home');
 define('MAIN_METHOD', 'index');
 
-define('CACHE_TYPE', 'Redis');
+define('CACHE_TYPE', 'NULL');
 
 define('SESS_TIMEOUT', 1800);
-define('SESS_TYPE', 'Memcached');
+define('SESS_TYPE', 'Native');
 
 define('CONT_DIR', APP_DIR . 'controllers/');
-define('LIBS_DIR', APP_DIR . 'libraries/');
+define('LIBS_DIR', APP_DIR . 'libs/');
 define('VIEW_DIR', APP_DIR . 'views/');
 define('MODS_DIR', APP_DIR . 'models/');
+define('EVENTS_DIR', APP_DIR . 'events/');
+define('QUEUES_DIR', APP_DIR . 'queues/');
