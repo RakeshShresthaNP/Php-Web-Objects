@@ -35,12 +35,6 @@ mb_regex_encoding('UTF-8');
 
 interface JobHandlerInterface
 {
-
-    /**
-     *
-     * @param array $payload
-     *            The json_decoded data from the database
-     */
     public function handle(array $payload): void;
 }
 
@@ -77,7 +71,6 @@ echo "Worker started. Press Ctrl+C to stop.\n";
 $worker = new QueueWorker();
 $worker->run();
 
-// Inside your run() method loop
 if (memory_get_usage() > 64 * 1024 * 1024) { // 64MB limit
     echo "Memory limit reached. Exiting for restart...\n";
     exit();
