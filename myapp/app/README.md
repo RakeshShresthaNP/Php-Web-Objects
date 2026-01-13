@@ -39,24 +39,24 @@ sudo supervisorctl start pwo-worker:*
 
 Since Windows does not natively manage PHP daemons well, use NSSM (Non-Sucking Service Manager).
 
-    1. Download: NSSM.cc
+1. Download: NSSM.cc
 
-    2. Install: Open Terminal as Administrator and run:
-		```Dos
-		sudo supervisorctl reread
-		sudo supervisorctl update
-		sudo supervisorctl start pwo-worker:*
-		```
+2. Install: Open Terminal as Administrator and run:
+	```Dos
+	sudo supervisorctl reread
+	sudo supervisorctl update
+	sudo supervisorctl start pwo-worker:*
+	```
 
-	3. Configuration:
+3. Configuration:
 
-		Path: C:\php\php.exe
+	Path: C:\php\php.exe
 
-		Startup Directory: C:\path\to\your\project\bin
+	Startup Directory: C:\path\to\your\project\bin
 
-		Arguments: worker.php
+	Arguments: worker.php
 
-	4. Registry: Click "Install Service" and start it via services.msc.
+4. Registry: Click "Install Service" and start it via services.msc.
 
 ---
 
@@ -64,11 +64,11 @@ Since Windows does not natively manage PHP daemons well, use NSSM (Non-Sucking S
 
 The PWO Worker is built with "Zero-Waste" logic:
 
-    Memory Management: The worker monitors its own memory usage. If it exceeds 64MB (configurable), it exits gracefully. Supervisor/NSSM will then restart it immediately with a clean 0MB heap.
+Memory Management: The worker monitors its own memory usage. If it exceeds 64MB (configurable), it exits gracefully. Supervisor/NSSM will then restart it immediately with a clean 0MB heap.
 
-    Exponential Backoff: If a task (like an AI API call or SMTP send) fails, the worker updates the available_at time. Retries occur at 5-minute, 15-minute, and 1-hour intervals.
+Exponential Backoff: If a task (like an AI API call or SMTP send) fails, the worker updates the available_at time. Retries occur at 5-minute, 15-minute, and 1-hour intervals.
 
-    Catch-All Resilience: Uses catch(\Throwable) to ensure that even a syntax error in a job handler won't crash the entire service; it simply logs the error to the database and moves to the next job.
+Catch-All Resilience: Uses catch(\Throwable) to ensure that even a syntax error in a job handler won't crash the entire service; it simply logs the error to the database and moves to the next job.
 	
 
 ---
@@ -77,9 +77,9 @@ The PWO Worker is built with "Zero-Waste" logic:
 
 To extend the worker, follow the OOP pattern:
 
-    Create a class QueueNewClass in app/queues/QueueNewClass.php implementing JobHandlerInterface.
+Create a class QueueNewClass in app/queues/QueueNewClass.php implementing JobHandlerInterface.
 
-    Register the task name in the QueueWorker constructor:
-	```Dos
-	$this->handlers['your_task_name'] = new QueueNewClass();
-	```
+Register the task name in the QueueWorker constructor:
+```Dos
+$this->handlers['your_task_name'] = new QueueNewClass();
+```
