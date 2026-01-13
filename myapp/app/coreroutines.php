@@ -179,33 +179,9 @@ if (! function_exists('bool_array_search')) {
     }
 }
 
-if (! function_exists('mb_ucwords')) {
-
-    function mb_ucwords(string $str = ''): string
-    {
-        return mb_convert_case($str, MB_CASE_TITLE, "UTF-8");
-    }
-}
-
-if (! function_exists('mb_str_replace')) {
-
-    function mb_str_replace($needle, $replacement, $haystack): string
-    {
-        return str_replace($needle, $replacement, $haystack);
-    }
-}
-
-if (! function_exists('mb_trim')) {
-
-    function mb_trim(string $string): string
-    {
-        return preg_replace("/(^\s+)|(\s+$)/us", "", $string);
-    }
-}
-
 function base64_jwt_encode(string $text): string
 {
-    return mb_str_replace([
+    return str_replace([
         '+',
         '/',
         '='
@@ -218,7 +194,7 @@ function base64_jwt_encode(string $text): string
 
 function base64_jwt_decode(string $text): string
 {
-    $data = mb_str_replace([
+    $data = str_replace([
         '-',
         '_'
     ], [
@@ -230,16 +206,6 @@ function base64_jwt_decode(string $text): string
         $data .= mb_substr('====', $mod4);
     }
     return base64_decode($data);
-}
-
-function url_encode(string $string = ''): string
-{
-    return urlencode($string);
-}
-
-function url_decode(string $string = ''): string
-{
-    return urldecode($string);
 }
 
 function my_mime_content_type(string $filename): string
@@ -342,7 +308,7 @@ final class Loader
         $a = $classname[0];
 
         if ($a >= 'A' && $a <= 'Z') {
-            require_once LIBS_DIR . mb_str_replace([
+            require_once LIBS_DIR . str_replace([
                 '\\',
                 '_'
             ], '/', $classname) . '.php';
@@ -523,8 +489,8 @@ final class Request
         foreach ($_SERVER as $param => $value) {
             if (strpos($param, 'HTTP_') === 0) {
                 $headerName = mb_substr($param, 5);
-                $headerName = mb_str_replace('_', ' ', mb_strtolower($headerName));
-                $headerName = mb_str_replace(' ', '-', mb_ucwords($headerName));
+                $headerName = str_replace('_', ' ', mb_strtolower($headerName));
+                $headerName = str_replace(' ', '-', mb_ucfirst($headerName));
                 $headers[$headerName] = $value;
             }
         }
@@ -901,7 +867,7 @@ final class Application
     {
         $request->cusertype = 'none';
 
-        $uriparts = explode('/', mb_str_replace(array(
+        $uriparts = explode('/', str_replace(array(
             SITE_URI . PATH_URI,
             '?' . $_SERVER['QUERY_STRING']
         ), '', SITE_URI . $_SERVER['REQUEST_URI']));
@@ -933,7 +899,7 @@ final class Application
             $request->controller = ($c = array_shift($uriparts)) ? $c : MAIN_CONTROLLER;
         }
 
-        $request->method = ($c = array_shift($uriparts)) ? $request->pathprefix . mb_str_replace($pathPrefixes, '', $c) : $request->pathprefix . MAIN_METHOD;
+        $request->method = ($c = array_shift($uriparts)) ? $request->pathprefix . str_replace($pathPrefixes, '', $c) : $request->pathprefix . MAIN_METHOD;
 
         $con = $request->verifyController($request->pathprefix, $request->controller);
 

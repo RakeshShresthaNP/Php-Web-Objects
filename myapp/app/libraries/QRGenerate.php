@@ -33,7 +33,6 @@ final class QRGenerate
     // Added: Background color (e.g., ffffff)
     public function __construct(string $data = '', int $size = 300, string $encoding = 'UTF-8', string $errorCorrectionLevel = 'L', int $marginInRows = 4, string $color = '000000', string $bgcolor = 'ffffff')
     {
-        // Fix: PHP uses urlencode() not url_encode()
         $this->_data = urlencode($data);
 
         // Validation logic
