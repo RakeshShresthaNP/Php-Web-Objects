@@ -44,7 +44,7 @@ class QueueWorker
     {
         // Only fetch jobs where status is pending AND available_at has passed
         $stmt = $this->db->prepare("
-            SELECT * FROM sys_job_queue
+            SELECT * FROM sys_job_queues
             WHERE status = 'pending'
             AND available_at <= NOW()
             AND attempts < ?
@@ -85,7 +85,7 @@ class QueueWorker
             $delayMinutes = $nextAttempt * 5;
 
             $stmt = $this->db->prepare("
-                UPDATE sys_job_queue
+                UPDATE sys_job_queues
                 SET status = 'pending',
                     attempts = ?,
                     error_message = ?,
@@ -105,7 +105,7 @@ class QueueWorker
 
     private function updateStatus(int $id, string $status, ?string $error = null): void
     {
-        $this->db->prepare("UPDATE sys_job_queue SET status = ?, error_message = ? WHERE id = ?")->execute([
+        $this->db->prepare("UPDATE sys_job_queues SET status = ?, error_message = ? WHERE id = ?")->execute([
             $status,
             $error,
             $id

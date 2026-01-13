@@ -54,7 +54,7 @@ class EventForgotPassword
         // --- 2. THE RATE LIMITER (Handles email spam prevention) ---
         // Check if this specific email was requested in the last 5 minutes
         $limitCheck = $this->db->prepare("
-            SELECT 1 FROM sys_job_queue
+            SELECT 1 FROM sys_job_queues
             WHERE task_name = 'send_forgot_password_email'
             AND payload LIKE ?
             AND created_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)
@@ -77,7 +77,7 @@ class EventForgotPassword
             'partner' => $this->partner
         ]);
 
-        $this->db->prepare("INSERT INTO sys_job_queue (task_name, payload) VALUES ('send_forgot_password_email', ?)")->execute([
+        $this->db->prepare("INSERT INTO sys_job_queues (task_name, payload) VALUES ('send_forgot_password_email', ?)")->execute([
             $payload
         ]);
     }
