@@ -13,33 +13,15 @@ declare(strict_types = 1);
 
 define('SYSTEM_TIMEZONE', 'Asia/Kathmandu');
 
-if ($_SERVER['SERVER_NAME'] == 'localhost') {
-    define('DEBUG', '1');
-    define('DB_CON', serialize(array(
-        'mysql',
-        'localhost',
-        'root',
-        '',
-        'pwo'
-    )));
-} else {
-    define('DEBUG', '0');
-    define('DB_CON', serialize(array(
-        'mysql',
-        'localhost',
-        '',
-        '',
-        ''
-    )));
-}
+define('DEBUG', '1');
 
-$siteuri = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['SERVER_NAME'];
-if ($_SERVER["SERVER_PORT"] != 80 && $_SERVER["SERVER_PORT"] != 443) {
-    $siteuri .= ":" . $_SERVER["SERVER_PORT"];
-}
-
-define('SITE_URI', $siteuri);
-define('PATH_URI', dirname($_SERVER["SCRIPT_NAME"]));
+define('DB_CON', serialize(array(
+    'mysql',
+    'localhost',
+    'root',
+    '',
+    'pwo'
+)));
 
 define('PATH_PREFIX', serialize(array(
     'dashboard',

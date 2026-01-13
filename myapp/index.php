@@ -14,6 +14,14 @@ declare(strict_types = 1);
 
 define('APP_DIR', realpath(dirname(__FILE__)) . '/app/');
 
+$siteuri = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['SERVER_NAME'];
+if ($_SERVER["SERVER_PORT"] != 80 && $_SERVER["SERVER_PORT"] != 443) {
+    $siteuri .= ":" . $_SERVER["SERVER_PORT"];
+}
+
+define('SITE_URI', $siteuri);
+define('PATH_URI', dirname($_SERVER["SCRIPT_NAME"]));
+
 require_once APP_DIR . 'coreroutines.php';
 
 date_default_timezone_set(SYSTEM_TIMEZONE);
