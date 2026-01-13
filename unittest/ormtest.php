@@ -193,17 +193,6 @@ it("Joins (INNER, LEFT, selectRaw, groupBy, having)", function () {
     echo "   - Joined Customer: " . $target->uname . "\n";
 });
 
-it("Subqueries (withCount)", function () {
-    $order = (new model('orders'))->withCount('comments', 'order_id', 'total')
-        ->where('id', 1)
-        ->find();
-
-    if ($order->total < 1)
-        throw new Exception("withCount failed");
-
-    echo "   - Found: " . $order->total . "\n";
-});
-
 it("Final Validation: Joins and Persistence", function () {
     // --- 1. SETUP DATA ---
     $db = db();
@@ -247,6 +236,47 @@ it("State & Utility (toSql, explain, getData, transaction)", function () {
     });
     if (! is_array($m->explain()) || ! str_contains($m->toSql(), 'SELECT'))
         throw new Exception("Utility Error");
+});
+
+it("Chunking Process (OFFSET based)", function () {
+    // 1. Setup: Create 15 dummy records
+    for ($i = 1; $i <= 15; $i ++) {
+        $m = new model('users');
+        $m->name = "ChunkUser_$i";
+        $m->email = "chunk_{$i}_" . time() . "@test.com"; // Add this!
+        $m->save();
+    }
+    $processedCount = 0;
+    $u = new model('users');
+
+    // 2. Test: Process in chunks of 5
+    $u->where('name', 'LIKE', 'ChunkUser_%')->chunk(5, function ($batch, $page) use (&$processedCount) {
+        $processedCount += count($batch);
+        // Ensure each batch is exactly 5 (except potentially the last)
+        if (count($batch) > 5)
+            throw new Exception("Chunk size exceeded");
+    });
+
+    if ($processedCount < 15)
+        throw new Exception("Failed to process all records via chunk()");
+});
+
+it("ChunkById Process (PK based)", function () {
+    $processedCount = 0;
+    $u = new model('users');
+
+    // Test: Process by ID to ensure it handles gaps or large datasets
+    $u->chunkById(5, function ($batch) use (&$processedCount) {
+        foreach ($batch as $record) {
+            if ($record->id === null) {
+                throw new Exception("Primary key missing in batch");
+            }
+            $processedCount ++;
+        }
+    });
+
+    if ($processedCount === 0)
+        throw new Exception("No records processed in chunkById");
 });
 
 echo "\n<br>--- ALL METHODS VERIFIED ---\n<br>";

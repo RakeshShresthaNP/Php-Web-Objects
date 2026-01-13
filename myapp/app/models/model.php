@@ -1,4 +1,15 @@
 <?php
+
+/**
+ # Copyright Rakesh Shrestha (rakesh.shrestha@gmail.com)
+ # All rights reserved.
+ #
+ # Redistribution and use in source and binary forms, with or without
+ # modification, are permitted provided that the following conditions are
+ # met:
+ #
+ # Redistributions must retain the above copyright notice.
+ */
 declare(strict_types = 1);
 
 class model
@@ -227,14 +238,6 @@ class model
         return $this;
     }
 
-    public function withCount(string $table, string $foreignKey, ?string $alias = null): self
-    {
-        $alias = $alias ?? "{$table}_count";
-        $subQuery = "(SELECT COUNT(*) FROM {$table} WHERE {$table}.{$foreignKey} = p.{$this->pk})";
-        $this->selectedFields = ($this->selectedFields === '*') ? "p.*, {$subQuery} AS {$alias}" : "{$this->selectedFields}, {$subQuery} AS {$alias}";
-        return $this;
-    }
-
     public function groupBy(string ...$columns): self
     {
         $this->_groupBy = " GROUP BY " . implode(', ', $columns);
@@ -297,6 +300,71 @@ class model
         return (int) $stmt->fetchColumn();
     }
 
+    // chunk methods
+    public function chunk(int $count, callable $callback): bool
+    {
+        $page = 1;
+        while (true) {
+            $clone = clone $this;
+            $results = $clone->limit($count, ($page - 1) * $count)->find();
+
+            if (! $results)
+                break;
+
+            // $results is now guaranteed to be an array
+            if ($callback($results, $page) === false)
+                return false;
+
+            $page ++;
+            unset($results, $clone);
+        }
+        return true;
+    }
+
+    public function chunkById(int $count, callable $callback, ?string $alias = 'p'): bool
+    {
+        $lastId = null;
+        while (true) {
+            $clone = clone $this;
+            if ($lastId !== null) {
+                $clone->where("{$alias}.{$this->pk}", '>', $lastId);
+            }
+
+            $results = $clone->orderBy("{$alias}.{$this->pk}", 'ASC')
+                ->limit($count)
+                ->find();
+
+            if (! $results)
+                break;
+
+            if ($callback($results) === false)
+                return false;
+
+            $lastId = end($results)->{$this->pk};
+            unset($results, $clone);
+        }
+        return true;
+    }
+
+    protected function displayProgress(int $current, int $total, int $startTime): void
+    {
+        if (PHP_SAPI !== 'cli')
+            return;
+
+        $percent = min(100, ($current / $total) * 100);
+        $barWidth = 40;
+        $done = (int) ($percent / (100 / $barWidth));
+        $left = $barWidth - $done;
+
+        $elapsed = time() - $startTime;
+        $memory = round(memory_get_usage() / 1024 / 1024, 2);
+
+        printf("\r[%s%s] %3d%% | %d/%d | %ds | Memory: %sMB", str_repeat("=", $done), str_repeat(" ", $left), $percent, $current, $total, $elapsed, $memory);
+
+        if ($current === $total)
+            echo PHP_EOL;
+    }
+
     // --- Graph Engine ---
     public function findGraph(array &$schema, string $alias = 'p'): mixed
     {
@@ -344,11 +412,19 @@ class model
         ];
     }
 
+    public function withAnalytics(string $alias, string $rawSql, string $foreignKey, ?string $localKey = null, string $primaryAlias = 'p'): self
+    {
+        $localKey = $localKey ?? $this->pk;
+        // We use the $primaryAlias parameter to match whatever you pass to findGraph
+        $this->join("({$rawSql}) {$alias}", "{$alias}.{$foreignKey}", "=", "{$primaryAlias}.{$localKey}", "LEFT");
+        return $this;
+    }
+
     /**
      * Generates the complex JSON_OBJECT SQL string for hierarchical data.
      * Handles Deep Nesting, Aggregates with filters, and Parent-Link lookups.
      */
-    private function parseGraphSchema(array $schema, string $alias): string
+    private function parseGraphSchema(array &$schema, string $alias): string
     {
         $parts = [];
         $metaKeys = [
@@ -615,17 +691,6 @@ class model
             $sql .= " HAVING " . implode(' ', $this->_having);
 
         return $sql;
-    }
-
-    /**
-     * Injected into model.php
-     */
-    public function withAnalytics(string $alias, string $rawSql, string $foreignKey, string $localKey = null, string $primaryAlias = 'p'): self
-    {
-        $localKey = $localKey ?? $this->pk;
-        // We use the $primaryAlias parameter to match whatever you pass to findGraph
-        $this->join("({$rawSql}) {$alias}", "{$alias}.{$foreignKey}", "=", "{$primaryAlias}.{$localKey}", "LEFT");
-        return $this;
     }
 
     private function resetQuery(): void
