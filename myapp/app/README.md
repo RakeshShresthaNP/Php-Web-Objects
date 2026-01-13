@@ -17,7 +17,7 @@ Create a configuration file: /etc/supervisor/conf.d/pwo-worker.conf
 ```Ini, TOML
 [program:pwo-worker]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/your-project/bin/worker.php
+command=php /var/www/your-project/app/worker.php
 autostart=true
 autorestart=true
 user=www-data
@@ -52,7 +52,7 @@ Since Windows does not natively manage PHP daemons well, use NSSM (Non-Sucking S
 
 	Path: C:\php\php.exe
 
-	Startup Directory: C:\path\to\your\project\bin
+	Startup Directory: C:\path\to\your\project\app
 
 	Arguments: worker.php
 
