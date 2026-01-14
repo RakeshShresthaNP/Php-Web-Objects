@@ -13,28 +13,28 @@ $pagetitle = isset($pagename) ? $pagename : 'Pwo ';
 	href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
 <!-- Font Awesome -->
 <link rel="stylesheet"
-	href="<?php echo getUrl('assets/dashboard/plugins/fontawesome-free/css/all.min.css') ?>">
+	href="<?php echo getUrl('assets/manage/plugins/fontawesome-free/css/all.min.css') ?>">
 <!-- Ionicons -->
 <link rel="stylesheet"
 	href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
 <!-- Tempusdominus Bootstrap 4 -->
 <link rel="stylesheet"
-	href="<?php echo getUrl('assets/dashboard/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css') ?>">
+	href="<?php echo getUrl('assets/manage/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css') ?>">
 <!-- iCheck -->
 <link rel="stylesheet"
-	href="<?php echo getUrl('assets/dashboard/plugins/icheck-bootstrap/icheck-bootstrap.min.css') ?>">
+	href="<?php echo getUrl('assets/manage/plugins/icheck-bootstrap/icheck-bootstrap.min.css') ?>">
 <!-- JQVMap -->
 <link rel="stylesheet"
-	href="<?php echo getUrl('assets/dashboard/plugins/jqvmap/jqvmap.min.css') ?>">
+	href="<?php echo getUrl('assets/manage/plugins/jqvmap/jqvmap.min.css') ?>">
 <!-- Theme style -->
 <link rel="stylesheet"
-	href="<?php echo getUrl('assets/dashboard/dist/css/adminlte.min.css') ?>">
+	href="<?php echo getUrl('assets/manage/css/adminlte.min.css') ?>">
 <!-- overlayScrollbars -->
 <link rel="stylesheet"
-	href="<?php echo getUrl('assets/dashboard/plugins/overlayScrollbars/css/OverlayScrollbars.min.css') ?>">
+	href="<?php echo getUrl('assets/manage/plugins/overlayScrollbars/css/OverlayScrollbars.min.css') ?>">
 <!-- Daterange picker -->
 <link rel="stylesheet"
-	href="<?php echo getUrl('assets/dashboard/plugins/daterangepicker/daterangepicker.css') ?>">
+	href="<?php echo getUrl('assets/manage/plugins/daterangepicker/daterangepicker.css') ?>">
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 	<div class="wrapper">
@@ -76,7 +76,7 @@ $pagetitle = isset($pagename) ? $pagename : 'Pwo ';
 						<a href="#" class="dropdown-item"> <!-- Message Start -->
 							<div class="media">
 								<img
-									src="<?php echo getUrl('assets/dashboard/dist/img/user1-128x128.jpg') ?>"
+									src="<?php echo getUrl('assets/manage/img/user1-128x128.jpg') ?>"
 									alt="User Avatar" class="img-size-50 mr-3 img-circle">
 								<div class="media-body">
 									<h3 class="dropdown-item-title">
@@ -94,7 +94,7 @@ $pagetitle = isset($pagename) ? $pagename : 'Pwo ';
 						<a href="#" class="dropdown-item"> <!-- Message Start -->
 							<div class="media">
 								<img
-									src="<?php echo getUrl('assets/dashboard/dist/img/user8-128x128.jpg') ?>"
+									src="<?php echo getUrl('assets/manage/img/user8-128x128.jpg') ?>"
 									alt="User Avatar" class="img-size-50 img-circle mr-3">
 								<div class="media-body">
 									<h3 class="dropdown-item-title">
@@ -112,7 +112,7 @@ $pagetitle = isset($pagename) ? $pagename : 'Pwo ';
 						<a href="#" class="dropdown-item"> <!-- Message Start -->
 							<div class="media">
 								<img
-									src="<?php echo getUrl('assets/dashboard/dist/img/user3-128x128.jpg') ?>"
+									src="<?php echo getUrl('assets/manage/img/user3-128x128.jpg') ?>"
 									alt="User Avatar" class="img-size-50 img-circle mr-3">
 								<div class="media-body">
 									<h3 class="dropdown-item-title">
@@ -154,9 +154,51 @@ $pagetitle = isset($pagename) ? $pagename : 'Pwo ';
 						<a href="#" class="dropdown-item dropdown-footer">See All
 							Notifications</a>
 					</div></li>
-				<li class="nav-item"><a class="nav-link" data-widget="fullscreen"
-					href="#" role="button"> <i class="fas fa-expand-arrows-alt"></i>
-				</a></li>
+
+				<!--begin::User Menu Dropdown-->
+				<?php
+    $cuser = getCurrentUser();
+    ?>
+				
+				<li class="nav-item dropdown user-menu"><a href="#"
+					class="nav-link dropdown-toggle" data-toggle="dropdown"> <img
+						src="<?php echo getUrl('assets/manage/img/user2-160x160.jpg')?>"
+						class="user-image rounded-circle shadow" alt="User Image" /> <span
+						class="d-none d-md-inline"><?php echo $cuser->realname ?></span>
+				</a>
+					<ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+						<!--begin::User Image-->
+						<li class="user-header text-bg-primary"><img
+							src="<?php echo getUrl('assets/manage/img/user2-160x160.jpg')?>"
+							class="rounded-circle shadow" alt="User Image" />
+							<p>
+								<?php echo $cuser->realname ?> - <?php echo $cuser->perms ?>
+							</p></li>
+						<!--end::User Image-->
+						<!--begin::Menu Body-->
+						<li class="user-body">
+							<!--begin::Row-->
+							<div class="row">
+								<div class="col-4 text-center">
+									<a href="#">Followers</a>
+								</div>
+								<div class="col-4 text-center">
+									<a href="#">Sales</a>
+								</div>
+								<div class="col-4 text-center">
+									<a href="#">Friends</a>
+								</div>
+							</div> <!--end::Row-->
+						</li>
+						<!--end::Menu Body-->
+						<!--begin::Menu Footer-->
+						<li class="user-footer"><a href="#"
+							class="btn btn-outline-secondary">Profile</a> <a
+							href="<?php echo getUrl('login/logout') ?>"
+							class="btn btn-outline-danger float-end">Sign out</a></li>
+						<!--end::Menu Footer-->
+					</ul></li>
+				<!--end::User Menu Dropdown-->
 
 			</ul>
 		</nav>
@@ -171,42 +213,11 @@ $pagetitle = isset($pagename) ? $pagename : 'Pwo ';
 
 			<!-- Sidebar -->
 			<div class="sidebar">
-				<!-- Sidebar user panel (optional) -->
-				<div class="user-panel mt-3 pb-3 mb-3 d-flex">
-					<div class="image">
-						<img
-							src="<?php echo getUrl('assets/dashboard/dist/img/user2-160x160.jpg') ?>"
-							class="img-circle elevation-2" alt="User Image">
-					</div>
-					<div class="info">
-						<a href="#" class="d-block">Happy Manage</a>
-					</div>
-				</div>
-
-				<!-- SidebarSearch Form -->
-				<div class="form-inline">
-					<div class="input-group" data-widget="sidebar-search">
-						<input class="form-control form-control-sidebar" type="search"
-							placeholder="Search" aria-label="Search">
-						<div class="input-group-append">
-							<button class="btn btn-sidebar">
-								<i class="fas fa-search fa-fw"></i>
-							</button>
-						</div>
-					</div>
-				</div>
 
 				<!-- Sidebar Menu -->
 				<nav class="mt-2">
 					<ul class="nav nav-pills nav-sidebar flex-column"
 						data-widget="treeview" role="menu" data-accordion="false">
-						<li class="nav-item"><a
-							href="<?php echo getUrl('login/logout') ?>" class="nav-link"> <i
-								class="nav-icon fas fa-edit"></i>
-								<p>
-									Logout <i class="fas fa-angle-left right"></i>
-								</p>
-						</a></li>
 
 						<li class="nav-item"><a href="#" class="nav-link"> <i
 								class="nav-icon fas fa-edit"></i>
@@ -234,19 +245,7 @@ $pagetitle = isset($pagename) ? $pagename : 'Pwo ';
 										<p>Simple Tables</p>
 								</a></li>
 							</ul></li>
-						<li class="nav-header">LABELS</li>
-						<li class="nav-item"><a href="#" class="nav-link"> <i
-								class="nav-icon far fa-circle text-danger"></i>
-								<p class="text">Important</p>
-						</a></li>
-						<li class="nav-item"><a href="#" class="nav-link"> <i
-								class="nav-icon far fa-circle text-warning"></i>
-								<p>Warning</p>
-						</a></li>
-						<li class="nav-item"><a href="#" class="nav-link"> <i
-								class="nav-icon far fa-circle text-info"></i>
-								<p>Informational</p>
-						</a></li>
+
 					</ul>
 				</nav>
 				<!-- /.sidebar-menu -->
@@ -299,7 +298,8 @@ $pagetitle = isset($pagename) ? $pagename : 'Pwo ';
             </div>
 
 		<footer class="main-footer">
-			<strong>Copyright &copy; 2014 - <?php echo date('Y') ?> <a href="#">PHP Web Objects</a>.
+			<strong>Copyright &copy; 2014 - <?php echo date('Y') ?> <a href="#">PHP
+					Web Objects</a>.
 			</strong> All rights reserved.
 			<div class="float-right d-none d-sm-inline-block">
 				<b>Version</b> 1.0
@@ -316,45 +316,46 @@ $pagetitle = isset($pagename) ? $pagename : 'Pwo ';
 
 	<!-- jQuery -->
 	<script
-		src="<?php echo getUrl('assets/dashboard/plugins/jquery/jquery.min.js') ?>"></script>
+		src="<?php echo getUrl('assets/manage/plugins/jquery/jquery.min.js') ?>"></script>
 	<!-- jQuery UI 1.11.4 -->
 	<script
-		src="<?php echo getUrl('assets/dashboard/plugins/jquery-ui/jquery-ui.min.js') ?>"></script>
+		src="<?php echo getUrl('assets/manage/plugins/jquery-ui/jquery-ui.min.js') ?>"></script>
 	<!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
 	<script>
             $.widget.bridge('uibutton', $.ui.button)
         </script>
 	<!-- Bootstrap 4 -->
 	<script
-		src="<?php echo getUrl('assets/dashboard/plugins/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
+		src="<?php echo getUrl('assets/manage/plugins/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
 	<!-- ChartJS -->
 	<script
-		src="<?php echo getUrl('assets/dashboard/plugins/chart.js/Chart.min.js') ?>"></script>
+		src="<?php echo getUrl('assets/manage/plugins/chart.js/Chart.min.js') ?>"></script>
 	<!-- Sparkline -->
 	<script
-		src="<?php echo getUrl('assets/dashboard/plugins/sparklines/sparkline.js') ?>"></script>
+		src="<?php echo getUrl('assets/manage/plugins/sparklines/sparkline.js') ?>"></script>
 	<!-- JQVMap -->
 	<script
-		src="<?php echo getUrl('assets/dashboard/plugins/jqvmap/jquery.vmap.min.js') ?>"></script>
+		src="<?php echo getUrl('assets/manage/plugins/jqvmap/jquery.vmap.min.js') ?>"></script>
 	<script
-		src="<?php echo getUrl('assets/dashboard/plugins/jqvmap/maps/jquery.vmap.usa.js') ?>"></script>
+		src="<?php echo getUrl('assets/manage/plugins/jqvmap/maps/jquery.vmap.usa.js') ?>"></script>
 	<!-- jQuery Knob Chart -->
 	<script
-		src="<?php echo getUrl('assets/dashboard/plugins/jquery-knob/jquery.knob.min.js') ?>"></script>
+		src="<?php echo getUrl('assets/manage/plugins/jquery-knob/jquery.knob.min.js') ?>"></script>
 	<!-- daterangepicker -->
 	<script
-		src="<?php echo getUrl('assets/dashboard/plugins/moment/moment.min.js') ?>"></script>
+		src="<?php echo getUrl('assets/manage/plugins/moment/moment.min.js') ?>"></script>
 	<script
-		src="<?php echo getUrl('assets/dashboard/plugins/daterangepicker/daterangepicker.js') ?>"></script>
+		src="<?php echo getUrl('assets/manage/plugins/daterangepicker/daterangepicker.js') ?>"></script>
 	<!-- Tempusdominus Bootstrap 4 -->
 	<script
-		src="<?php echo getUrl('assets/dashboard/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') ?>"></script>
+		src="<?php echo getUrl('assets/manage/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') ?>"></script>
 	<!-- overlayScrollbars -->
 	<script
-		src="<?php echo getUrl('assets/dashboard/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') ?>"></script>
+		src="<?php echo getUrl('assets/manage/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') ?>"></script>
 	<!-- AdminLTE App -->
-	<script src="<?php echo getUrl('assets/dashboard/dist/js/adminlte.min.js') ?>"></script>
-	<script src="<?php echo getUrl('assets/dashboard/dist/js/demo.js') ?>"></script>
-	<script src="<?php echo getUrl('assets/dashboard/dist/js/pages/dashboard.js') ?>"></script>
+	<script src="<?php echo getUrl('assets/manage/js/adminlte.min.js') ?>"></script>
+	<script src="<?php echo getUrl('assets/manage/js/demo.js') ?>"></script>
+	<script
+		src="<?php echo getUrl('assets/manage/js/pages/dashboard.js') ?>"></script>
 </body>
 </html>

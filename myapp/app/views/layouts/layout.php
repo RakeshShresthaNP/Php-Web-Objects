@@ -1,42 +1,33 @@
 ﻿<?php
 $pagetitle = isset($pagename) ? $pagename : 'Pwo ';
 ?>
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 <title><?php echo $pagetitle ?></title>
-
-<!-- Google Font: Source Sans Pro -->
-<link rel="stylesheet"
-	href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-<!-- Font Awesome -->
-<link rel="stylesheet"
-	href="<?php echo getUrl('assets/dashboard/plugins/fontawesome-free/css/all.min.css') ?>">
-<!-- icheck bootstrap -->
-<link rel="stylesheet"
-	href="<?php echo getUrl('assets/dashboard/plugins/icheck-bootstrap/icheck-bootstrap.min.css') ?>">
-<!-- Theme style -->
-<link rel="stylesheet"
-	href="<?php echo getUrl('assets/dashboard/dist/css/adminlte.min.css') ?>">
+<link rel="icon" href="<?php echo getUrl('favicon.ico') ?>">
+<link href="<?php echo getUrl('assets/dashboard/style.css') ?>"
+	rel="stylesheet">
 </head>
-<body class="hold-transition login-page">
+<body
+	x-data="{ page: 'comingSoon', 'loaded': true, 'darkMode': true, 'stickyMenu': false, 'sidebarToggle': false, 'scrollTop': false }"
+	:class="{'dark bg-gray-900': darkMode === true}">
+	<!-- ===== Preloader Start ===== -->
+	<div x-show="loaded"
+		x-init="window.addEventListener('DOMContentLoaded', () => {setTimeout(() => loaded = false, 500)})"
+		class="fixed left-0 top-0 z-999999 flex h-screen w-screen items-center justify-center bg-white dark:bg-black">
+		<div
+			class="h-16 w-16 animate-spin rounded-full border-4 border-solid border-brand-500 border-t-transparent"></div>
+	</div>
 
-        <?php $splashmsgs = res()->getSplashMsg(); ?>
-        
-        <?php echo $splashmsgs ?>
-        
-        <?php echo isset($mainregion) ? $mainregion : '' ?>  
+	<!-- ===== Preloader End ===== -->
+    
+    <?php echo isset($mainregion) ? $mainregion : '' ?>
 
-    <!-- jQuery -->
-	<script
-		src="<?php echo getUrl('assets/dashboard/plugins/jquery/jquery.min.js') ?>"></script>
-	<!-- Bootstrap 4 -->
-	<script
-		src="<?php echo getUrl('assets/dashboard/plugins/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
-	<!-- AdminLTE App -->
-	<script src="<?php echo getUrl('assets/dashboard/dist/js/adminlte.min.js') ?>"></script>
-
+	<script defer src="<?php echo getUrl('assets/dashboard/bundle.js') ?>"></script>
 </body>
 </html>

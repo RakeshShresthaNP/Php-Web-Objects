@@ -35,6 +35,7 @@ mb_regex_encoding('UTF-8');
 
 interface JobHandlerInterface
 {
+
     public function handle(array $payload): void;
 }
 
@@ -69,7 +70,7 @@ final class Loader
 echo "Worker started. Press Ctrl+C to stop.\n";
 
 $worker = new QueueWorker();
-$worker->run();
+$worker->process();
 
 if (memory_get_usage() > 64 * 1024 * 1024) { // 64MB limit
     echo "Memory limit reached. Exiting for restart...\n";

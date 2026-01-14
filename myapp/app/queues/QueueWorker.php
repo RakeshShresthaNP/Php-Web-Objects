@@ -12,7 +12,7 @@
  */
 declare(strict_types = 1);
 
-class QueueWorker
+final class QueueWorker
 {
 
     private PDO $db;
@@ -24,16 +24,16 @@ class QueueWorker
     public function __construct()
     {
         $this->db = db();
-        $this->handlers['send_forgot_password_email'] = new QueuePasswordForgot();
+        $this->handlers['send_forgot_password_email'] = new QueueForgotPassword();
     }
 
-    public function run(): void
+    public function process(): void
     {
         while (true) {
             $job = $this->fetchNextJob();
 
             if ($job) {
-                $this->process($job);
+                $this->run($job);
             } else {
                 sleep(5);
             }
@@ -56,7 +56,7 @@ class QueueWorker
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
-    private function process(array $job): void
+    private function run(array $job): void
     {
         try {
             $this->updateStatus($job['id'], 'processing');
@@ -99,7 +99,7 @@ class QueueWorker
                 $job['id']
             ]);
 
-            writeLog('queuefailed_' . date('Y_m_d'), "Job #{$job['id']} failed. Retrying in $delayMinutes mins...\n");
+            writeLog('queuefailed_' . date('Y_m_d'), "Job #{$job['id']} #{$job['task_name']} failed. Retrying in $delayMinutes mins...\n");
         }
     }
 

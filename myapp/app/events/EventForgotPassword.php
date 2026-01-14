@@ -12,7 +12,7 @@
  */
 declare(strict_types = 1);
 
-class EventForgotPassword
+final class EventForgotPassword
 {
 
     private PDO $db;

@@ -41,6 +41,7 @@ final class View
         } else {
             if ($vars['layout']) {
                 $playout = $vars['layout'];
+                $vars['mainregion'] = self::assign($vars, $viewname);
             } else {
                 $playout = $viewname;
             }

@@ -94,19 +94,19 @@ final class cAuth extends cController
                 }
 
                 if (! $passwordValid) {
-                    $this->dispatcher->dispatchauto(new EventLogin($username, $ip, false));
+                    $this->dispatcher->dispatch(new EventLogin($username, $ip, false));
 
                     throw new ApiException('Incorrect Password', 405);
                 }
 
                 if ($user->status == 2) {
-                    $this->dispatcher->dispatchauto(new EventLogin($username, $ip, false));
+                    $this->dispatcher->dispatch(new EventLogin($username, $ip, false));
 
                     throw new ApiException('User Disabled', 405);
                 }
 
                 if ($user->perms != 'superadmin' && $user->partner_id != $this->partner->id) {
-                    $this->dispatcher->dispatchauto(new EventLogin($username, $ip, false));
+                    $this->dispatcher->dispatch(new EventLogin($username, $ip, false));
                     throw new ApiException('Error Login', 405);
                 }
 
@@ -119,7 +119,7 @@ final class cAuth extends cController
                     'exp' => time() + 24 * 3600
                 );
 
-                $this->dispatcher->dispatchauto(new EventLogin($username, $ip, true));
+                $this->dispatcher->dispatch(new EventLogin($username, $ip, true));
 
                 $tdata['accessToken'] = $this->_generateToken($udata);
 

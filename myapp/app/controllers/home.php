@@ -20,6 +20,7 @@ final class cHome extends cController
 
     public function index()
     {
+        $data['layout'] = false;
         $data['pagename'] = $this->partner->sitetitle;
 
         $this->res->view($data);

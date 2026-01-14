@@ -144,7 +144,7 @@
 								</div>
 								<!-- /.direct-chat-infos -->
 								<img class="direct-chat-img"
-									src="assets/dashboard/dist/img/user1-128x128.jpg"
+									src="assets/manage/img/user1-128x128.jpg"
 									alt="message user image">
 								<!-- /.direct-chat-img -->
 								<div class="direct-chat-text">Is this template really for free?
@@ -161,7 +161,7 @@
 								</div>
 								<!-- /.direct-chat-infos -->
 								<img class="direct-chat-img"
-									src="assets/dashboard/dist/img/user3-128x128.jpg"
+									src="assets/manage/img/user3-128x128.jpg"
 									alt="message user image">
 								<!-- /.direct-chat-img -->
 								<div class="direct-chat-text">You better believe it!</div>
@@ -177,7 +177,7 @@
 								</div>
 								<!-- /.direct-chat-infos -->
 								<img class="direct-chat-img"
-									src="assets/dashboard/dist/img/user1-128x128.jpg"
+									src="assets/manage/img/user1-128x128.jpg"
 									alt="message user image">
 								<!-- /.direct-chat-img -->
 								<div class="direct-chat-text">Working with AdminLTE on a great
@@ -194,7 +194,7 @@
 								</div>
 								<!-- /.direct-chat-infos -->
 								<img class="direct-chat-img"
-									src="assets/dashboard/dist/img/user3-128x128.jpg"
+									src="assets/manage/img/user3-128x128.jpg"
 									alt="message user image">
 								<!-- /.direct-chat-img -->
 								<div class="direct-chat-text">I would love to.</div>
@@ -209,7 +209,7 @@
 						<div class="direct-chat-contacts">
 							<ul class="contacts-list">
 								<li><a href="#"> <img class="contacts-list-img"
-										src="assets/dashboard/dist/img/user1-128x128.jpg" alt="User Avatar">
+										src="assets/manage/img/user1-128x128.jpg" alt="User Avatar">
 
 										<div class="contacts-list-info">
 											<span class="contacts-list-name"> Count Dracula <small
@@ -220,7 +220,7 @@
 								</a></li>
 								<!-- End Contact Item -->
 								<li><a href="#"> <img class="contacts-list-img"
-										src="assets/dashboard/dist/img/user7-128x128.jpg" alt="User Avatar">
+										src="assets/manage/img/user7-128x128.jpg" alt="User Avatar">
 
 										<div class="contacts-list-info">
 											<span class="contacts-list-name"> Sarah Doe <small
@@ -231,7 +231,7 @@
 								</a></li>
 								<!-- End Contact Item -->
 								<li><a href="#"> <img class="contacts-list-img"
-										src="assets/dashboard/dist/img/user3-128x128.jpg" alt="User Avatar">
+										src="assets/manage/img/user3-128x128.jpg" alt="User Avatar">
 
 										<div class="contacts-list-info">
 											<span class="contacts-list-name"> Nadia Jolie <small
@@ -242,7 +242,7 @@
 								</a></li>
 								<!-- End Contact Item -->
 								<li><a href="#"> <img class="contacts-list-img"
-										src="assets/dashboard/dist/img/user5-128x128.jpg" alt="User Avatar">
+										src="assets/manage/img/user5-128x128.jpg" alt="User Avatar">
 
 										<div class="contacts-list-info">
 											<span class="contacts-list-name"> Nora S. Vans <small
@@ -252,7 +252,7 @@
 								</a></li>
 								<!-- End Contact Item -->
 								<li><a href="#"> <img class="contacts-list-img"
-										src="assets/dashboard/dist/img/user6-128x128.jpg" alt="User Avatar">
+										src="assets/manage/img/user6-128x128.jpg" alt="User Avatar">
 
 										<div class="contacts-list-info">
 											<span class="contacts-list-name"> John K. <small
@@ -263,7 +263,7 @@
 								</a></li>
 								<!-- End Contact Item -->
 								<li><a href="#"> <img class="contacts-list-img"
-										src="assets/dashboard/dist/img/user8-128x128.jpg" alt="User Avatar">
+										src="assets/manage/img/user8-128x128.jpg" alt="User Avatar">
 
 										<div class="contacts-list-info">
 											<span class="contacts-list-name"> Kenneth M. <small

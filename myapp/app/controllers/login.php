@@ -47,16 +47,16 @@ final class cLogin extends cController
             $password = isset($_POST['password']) ? $_POST['password'] : '';
 
             if (empty($username) || empty($password)) {
-                $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">Username and password are required!</div>');
+                $this->res->redirect('login', '<div class="text-error-500">Username and password are required!</div>');
                 return;
             }
 
             $user = $muser->where('email', $username)->find();
 
             if (! $user) {
-                $this->dispatcher->dispatchauto(new EventLogin($username, $ip, false));
+                $this->dispatcher->dispatch(new EventLogin($username, $ip, false));
 
-                $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">USER NOT FOUND!</div>');
+                $this->res->redirect('login', '<div class="text-error-500">USER NOT FOUND!</div>');
                 return;
             }
 
@@ -68,29 +68,29 @@ final class cLogin extends cController
             }
 
             if (! $passwordValid) {
-                $this->dispatcher->dispatchauto(new EventLogin($username, $ip, false));
+                $this->dispatcher->dispatch(new EventLogin($username, $ip, false));
 
-                $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">WRONG PASSWORD!</div>');
+                $this->res->redirect('login', '<div class="text-error-500">WRONG PASSWORD!</div>');
                 return;
             }
 
             if ($user->status == 2) {
-                $this->dispatcher->dispatchauto(new EventLogin($username, $ip, false));
+                $this->dispatcher->dispatch(new EventLogin($username, $ip, false));
 
-                $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">USER DISABLED!</div>');
+                $this->res->redirect('login', '<div class="text-error-500">USER DISABLED!</div>');
                 return;
             }
 
             if ($user->perms != 'superadmin' && $user->partner_id != $this->partner->id) {
-                $this->dispatcher->dispatchauto(new EventLogin($username, $ip, false));
+                $this->dispatcher->dispatch(new EventLogin($username, $ip, false));
 
-                $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User does not exist</div>');
+                $this->res->redirect('login', '<div class="text-error-500">User does not exist</div>');
                 return;
             }
 
             setCurrentUser($user);
 
-            $this->dispatcher->dispatchauto(new EventLogin($username, $ip, true));
+            $this->dispatcher->dispatch(new EventLogin($username, $ip, true));
 
             $cutype = $user->perms;
 
@@ -132,39 +132,39 @@ final class cLogin extends cController
                 $username = isset($_POST['username']) ? trim($_POST['username']) : '';
 
                 if (empty($username)) {
-                    $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">Username is required!</div>');
+                    $this->res->redirect('login/forgotpass', '<div class="text-error-500">Username is required!</div>');
                     return;
                 }
 
                 $user = $muser->where('email', $username)->find();
 
                 if (! $user) {
-                    $this->dispatcher->dispatchauto(new EventForgotPassword($username, $ip, false));
+                    $this->dispatcher->dispatch(new EventForgotPassword($username, $ip, false));
 
-                    $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User does not exist!</div>');
+                    $this->res->redirect('login/forgotpass', '<div class="text-error-500">User does not exist!</div>');
                     return;
                 }
 
                 if ($user->status == 2) {
-                    $this->dispatcher->dispatchauto(new EventForgotPassword($username, $ip, false));
+                    $this->dispatcher->dispatch(new EventForgotPassword($username, $ip, false));
 
-                    $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User is disableddoes not exist!</div>');
+                    $this->res->redirect('login/forgotpass', '<div class="text-error-500">User is disableddoes not exist!</div>');
                     return;
                 }
 
                 if ($user->perms != 'superadmin' && $user->partner_id != $this->partner->id) {
-                    $this->dispatcher->dispatchauto(new EventForgotPassword($username, $ip, false));
+                    $this->dispatcher->dispatch(new EventForgotPassword($username, $ip, false));
 
-                    $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">User does not exist</div>');
+                    $this->res->redirect('login', '<div class="text-error-500">User does not exist</div>');
                     return;
                 }
 
-                $this->dispatcher->dispatchauto(new EventForgotPassword($username, $ip, true, $user, $this->partner));
+                $this->dispatcher->dispatch(new EventForgotPassword($username, $ip, true, $user, $this->partner));
 
-                $this->res->redirect('login/forgotpass', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">Your password has been mailed to you!</div>');
+                $this->res->redirect('login/forgotpass', '<div class="text-brand-500">Your password has been mailed to you!</div>');
             } catch (Exception $e) {
                 // Catch the "Please wait 5 minutes" message
-                $this->res->redirect('login/forgotpass', '<div class="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">' . $e->getMessage() . '</div>');
+                $this->res->redirect('login/forgotpass', '<div class="text-error-500">' . $e->getMessage() . '</div>');
             }
         }
 
@@ -175,6 +175,6 @@ final class cLogin extends cController
     {
         setCurrentUser();
 
-        $this->res->redirect('login', '<div style="font-size:13px; color:#ff0000; margin-bottom:4px; margin-top:8px;">You have logged out!</div>');
+        $this->res->redirect('login', '<div class="text-brand-500">You have logged out!</div>');
     }
 }
