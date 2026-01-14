@@ -1,6 +1,6 @@
 Simple/Easy to learn and high-performance, lightweight PHP MVC framework that bridges the gap between traditional web development and cutting-edge data science. By combining a minimalist core with powerful Gemini-powered AI, Machine Learning, and Financial Analytics libraries, it allows developers to build complex, secure, and data-driven applications without the bloat. Whether you are managing Dynamic Website (Both traditioanl or Modern Ajax Powered) or Restful API services or data driven mechine learning and AI powered application, PHP Web Objects provides the tools you need - loaded only when you need them.
 
-<img src="https://github.com/RakeshShresthaNP/Php-Web-Objects/blob/master/screen/dashboard2.png?raw=true" alt="Dashboard" />
+<img src="https://github.com/RakeshShresthaNP/Php-Web-Objects/blob/main/screen/dashboard2.png?raw=true" alt="Dashboard" />
 
 ## Table of Contents
 * [Core Architecture and Routing](#1-core-architecture-and-routing)
@@ -165,6 +165,7 @@ Traditional frameworks require downloading thousands of external files to achiev
 3.  **No Middleware Bloat:** While other frameworks require 20+ "packages" for basic security and routing, this framework handles these natively within a single coreroutines file.
 
 > **Why it matters:** Lower library size means faster deployment, smaller Docker images, and lower storage costs on cloud providers. It is very simple to say using less libraries we decrease processing also.
+
 
 
 
