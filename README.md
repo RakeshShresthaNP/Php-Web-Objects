@@ -149,7 +149,7 @@ Our core design principle is **"Zero-Waste Architecture."** By using a native De
 #### 📦 Library & Disk Size Advantage
 Traditional frameworks require downloading thousands of external files to achieve basic functionality. This framework includes its AI, ML, and Finance suites as highly optimized, native components.
 
-* **This Framework Core:** ~2MB - 3MB (Full featured)
+* **This Framework Core:** ~2MB - 3.5MB (Full featured)
 * **Typical Node.js Project:** 600MB - 1.2GB (due to `node_modules`)
 * **Typical Python Project:** 250MB - 4GB (due to `site-packages` based on standard django app or cutting edge AI/ML applications)
 
@@ -165,6 +165,7 @@ Traditional frameworks require downloading thousands of external files to achiev
 3.  **No Middleware Bloat:** While other frameworks require 20+ "packages" for basic security and routing, this framework handles these natively within a single coreroutines file.
 
 > **Why it matters:** Lower library size means faster deployment, smaller Docker images, and lower storage costs on cloud providers. It is very simple to say using less libraries we decrease processing also.
+
 
 
 
