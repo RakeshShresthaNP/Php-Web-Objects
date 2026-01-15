@@ -122,7 +122,7 @@ $results = $user->paginateGraph($schema, 1, 10);
 * **Hardened Security:** Built-in protection against XSS and SQL Injection.
 * **Auth & API:** Integrated Authentication scaffolding and JWT API support.
 * **Modern UI:** Dashboard integration with pre-built visual elements. For AI compatibility and further info https://github.com/RakeshShresthaNP/VWEB-Dashboard
-* **Extended Libraries:** Event/Queue Management Mechanism (myapp/app/Readme), AuditLog Data Structure, Mailer(Native PHP or SMTP), Support for Firebase Messaging, SMPP (SMSC), QR Codes, AES Encryption, Time based OTP, Excel (XLSX) Import, Pagination, and SoapClient for NTLMStream.
+* **Extended Libraries:** Event/Queue Management Mechanism, AuditLog Data Structure, Mailer(Native PHP or SMTP), Support for Firebase Messaging, SMPP (SMSC), QR Codes, AES Encryption, Time based OTP, Excel (XLSX) Import, Pagination, and SoapClient for NTLMStream.
 
 ---
 
@@ -169,6 +169,7 @@ Traditional frameworks require downloading thousands of external files to achiev
 3.  **No Middleware Bloat:** While other frameworks require 20+ "packages" for basic security and routing, this framework handles these natively within a single coreroutines file.
 
 > **Why it matters:** Lower library size means faster deployment, smaller Docker images, and lower storage costs on cloud providers. It is very simple to say using less libraries we decrease processing also.
+
 
 
 
