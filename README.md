@@ -1,4 +1,4 @@
-Simple/Easy to learn and high-performance, lightweight PHP MVC framework that bridges the gap between traditional web development and cutting-edge data science. By combining a minimalist core with powerful Gemini-powered AI, Machine Learning, and Financial Analytics libraries, it allows developers to build complex, secure, and data-driven applications without the bloat. Whether you are managing Dynamic Website (Traditional or Modern Ajax Powered) or Restful API services or data driven mechine learning and AI powered application, PHP Web Objects provides the tools you need - loaded only when you need them.
+Simple/Easy to learn and high-performance, lightweight PHP MVC framework that bridges the gap between traditional web development and cutting-edge data science. By combining a minimalist core with powerful Gemini-powered AI, Machine Learning and Financial Analytics libraries, it allows developers to build complex, secure, and data-driven applications without the bloat. Whether you are managing Dynamic Website (Traditional or Modern Ajax Powered) or Restful API services or data driven mechine learning and AI powered application, PHP Web Objects provides the tools you need - loaded only when you need them.
 
 <img src="https://github.com/RakeshShresthaNP/Php-Web-Objects/blob/main/screen/dashboard2.png?raw=true" alt="Dashboard" />
 
@@ -100,8 +100,8 @@ $results = $user->paginateGraph($schema, 1, 10);
 ---
 
 ### 4. Machine Learning (ML) Suite
-* **Predictive Analytics:** Rule Learning, Classification, Regression, and Neural Networks.
-* **Data Processing:** Preprocessing, Feature Extraction, and Feature Selection routines.
+* **Predictive Analytics:** Rule Learning, Classification, Support Vector Machine, Regression, and Neural Networks.
+* **Data Processing:** Preprocessing, Feature Extraction, Normalization, Variance Threshold, Random Split and Feature Selection routines and various.
 * **Clustering & Validation:** Advanced Clustering algorithms like K-Means and DBSCAN with built-in Cross-Validation.
 * **Model Management:** Dedicated tools for managing and deploying ML models.
 
@@ -137,7 +137,7 @@ This framework is engineered for environments where performance, disk space, and
 | Feature | This Framework | Node.js (Express/Nest) | Python (Django/FastAPI) |
 | :--- | :--- | :--- | :--- |
 | **Memory Footprint** | **Ultra-Low (OPCache PHP)** | High (V8 Engine overhead) | Moderate to High (Interpreter) |
-| **App Library Size** | **Slim (< 2.5MB Core)** | Massive (`node_modules`) | Large (Virtual Envs / Libs) |
+| **App Library Size** | **Slim (< 3MB Core)** | Massive (`node_modules`) | Large (Virtual Envs / Libs) |
 | **Dependency Model** | Native / Integrated | NPM (Third-party heavy) | Pip (Heavy external pkgs) |
 | **Cold Start Time** | Near-Instant | Moderate | Slow (especially Django) |
 
@@ -149,7 +149,7 @@ Our core design principle is **"Zero-Waste Architecture."** By using a native De
 #### 📦 Library & Disk Size Advantage
 Traditional frameworks require downloading thousands of external files to achieve basic functionality. This framework includes its AI, ML, and Finance suites as highly optimized, native components.
 
-* **This Framework Core:** ~2MB - 3.5MB (Full featured)
+* **This Framework Core:** ~2MB - 3MB (Full featured)
 * **Typical Node.js Project:** 600MB - 1.2GB (due to `node_modules`)
 * **Typical Python Project:** 250MB - 4GB (due to `site-packages` based on standard django app or cutting edge AI/ML applications)
 
@@ -165,13 +165,6 @@ Traditional frameworks require downloading thousands of external files to achiev
 3.  **No Middleware Bloat:** While other frameworks require 20+ "packages" for basic security and routing, this framework handles these natively within a single coreroutines file.
 
 > **Why it matters:** Lower library size means faster deployment, smaller Docker images, and lower storage costs on cloud providers. It is very simple to say using less libraries we decrease processing also.
-
-
-
-
-
-
-
 
 
 
