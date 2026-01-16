@@ -62,9 +62,6 @@ ini_set('error_logs', APP_DIR . 'logs/app_errors.log');
 
 ini_set('expose_php', '0');
 
-// Strict timeout: Kill any script taking longer than 10 seconds
-set_time_limit(10);
-
 // Limit the memory a single script can use (e.g., 64 Megabytes)
 ini_set('memory_limit', '64M');
 
