@@ -27,13 +27,19 @@ final class DB
 
         $dsn = $dbtype . ':host=' . $host . ';dbname=' . $dbname;
 
+        $options = [
+            PDO::ATTR_PERSISTENT => true,
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
+            PDO::ATTR_EMULATE_PREPARES => true,
+
+            // This forces the connection session to UTC
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET time_zone = '+00:00'"
+        ];
+
         try {
-            self::$_context = new PDO($dsn, $user, $pass);
+            self::$_context = new PDO($dsn, $user, $pass, $options);
             self::$_context->exec('SET NAMES utf8');
-            self::$_context->setAttribute(PDO::ATTR_PERSISTENT, true);
-            self::$_context->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
-            self::$_context->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            self::$_context->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
         } catch (PDOException $ex) {
             throw new Exception($ex->getMessage(), $ex->getCode());
         }
