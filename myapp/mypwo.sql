@@ -23,9 +23,9 @@ CREATE TABLE IF NOT EXISTS `documentextractions` (
   `aimodel` varchar(50) DEFAULT NULL,
   `confidencescore` decimal(5,2) DEFAULT NULL,
   `ishumanverified` tinyint(1) DEFAULT 0,
-  `d_created` timestamp NULL DEFAULT current_timestamp(),
+  `d_created` timestamp NULL DEFAULT utc_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
-  `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `d_updated` timestamp NULL,
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `key_documentextractions` (`partner_id`,`document_id`)
@@ -45,9 +45,9 @@ CREATE TABLE IF NOT EXISTS `documents` (
   `s3path` varchar(512) DEFAULT NULL,
   `mimetype` varchar(50) DEFAULT NULL,
   `status` enum('pending','processing','completed','failed') DEFAULT NULL,
-  `d_created` timestamp NULL DEFAULT current_timestamp(),
+  `d_created` timestamp NULL DEFAULT utc_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
-  `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `d_updated` timestamp NULL,
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `key_documents` (`partner_id`,`user_id`,`filename`)
@@ -81,9 +81,9 @@ CREATE TABLE IF NOT EXISTS `marketdatas` (
   `price` decimal(18,8) NOT NULL,
   `volume` bigint(20) DEFAULT NULL,
   `dtimestamp` timestamp NULL DEFAULT NULL,
-  `d_created` timestamp NULL DEFAULT current_timestamp(),
+  `d_created` timestamp NULL DEFAULT utc_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
-  `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `d_updated` timestamp NULL,
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `key_marketdatas` (`c_name`,`dtimestamp`)
@@ -101,9 +101,9 @@ CREATE TABLE IF NOT EXISTS `mlmodelmetadatas` (
   `version` varchar(10) DEFAULT NULL,
   `accuracymetrics` json NOT NULL CHECK (json_valid(`accuracymetrics`)),
   `serializedpath` varchar(255) DEFAULT NULL,
-  `d_created` timestamp NULL DEFAULT current_timestamp(),
+  `d_created` timestamp NULL DEFAULT utc_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
-  `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `d_updated` timestamp NULL,
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `key_mlmodelmetadatas` (`c_name`,`version`)
@@ -131,9 +131,9 @@ CREATE TABLE IF NOT EXISTS `mst_partners` (
   `country` varchar(32) DEFAULT 'US',
   `zip` varchar(32) DEFAULT '',
   `remarks` varchar(128) DEFAULT '',
-  `d_created` timestamp NULL DEFAULT current_timestamp(),
+  `d_created` timestamp NULL DEFAULT utc_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
-  `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `d_updated` timestamp NULL,
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `key_partnershost` (`hostname`),
@@ -160,9 +160,9 @@ CREATE TABLE IF NOT EXISTS `mst_partner_settings` (
   `geoip_api_key` varchar(256) DEFAULT NULL,
   `firebase_api_key` varchar(256) DEFAULT NULL,
   `gemini_api_key` varchar(256) DEFAULT NULL,
-  `d_created` timestamp NULL DEFAULT current_timestamp(),
+  `d_created` timestamp NULL DEFAULT utc_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
-  `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `d_updated` timestamp NULL,
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `key_partnersettingss` (`partner_id`,`mailhost`,`mailusername`)
@@ -182,9 +182,9 @@ CREATE TABLE IF NOT EXISTS `mst_reportpivots` (
   `desc` varchar(200) DEFAULT NULL,
   `viewsql` text DEFAULT NULL,
   `perms` int(11) DEFAULT NULL,
-  `d_created` timestamp NULL DEFAULT current_timestamp(),
+  `d_created` timestamp NULL DEFAULT utc_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
-  `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `d_updated` timestamp NULL,
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
@@ -200,9 +200,9 @@ CREATE TABLE IF NOT EXISTS `mst_reports` (
   `c_name` varchar(200) DEFAULT NULL,
   `c_sql` text DEFAULT NULL,
   `perms` int(11) DEFAULT NULL,
-  `d_created` timestamp NULL DEFAULT current_timestamp(),
+  `d_created` timestamp NULL DEFAULT utc_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
-  `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `d_updated` timestamp NULL,
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
@@ -224,9 +224,9 @@ CREATE TABLE IF NOT EXISTS `mst_users` (
   `password` varchar(255) DEFAULT NULL,
   `perms` varchar(255) DEFAULT NULL,
   `status` tinyint(1) DEFAULT 1,
-  `d_created` timestamp NULL DEFAULT current_timestamp(),
+  `d_created` timestamp NULL DEFAULT utc_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
-  `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `d_updated` timestamp NULL,
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `key_usersc_name` (`partner_id`,`c_name`),
@@ -257,9 +257,9 @@ CREATE TABLE IF NOT EXISTS `sys_auditlogs` (
   `os` varchar(50) GENERATED ALWAYS AS (json_value(`devicedetails`,'$.os_title')) VIRTUAL,
   `browser` varchar(50) GENERATED ALWAYS AS (json_value(`devicedetails`,'$.browser_tiltle')) VIRTUAL,
   `hashchain` char(64) DEFAULT NULL COMMENT 'SHA-256 of current and previous record datadiff field',
-  `d_created` timestamp NULL DEFAULT current_timestamp(),
+  `d_created` timestamp NULL DEFAULT utc_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
-  `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `d_updated` timestamp NULL,
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `key_auditlogsuseraction` (`user_id`,`actionname`,`entitytype`,`entityid`)
@@ -274,9 +274,9 @@ DELETE FROM `sys_auditlogs`;
 CREATE TABLE IF NOT EXISTS `sys_blocked_ips` (
   `ip_address` varchar(45) NOT NULL,
   `reason` varchar(255) DEFAULT 'Brute force detected',
-  `blocked_at` timestamp NULL DEFAULT current_timestamp(),
+  `blocked_at` timestamp NULL DEFAULT utc_timestamp(),
   PRIMARY KEY (`ip_address`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
 -- Dumping data for table pwo.sys_blocked_ips: 0 rows
 DELETE FROM `sys_blocked_ips`;
@@ -290,12 +290,12 @@ CREATE TABLE IF NOT EXISTS `sys_job_queues` (
   `payload` json NOT NULL CHECK (json_valid(`payload`)),
   `status` enum('pending','processing','completed','failed') DEFAULT 'pending',
   `attempts` int(11) DEFAULT 0,
-  `available_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `available_at` timestamp NOT NULL DEFAULT utc_timestamp(),
   `error_message` text DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `created_at` timestamp NULL DEFAULT utc_timestamp(),
   PRIMARY KEY (`id`),
   KEY `idx_status_availability` (`status`,`available_at`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
 -- Dumping data for table pwo.sys_job_queues: 0 rows
 DELETE FROM `sys_job_queues`;
@@ -307,7 +307,7 @@ CREATE TABLE IF NOT EXISTS `sys_login_attempts` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `username` varchar(191) NOT NULL,
   `ip_address` varchar(45) NOT NULL,
-  `attempted_at` timestamp NULL DEFAULT current_timestamp(),
+  `attempted_at` timestamp NULL DEFAULT utc_timestamp(),
   PRIMARY KEY (`id`),
   KEY `idx_ip_time` (`ip_address`,`attempted_at`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci PAGE_CHECKSUM=1;
@@ -327,9 +327,9 @@ CREATE TABLE IF NOT EXISTS `sys_methods` (
   `description` text DEFAULT NULL,
   `perms` varchar(255) DEFAULT NULL,
   `status` tinyint(4) DEFAULT NULL,
-  `d_created` timestamp NULL DEFAULT current_timestamp(),
+  `d_created` timestamp NULL DEFAULT utc_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
-  `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `d_updated` timestamp NULL,
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `key_usersc_name` (`controllername`,`controllermethod`),
@@ -376,9 +376,9 @@ CREATE TABLE IF NOT EXISTS `sys_modules` (
   `c_name` varchar(255) DEFAULT NULL,
   `perms` varchar(255) DEFAULT NULL,
   `status` tinyint(4) DEFAULT NULL,
-  `d_created` timestamp NULL DEFAULT current_timestamp(),
+  `d_created` timestamp NULL DEFAULT utc_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
-  `d_updated` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `d_updated` timestamp NULL,
   `u_updated` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `key_modulescname` (`c_name`),

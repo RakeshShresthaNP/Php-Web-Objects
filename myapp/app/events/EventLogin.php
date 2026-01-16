@@ -41,7 +41,7 @@ final class EventLogin
         ]);
 
         // Check for block (5 fails in 10 mins)
-        $stmt = $this->db->prepare("SELECT COUNT(*) FROM sys_login_attempts WHERE ip_address = ? AND attempted_at > DATE_SUB(NOW(), INTERVAL 10 MINUTE)");
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM sys_login_attempts WHERE ip_address = ? AND attempted_at > DATE_SUB(UTC_TIMESTAMP(), INTERVAL 10 MINUTE)");
         $stmt->execute([
             $this->ip
         ]);

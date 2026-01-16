@@ -46,7 +46,7 @@ final class QueueWorker
         $stmt = $this->db->prepare("
             SELECT * FROM sys_job_queues
             WHERE status = 'pending'
-            AND available_at <= NOW()
+            AND available_at <= UTC_TIMESTAMP()
             AND attempts < ?
             ORDER BY created_at ASC LIMIT 1
         ");
@@ -89,7 +89,7 @@ final class QueueWorker
                 SET status = 'pending',
                     attempts = ?,
                     error_message = ?,
-                    available_at = DATE_ADD(NOW(), INTERVAL ? MINUTE)
+                    available_at = DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? MINUTE)
                 WHERE id = ?
             ");
             $stmt->execute([

@@ -37,7 +37,7 @@ final class EventForgotPassword
             // 2. Check for brute force (5 fails in 10 mins)
             $stmt = $this->db->prepare("
                 SELECT COUNT(*) FROM sys_login_attempts
-                WHERE ip_address = ? AND attempted_at > DATE_SUB(NOW(), INTERVAL 10 MINUTE)
+                WHERE ip_address = ? AND attempted_at > DATE_SUB(UTC_TIMESTAMP(), INTERVAL 10 MINUTE)
             ");
             $stmt->execute([
                 $this->ip
@@ -57,7 +57,7 @@ final class EventForgotPassword
             SELECT 1 FROM sys_job_queues
             WHERE task_name = 'send_forgot_password_email'
             AND payload LIKE ?
-            AND created_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+            AND created_at > DATE_SUB(UTC_TIMESTAMP(), INTERVAL 5 MINUTE)
             LIMIT 1
         ");
         // We look for the email inside the JSON payload column

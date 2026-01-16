@@ -12,7 +12,7 @@
  */
 declare(strict_types = 1);
 
-define('APP_DIR', realpath(dirname(__FILE__)) . '/../app/');
+define('APP_DIR', realpath(dirname(__FILE__)) . '/');
 
 require_once APP_DIR . 'config/config.php';
 require_once APP_DIR . 'bootstrap/corefuncs.php';
