@@ -44,3 +44,18 @@ define('VIEW_DIR', APP_DIR . 'views/');
 define('MODS_DIR', APP_DIR . 'models/');
 define('EVENTS_DIR', APP_DIR . 'events/');
 define('QUEUES_DIR', APP_DIR . 'queues/');
+
+date_default_timezone_set(SYSTEM_TIMEZONE);
+
+if (DEBUG) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+} else {
+    error_reporting(0);
+    ini_set('display_errors', 0);
+    ini_set('display_startup_errors', 0);
+}
+
+ini_set('log_errors', 1);
+ini_set('error_logs', APP_DIR . 'logs/app_errors.log');

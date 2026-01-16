@@ -22,15 +22,7 @@ if ($_SERVER["SERVER_PORT"] != 80 && $_SERVER["SERVER_PORT"] != 443) {
 define('SITE_URI', $siteuri);
 define('PATH_URI', dirname($_SERVER["SCRIPT_NAME"]));
 
-require_once APP_DIR . 'coreroutines.php';
-
-date_default_timezone_set(SYSTEM_TIMEZONE);
-
-if (DEBUG) {
-    error_reporting(E_ALL);
-} else {
-    error_reporting(0);
-}
+require_once APP_DIR . 'bootstrap/coreclasses.php';
 
 $request = req();
 $response = res();
@@ -55,3 +47,6 @@ try {
 
     $response->view($data, 'errors/exception');
 }
+
+exit();
+
