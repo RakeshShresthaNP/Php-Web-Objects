@@ -78,7 +78,7 @@ function getDataDiff(array &$arr1, array &$arr2): array
     return $changes;
 }
 
-function clean(string $string = null): string
+function clean(string $string = ''): string
 {
     return strip_tags(mb_trim($string));
 }
@@ -275,7 +275,7 @@ function createDir(string $path, $mode = 0777, bool $rec = true): bool
     return true;
 }
 
-function writeLog(string $type = 'mylog', mixed $msg): void
+function writeLog(string $type = 'mylog', mixed $msg = ''): void
 {
     $file = APP_DIR . 'logs/' . $type . '.txt';
     $datetime = date('Y-m-d H:i:s');
