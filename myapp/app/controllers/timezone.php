@@ -20,7 +20,13 @@ final class cTimezone extends cController
 
     public function api_gettimezone()
     {
-        $data['data'] = null;
+        $timezones = DateTimeZone::listIdentifiers();
+
+        foreach ($timezones as $tz) {
+            $tzs[$tz] = $tz;
+        }
+
+        $data['data'] = $tzs;
 
         $this->res->json($data);
     }

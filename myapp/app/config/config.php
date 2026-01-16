@@ -12,7 +12,7 @@
  */
 declare(strict_types = 1);
 
-define('SYSTEM_TIMEZONE', 'Asia/Kathmandu');
+define('SYSTEM_TIMEZONE', 'UTC');
 
 define('DEBUG', '1');
 
@@ -65,11 +65,12 @@ ini_set('expose_php', '0');
 // Strict timeout: Kill any script taking longer than 10 seconds
 set_time_limit(10);
 
-// Limit the memory a single script can use (e.g., 128 Megabytes)
-ini_set('memory_limit', '128M');
+// Limit the memory a single script can use (e.g., 64 Megabytes)
+ini_set('memory_limit', '64M');
 
 // Ensure database/file writes finish even if the user closes their tab
 ignore_user_abort(true);
 
 // Limit how long PHP spends parsing file uploads
 ini_set('max_input_time', '60');
+
