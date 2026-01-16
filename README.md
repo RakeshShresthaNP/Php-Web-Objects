@@ -141,7 +141,7 @@ This framework is engineered for environments where performance, disk space, and
 | Feature | This Framework | Node.js (Express/Nest) | Python (Django/FastAPI) |
 | :--- | :--- | :--- | :--- |
 | **Memory Footprint** | **Ultra-Low (OPCache PHP)** | High (V8 Engine overhead) | Moderate to High (Interpreter) |
-| **App Library Size** | **Slim (< 2.8MB Core)** | Massive (`node_modules`) | Large (Virtual Envs / Libs) |
+| **App Library Size** | **Slim (< 3MB Core)** | Massive (`node_modules`) | Large (Virtual Envs / Libs) |
 | **Dependency Model** | Native / Integrated | NPM (Third-party heavy) | Pip (Heavy external pkgs) |
 | **Cold Start Time** | Near-Instant | Moderate | Slow (especially Django) |
 
@@ -153,7 +153,7 @@ Our core design principle is **"Zero-Waste Architecture."** By using a native De
 #### 📦 Library & Disk Size Advantage
 Traditional frameworks require downloading thousands of external files to achieve basic functionality. This framework includes its AI, ML, and Finance suites as highly optimized, native components.
 
-* **This Framework Core:** ~2MB - 2.8MB (Full featured)
+* **This Framework Core:** ~3MB (Full featured)
 * **Typical Node.js Project:** 600MB - 1.2GB (due to `node_modules`)
 * **Typical Python Project:** 250MB - 4GB (due to `site-packages` based on standard django app or cutting edge AI/ML applications)
 
