@@ -40,6 +40,7 @@ final class DB
         try {
             self::$_context = new PDO($dsn, $user, $pass, $options);
             self::$_context->exec('SET NAMES utf8');
+            self::$_context->exec("SET time_zone = '+00:00'");
         } catch (PDOException $ex) {
             throw new Exception($ex->getMessage(), $ex->getCode());
         }
