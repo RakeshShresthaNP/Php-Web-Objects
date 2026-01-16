@@ -1,6 +1,6 @@
 Simple/Easy to learn and high-performance, lightweight PHP MVC framework that bridges the gap between traditional web development and cutting-edge data science. By combining a minimalist core with powerful Gemini-powered AI, Machine Learning and Financial Analytics Libraries, it allows developers to build complex, secure, and data-driven applications without the bloat. Whether you are managing Dynamic Website or Web Application (Traditional or Modern Ajax Powered) or Restful API services or Data Driven Machine Learning and AI Powered application, PHP Web Objects provides the tools and classes you need.
 
-<img src="https://github.com/RakeshShresthaNP/Php-Web-Objects/blob/main/screen/dashboard2.png?raw=true" alt="Dashboard" />
+<img src="https://github.com/RakeshShresthaNP/Php-Web-Objects/blob/main/screen/dashboard.png?raw=true" alt="Dashboard" />
 
 <img src="https://github.com/RakeshShresthaNP/VWEB-Dashboard/blob/main/imgs/pivot_table.gif?raw=true" alt="Dashboard" />
 
