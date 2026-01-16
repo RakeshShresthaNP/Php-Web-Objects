@@ -1,0 +1,8 @@
+{
+  "name": "Wallet App",
+  "short_name": "Wallet App",
+  "theme_color": "#1D1D1D",
+  "background_color": "#121212",
+  "display": "standalone",
+  "orientation": "portrait"
+}

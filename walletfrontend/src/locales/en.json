@@ -1,0 +1,179 @@
+{
+  "app": {
+    "name": "Wallet",
+    "tagline": "Maximize your waste into opportunities"
+  },
+  "auth": {
+    "login": "Login",
+    "username": "Username",
+    "password": "Password",
+    "loginSuccess": "Login successful!",
+    "loginError": "Username or password incorrect",
+    "formIncomplete": "Please complete the form correctly",
+    "noAccount": "Don't have an account? Please register at the nearest Waste Bank Unit",
+    "forgotPassword": "Forgot password? Recover it",
+    "here": "here"
+  },
+  "home": {
+    "services": "Services",
+    "todayPromo": "Today's Promo",
+    "depositHistory": "Deposit History"
+  },
+  "balance": {
+    "yourBalance": "Your Balance",
+    "yourPoints": "Your Points"
+  },
+  "services": {
+    "deposit": "Deposit",
+    "transfer": "Send Money",
+    "withdraw": "Withdraw",
+    "exchangePoints": "Exchange Points"
+  },
+  "deposit": {
+    "title": "Deposit",
+    "subtitle": "Deposit your waste here",
+    "form": "Form",
+    "formHint": "Please fill out the form below correctly",
+    "wasteKg": "kg waste",
+    "wasteWeight": "Waste Weight",
+    "method": "Method",
+    "depositMethod": "Deposit Method",
+    "selfDelivery": "Self Delivery",
+    "pickupService": "Pickup Service",
+    "pickupLocation": "Select Pickup Location",
+    "wasteBankUnit": "Waste Bank Unit",
+    "unitHandilBakti": "Unit Handil Bakti",
+    "unitAlalak": "Unit Alalak",
+    "deliveryHint": "Only for self delivery method",
+    "wasteCategory": "Waste Category",
+    "depositButton": "Deposit"
+  },
+  "wasteCategories": {
+    "cardboard": "Cardboard",
+    "can": "Can",
+    "bottle": "Bottle",
+    "plastic": "Plastic"
+  },
+  "marketplace": {
+    "title": "Marketplace",
+    "subtitle": "Buy SME products here",
+    "searchPlaceholder": "Search products...",
+    "allCategories": "All Categories",
+    "accessories": "Accessories",
+    "bag": "Bag",
+    "craft": "Craft",
+    "food": "Food",
+    "drink": "Drink",
+    "sortDefault": "Default",
+    "sortPriceLow": "Price: Low to High",
+    "sortPriceHigh": "Price: High to Low",
+    "sortRating": "Highest Rating",
+    "sortName": "Name A-Z",
+    "showingProducts": "Showing {count} products",
+    "noProductsFound": "No products found",
+    "viewingDetail": "Viewing detail {name}"
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Manage your account and personal data",
+    "registeredSince": "Account registered since {date}",
+    "settings": {
+      "username": "Username",
+      "usernameDesc": "Manage your username here",
+      "email": "Email",
+      "emailDesc": "Manage your email here",
+      "password": "Password",
+      "passwordDesc": "Manage your password here",
+      "logout": "Logout",
+      "logoutDesc": "Logout from your account"
+    },
+    "highlights": {
+      "wasteDeposited": "Waste Deposited",
+      "pointsEarned": "Points Earned",
+      "productsBought": "Products Bought"
+    }
+  },
+  "transfer": {
+    "title": "Send Money",
+    "subtitle": "Use your balance to send money",
+    "accountList": "Your Account List",
+    "selectDestination": "Please select destination account",
+    "otherServices": "Other",
+    "otherServicesHint": "Want to use other services?",
+    "withdrawCash": "Withdraw Cash",
+    "exchangePoints": "Exchange Points"
+  },
+  "withdraw": {
+    "title": "Withdraw",
+    "subtitle": "Withdraw your balance in cash",
+    "selectMethod": "Select Method",
+    "selectMethodHint": "Please select your withdrawal method",
+    "bankTransfer": "Bank Transfer",
+    "other": "Other"
+  },
+  "exchangePoints": {
+    "title": "Exchange Points",
+    "subtitle": "Get interesting items here"
+  },
+  "cart": {
+    "title": "Cart",
+    "subtitle": "View all your cart items here"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "View your latest notifications here",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "pointsAdded": "You received {points} additional points",
+    "exchangeSuccess": "Point Exchange Successful",
+    "exchangeSuccessDesc": "You have successfully exchanged 200 points for XL 2GB quota voucher",
+    "depositSuccess": "Waste Deposit Successful",
+    "depositSuccessDesc": "You have successfully deposited 1kg cardboard worth Rp45,000.00"
+  },
+  "history": {
+    "noDepositHistory": "No deposit history yet"
+  },
+  "help": {
+    "contact": "Please contact",
+    "helpCenter": "Help Center",
+    "ifIssues": "if you experience issues using the service"
+  },
+  "errors": {
+    "generic": "An error occurred. Please try again.",
+    "invalidRequest": "Invalid request",
+    "sessionExpired": "Your session has expired. Please login again.",
+    "noPermission": "You do not have permission to perform this action",
+    "notFound": "Data not found",
+    "invalidData": "The entered data is invalid",
+    "tooManyRequests": "Too many requests. Please try again later.",
+    "serverError": "An error occurred on the server. Please try again later.",
+    "serviceUnavailable": "Service is currently unavailable. Please try again later.",
+    "networkError": "Cannot connect to server. Check your internet connection.",
+    "unknownError": "An unknown error occurred"
+  },
+  "validation": {
+    "bankNameRequired": "Bank name is required",
+    "wasteTypeRequired": "Waste type must be selected",
+    "wasteWeightRequired": "Waste weight is required",
+    "wasteWeightPositive": "Waste weight must be greater than 0",
+    "wasteWeightMin": "Minimum weight is 0.1 kg",
+    "pointsRequired": "Points amount is required",
+    "pointsPositive": "Points amount must be greater than 0",
+    "pointsInteger": "Points amount must be an integer",
+    "pointsMin": "Minimum exchange is 100 points",
+    "usernameRequired": "Username is required",
+    "usernameMin": "Username must be at least 3 characters",
+    "passwordRequired": "Password is required",
+    "passwordMin": "Password must be at least 6 characters",
+    "recipientRequired": "Recipient account number is required",
+    "recipientNumeric": "Account number must be numeric",
+    "amountRequired": "Amount is required",
+    "amountPositive": "Amount must be greater than 0",
+    "transferMin": "Minimum transfer is Rp 10,000",
+    "withdrawMin": "Minimum withdrawal is Rp 50,000",
+    "accountRequired": "Account number is required",
+    "accountNumeric": "Account number must be numeric",
+    "noteMax": "Note maximum is 100 characters"
+  }
+}
+

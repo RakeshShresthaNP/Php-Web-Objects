@@ -1,0 +1,31 @@
+interface Setting {
+  name: string
+  description: string
+  to: string
+}
+
+const settings: Setting[] = [
+  {
+    name: 'Nama pengguna',
+    description: 'Atur nama pengguna anda disini',
+    to: ''
+  },
+  {
+    name: 'Email',
+    description: 'Atur email anda disini',
+    to: ''
+  },
+  {
+    name: 'Kata sandi',
+    description: 'Atur kata sandi anda disini',
+    to: ''
+  },
+  {
+    name: 'Keluar',
+    description: 'Keluar dari akun anda',
+    to: 'Login'
+  }
+]
+
+export default settings
+

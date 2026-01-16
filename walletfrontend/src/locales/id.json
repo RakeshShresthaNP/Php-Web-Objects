@@ -1,0 +1,179 @@
+{
+  "app": {
+    "name": "Echo Wallet",
+    "tagline": "Maksimalkan sampah anda menjadi sebuah peluang"
+  },
+  "auth": {
+    "login": "Login",
+    "username": "Username",
+    "password": "Password",
+    "loginSuccess": "Login berhasil!",
+    "loginError": "Username atau password salah",
+    "formIncomplete": "Mohon lengkapi form dengan benar",
+    "noAccount": "Belum punya akun ? Silahkan lakukan pendaftaran di Unit Bank Sampah terdekat",
+    "forgotPassword": "Lupa kata sandi ? Lakukan pemulihan",
+    "here": "disini"
+  },
+  "home": {
+    "services": "Layanan",
+    "todayPromo": "Promo hari ini",
+    "depositHistory": "Riwayat penyetoran"
+  },
+  "balance": {
+    "yourBalance": "Saldo anda",
+    "yourPoints": "Point anda"
+  },
+  "services": {
+    "deposit": "Setor",
+    "transfer": "Kirim Uang",
+    "withdraw": "Tarik Tunai",
+    "exchangePoints": "Tukar Poin"
+  },
+  "deposit": {
+    "title": "Setor",
+    "subtitle": "Setor sampah anda disini",
+    "form": "Formulir",
+    "formHint": "Silahkan isi form dibawah ini dengan benar",
+    "wasteKg": "kg sampah",
+    "wasteWeight": "Berat sampah",
+    "method": "Metode",
+    "depositMethod": "Metode setor",
+    "selfDelivery": "Antar sendiri",
+    "pickupService": "Jemput petugas",
+    "pickupLocation": "Pilih lokasi penjemputan",
+    "wasteBankUnit": "Unit Bank sampah",
+    "unitHandilBakti": "Unit Handil Bakti",
+    "unitAlalak": "Unit Alalak",
+    "deliveryHint": "Hanya untuk metode pengantaran antar sendiri",
+    "wasteCategory": "Kategori sampah",
+    "depositButton": "Setor"
+  },
+  "wasteCategories": {
+    "cardboard": "Kardus",
+    "can": "Kaleng",
+    "bottle": "Botol",
+    "plastic": "Plastik"
+  },
+  "marketplace": {
+    "title": "Marketplace",
+    "subtitle": "Beli produk UKM disini",
+    "searchPlaceholder": "Cari produk...",
+    "allCategories": "Semua Kategori",
+    "accessories": "Aksesoris",
+    "bag": "Tas",
+    "craft": "Kerajinan",
+    "food": "Makanan",
+    "drink": "Minuman",
+    "sortDefault": "Default",
+    "sortPriceLow": "Harga: Rendah ke Tinggi",
+    "sortPriceHigh": "Harga: Tinggi ke Rendah",
+    "sortRating": "Rating Tertinggi",
+    "sortName": "Nama A-Z",
+    "showingProducts": "Menampilkan {count} produk",
+    "noProductsFound": "Tidak ada produk ditemukan",
+    "viewingDetail": "Melihat detail {name}"
+  },
+  "profile": {
+    "title": "Profil",
+    "subtitle": "Atur akun dan data diri anda",
+    "registeredSince": "Akun tedaftar sejak {date}",
+    "settings": {
+      "username": "Nama pengguna",
+      "usernameDesc": "Atur nama pengguna anda disini",
+      "email": "Email",
+      "emailDesc": "Atur email anda disini",
+      "password": "Kata sandi",
+      "passwordDesc": "Atur kata sandi anda disini",
+      "logout": "Keluar",
+      "logoutDesc": "Keluar dari akun anda"
+    },
+    "highlights": {
+      "wasteDeposited": "Sampah disetor",
+      "pointsEarned": "Poin diraih",
+      "productsBought": "Produk dibeli"
+    }
+  },
+  "transfer": {
+    "title": "Kirim Uang",
+    "subtitle": "Gunakan saldo anda untuk berkirim uang",
+    "accountList": "Daftar rekening anda",
+    "selectDestination": "Silahkan memilih rekening tujuan",
+    "otherServices": "Lainnya",
+    "otherServicesHint": "Ingin menggunakan layanan lain ?",
+    "withdrawCash": "Tarik tunai",
+    "exchangePoints": "Tukar point"
+  },
+  "withdraw": {
+    "title": "Tarik Tunai",
+    "subtitle": "Tarik saldo anda dalam bentuk tunai",
+    "selectMethod": "Pilih metode",
+    "selectMethodHint": "Silahkan memilih metode penarikan anda",
+    "bankTransfer": "Bank Transfer",
+    "other": "Lainnya"
+  },
+  "exchangePoints": {
+    "title": "Tukar Poin",
+    "subtitle": "Dapatkan item menarik disini"
+  },
+  "cart": {
+    "title": "Keranjang",
+    "subtitle": "Lihat semua keranjang disini"
+  },
+  "notifications": {
+    "title": "Notifikasi",
+    "subtitle": "Lihat notifikasi terbaru anda disni",
+    "today": "Hari ini",
+    "yesterday": "Kemarin",
+    "pointsAdded": "Anda mendapatkan tambahan {points} poin",
+    "exchangeSuccess": "Tukar poin sukses",
+    "exchangeSuccessDesc": "Anda telah sukses menukarkan 200 poin anda dengan voucher kuota XL 2GB",
+    "depositSuccess": "Setor sampah sukses",
+    "depositSuccessDesc": "Anda telah sukses setor 1kg kardus seharga Rp45.000,00,--"
+  },
+  "history": {
+    "noDepositHistory": "Belum ada riwayat penyetoran"
+  },
+  "help": {
+    "contact": "Silahkan hubungi",
+    "helpCenter": "Pusat Bantuan",
+    "ifIssues": "jika mengalami kendala dalam menggunakan layanan"
+  },
+  "errors": {
+    "generic": "Terjadi kesalahan. Silakan coba lagi.",
+    "invalidRequest": "Permintaan tidak valid",
+    "sessionExpired": "Sesi Anda telah berakhir. Silakan login kembali.",
+    "noPermission": "Anda tidak memiliki izin untuk melakukan aksi ini",
+    "notFound": "Data tidak ditemukan",
+    "invalidData": "Data yang dimasukkan tidak valid",
+    "tooManyRequests": "Terlalu banyak permintaan. Silakan coba lagi nanti.",
+    "serverError": "Terjadi kesalahan pada server. Silakan coba lagi nanti.",
+    "serviceUnavailable": "Layanan sedang tidak tersedia. Silakan coba lagi nanti.",
+    "networkError": "Tidak dapat terhubung ke server. Periksa koneksi internet Anda.",
+    "unknownError": "Terjadi kesalahan yang tidak diketahui"
+  },
+  "validation": {
+    "bankNameRequired": "Nama bank wajib diisi",
+    "wasteTypeRequired": "Jenis sampah wajib dipilih",
+    "wasteWeightRequired": "Berat sampah wajib diisi",
+    "wasteWeightPositive": "Berat sampah harus lebih dari 0",
+    "wasteWeightMin": "Minimum berat adalah 0.1 kg",
+    "pointsRequired": "Jumlah poin wajib diisi",
+    "pointsPositive": "Jumlah poin harus lebih dari 0",
+    "pointsInteger": "Jumlah poin harus berupa bilangan bulat",
+    "pointsMin": "Minimum penukaran adalah 100 poin",
+    "usernameRequired": "Username wajib diisi",
+    "usernameMin": "Username minimal 3 karakter",
+    "passwordRequired": "Password wajib diisi",
+    "passwordMin": "Password minimal 6 karakter",
+    "recipientRequired": "Nomor rekening tujuan wajib diisi",
+    "recipientNumeric": "Nomor rekening harus berupa angka",
+    "amountRequired": "Jumlah transfer wajib diisi",
+    "amountPositive": "Jumlah transfer harus lebih dari 0",
+    "transferMin": "Minimum transfer adalah Rp 10.000",
+    "withdrawMin": "Minimum penarikan adalah Rp 50.000",
+    "accountRequired": "Nomor rekening wajib diisi",
+    "accountNumeric": "Nomor rekening harus berupa angka",
+    "noteMax": "Catatan maksimal 100 karakter"
+  }
+}
+
