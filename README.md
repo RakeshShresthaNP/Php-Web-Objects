@@ -4,6 +4,8 @@ Simple/Easy to learn and high-performance, lightweight PHP MVC framework that br
 
 <img src="https://github.com/RakeshShresthaNP/Php-Web-Objects/blob/main/screen/walletscreenshot.png?raw=true" alt="Dashboard" />
 
+---
+
 <img src="https://github.com/RakeshShresthaNP/VWEB-Dashboard/blob/main/imgs/pivot_table.gif?raw=true" alt="Dashboard" />
 
 <img src="https://github.com/RakeshShresthaNP/VWEB-Dashboard/blob/main/imgs/aipivotsystem.gif?raw=true" alt="Dashboard" />
@@ -171,6 +173,7 @@ Traditional frameworks require downloading thousands of external files to achiev
 3.  **No Middleware Bloat:** While other frameworks require 20+ "packages" for basic security and routing, this framework handles these natively within a single coreroutines file.
 
 > **Why it matters:** Lower library size means faster deployment, smaller Docker images, and lower storage costs on cloud providers. It is very simple to say using less libraries we decrease processing also.
+
 
 
 
