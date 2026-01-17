@@ -94,7 +94,7 @@ final class cAuth extends cController
             if ($user) {
                 $passwordValid = false;
 
-                if (password_verify($password, $user->password)) {
+                if (AuthSecurity::verifyAndUpgrade($params['password'], $user->password, $user->id)) {
                     $passwordValid = true;
                 }
 
