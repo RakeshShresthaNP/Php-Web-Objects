@@ -20,8 +20,9 @@ final class cLogin extends cController
 
     public function index()
     {
+        $db = db();
         $ip = $this->currentuserip;
-        $isBlocked = db()->prepare("SELECT 1 FROM sys_blocked_ips WHERE ip_address = ?");
+        $isBlocked = $db->prepare("SELECT 1 FROM sys_blocked_ips WHERE ip_address = ?");
         $isBlocked->execute([
             $ip
         ]);
@@ -42,47 +43,51 @@ final class cLogin extends cController
 
             $muser = new user();
 
-            // Validate input
-            $username = isset($_POST['username']) ? trim($_POST['username']) : '';
-            $password = isset($_POST['password']) ? $_POST['password'] : '';
+            $params = getRequestData();
 
-            if (empty($username) || empty($password)) {
-                $this->res->redirect('login', '<div class="text-error-500">Username and password are required!</div>');
+            $rules = [
+                'username' => 'required|email',
+                'password' => 'required|password'
+            ];
+
+            $v = Validator::make($params, $rules);
+
+            if ($v->fails()) {
+                $this->res->redirect('login', '<div class="text-error-500">Username or Password Invalid</div>');
                 return;
             }
 
-            $user = $muser->where('email', $username)->find();
+            $user = $muser->where('email', $params['username'])->find();
 
             if (! $user) {
-                $this->dispatcher->dispatch(new EventLogin($username, $ip, false));
+                $this->dispatcher->dispatch(new EventLogin($params['username'], $ip, false));
 
                 $this->res->redirect('login', '<div class="text-error-500">USER NOT FOUND!</div>');
                 return;
             }
 
-            // Check if password is hashed with password_hash or old md5
             $passwordValid = false;
 
-            if (password_verify($password, $user->password)) {
+            if (AuthSecurity::verifyAndUpgrade($params['password'], $user->password, $user->id)) {
                 $passwordValid = true;
             }
 
             if (! $passwordValid) {
-                $this->dispatcher->dispatch(new EventLogin($username, $ip, false));
+                $this->dispatcher->dispatch(new EventLogin($params['username'], $ip, false));
 
                 $this->res->redirect('login', '<div class="text-error-500">WRONG PASSWORD!</div>');
                 return;
             }
 
             if ($user->status == 2) {
-                $this->dispatcher->dispatch(new EventLogin($username, $ip, false));
+                $this->dispatcher->dispatch(new EventLogin($params['username'], $ip, false));
 
                 $this->res->redirect('login', '<div class="text-error-500">USER DISABLED!</div>');
                 return;
             }
 
             if ($user->perms != 'superadmin' && $user->partner_id != $this->partner->id) {
-                $this->dispatcher->dispatch(new EventLogin($username, $ip, false));
+                $this->dispatcher->dispatch(new EventLogin($params['username'], $ip, false));
 
                 $this->res->redirect('login', '<div class="text-error-500">User does not exist</div>');
                 return;
@@ -90,13 +95,13 @@ final class cLogin extends cController
 
             setCurrentUser($user);
 
-            $this->dispatcher->dispatch(new EventLogin($username, $ip, true));
+            $this->dispatcher->dispatch(new EventLogin($params['username'], $ip, true));
 
             $cutype = $user->perms;
 
             $this->res->redirect($user->homepath);
 
-            $data['username'] = $username;
+            $data['username'] = $params['username'];
             $data['user'] = $user;
 
             exit();
@@ -107,8 +112,9 @@ final class cLogin extends cController
 
     public function forgotpass()
     {
+        $db = db();
         $ip = $this->currentuserip;
-        $isBlocked = db()->prepare("SELECT 1 FROM sys_blocked_ips WHERE ip_address = ?");
+        $isBlocked = $db->prepare("SELECT 1 FROM sys_blocked_ips WHERE ip_address = ?");
         $isBlocked->execute([
             $ip
         ]);
@@ -129,37 +135,43 @@ final class cLogin extends cController
             try {
                 $muser = new user();
 
-                $username = isset($_POST['username']) ? trim($_POST['username']) : '';
+                $params = getRequestData();
 
-                if (empty($username)) {
+                $rules = [
+                    'username' => 'required|email'
+                ];
+
+                $v = Validator::make($params, $rules);
+
+                if ($v->fails()) {
                     $this->res->redirect('login/forgotpass', '<div class="text-error-500">Username is required!</div>');
                     return;
                 }
 
-                $user = $muser->where('email', $username)->find();
+                $user = $muser->where('email', $params['username'])->find();
 
                 if (! $user) {
-                    $this->dispatcher->dispatch(new EventForgotPassword($username, $ip, false));
+                    $this->dispatcher->dispatch(new EventForgotPassword($params['username'], $ip, false));
 
                     $this->res->redirect('login/forgotpass', '<div class="text-error-500">User does not exist!</div>');
                     return;
                 }
 
                 if ($user->status == 2) {
-                    $this->dispatcher->dispatch(new EventForgotPassword($username, $ip, false));
+                    $this->dispatcher->dispatch(new EventForgotPassword($params['username'], $ip, false));
 
                     $this->res->redirect('login/forgotpass', '<div class="text-error-500">User is disableddoes not exist!</div>');
                     return;
                 }
 
                 if ($user->perms != 'superadmin' && $user->partner_id != $this->partner->id) {
-                    $this->dispatcher->dispatch(new EventForgotPassword($username, $ip, false));
+                    $this->dispatcher->dispatch(new EventForgotPassword($params['username'], $ip, false));
 
                     $this->res->redirect('login', '<div class="text-error-500">User does not exist</div>');
                     return;
                 }
 
-                $this->dispatcher->dispatch(new EventForgotPassword($username, $ip, true, $user, $this->partner));
+                $this->dispatcher->dispatch(new EventForgotPassword($params['username'], $ip, true, $user, $this->partner));
 
                 $this->res->redirect('login/forgotpass', '<div class="text-brand-500">Your password has been mailed to you!</div>');
             } catch (Exception $e) {

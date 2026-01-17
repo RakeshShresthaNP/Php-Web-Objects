@@ -67,16 +67,21 @@ final class cAuth extends cController
             throw new ApiException("Your IP is blocked.", 503);
         }
 
-        $fdata = json_decode(file_get_contents('php://input'), true);
-
-        /* XSS Prevention */
-        $fdata = array_map_recursive($fdata, "cleanHtml");
-
         if ($this->req->isPost()) {
 
-            // Validate input
-            if (empty($fdata['username']) || empty($fdata['password'])) {
-                throw new ApiException('Username and password are required', 405);
+            $fdata = getRequestData();
+
+            $rules = [
+                'username' => 'required|email',
+                'password' => 'required|password'
+            ];
+
+            $v = Validator::make($fdata, $rules);
+
+            if ($v->fails()) {
+                $errors = json_encode($v->errors());
+                throw new ApiException($errors, 405);
+                return;
             }
 
             $muser = new user();

@@ -28,8 +28,8 @@ Simple/Easy to learn and high-performance, lightweight PHP MVC framework that br
 * [Benchmarks & Resource Efficiency](#9-benchmarks--resource-efficiency)
 
 ### Password Values
-* superadmin@gmail.com = Mytest123
-* user@gmail.com = Mytest123
+* superadmin@gmail.com = Mytest@123
+* user@gmail.com = Mytest@123
 
 ---
 
@@ -130,7 +130,7 @@ $results = $user->paginateGraph($schema, 1, 10);
 * **Hardened Security:** Built-in protection against XSS and SQL Injection.
 * **Auth & API:** Integrated Authentication scaffolding and JWT API support.
 * **Modern UI:** Dashboard integration with pre-built visual elements. For AI compatibility and further info https://github.com/RakeshShresthaNP/VWEB-Dashboard
-* **Extended Libraries:** Event/Queue Management Mechanism, AuditLog Data Structure, Mailer(Native PHP or SMTP), Support for Firebase Messaging, SMPP (SMSC), QR Codes, AES Encryption, Time based OTP, Excel (XLSX) Import, Pagination, and SoapClient for NTLMStream.
+* **Extended Libraries:** Event/Queue Management Mechanism, AuditLog Data Structure, Mailer(Native PHP or SMTP), Data Validation Rules,Support for Firebase Messaging, SMPP (SMSC), QR Codes, AES Encryption, Time based OTP, Excel (XLSX) Import, Pagination, and SoapClient for NTLMStream.
 
 ---
 

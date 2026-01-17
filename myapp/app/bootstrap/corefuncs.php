@@ -37,29 +37,19 @@ function cache(): object
     return Cache::getContext(CACHE_TYPE);
 }
 
-if (! function_exists('bool_array_search')) {
+function getRequestData(): array
+{
+    $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
 
-    function bool_array_search(string $string = '', array &$aval = array()): bool
-    {
-        foreach ($aval as $val) {
-            if (strstr($val, "'" . $string . "'")) {
-                return true;
-            }
-        }
-        return false;
+    // Clean the content type (removes ;charset=utf-8)
+    $cleanType = strtolower(explode(';', $contentType)[0]);
+
+    if ($cleanType === 'application/json') {
+        $raw = file_get_contents('php://input');
+        return json_decode($raw, true) ?? [];
     }
-}
 
-if (! function_exists('array_map_recursive')) {
-
-    function array_map_recursive(array &$arr, string $fn): array
-    {
-        $rarr = array();
-        foreach ($arr as $k => $v) {
-            $rarr[$k] = is_array($v) ? array_map_recursive($v, $fn) : $fn($v);
-        }
-        return $rarr;
-    }
+    return $_POST;
 }
 
 function getDataDiff(array &$arr1, array &$arr2): array
@@ -78,39 +68,40 @@ function getDataDiff(array &$arr1, array &$arr2): array
     return $changes;
 }
 
-function clean(string $string = ''): string
+function genUID(): string
 {
-    return strip_tags(mb_trim($string));
+    $bytes = random_bytes(16);
+    $hex = bin2hex($bytes);
+    return mb_substr($hex, 0, 12);
 }
 
-function cleanHtml(mixed $html = ''): mixed
+function genGUID(): string
 {
-    static $allowed_tags = array(
-        'a',
-        'em',
-        'strong',
-        'cite',
-        'code',
-        'ul',
-        'ol',
-        'li',
-        'dl',
-        'dt',
-        'dd',
-        'table',
-        'tr',
-        'td',
-        'br',
-        'b',
-        'i',
-        'p'
-    );
+    $data = random_bytes(16);
+    $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+    $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
 
-    if (is_string($html)) {
-        return strip_tags($html, $allowed_tags);
-    } else {
-        return $html;
+function createDir(string $path, $mode = 0777, bool $rec = true): bool
+{
+    if (! is_dir($path)) {
+        $oldumask = umask(0);
+        if (! mkdir($path, $mode, $rec)) {
+            umask($oldumask);
+            return false;
+        }
+        umask($oldumask);
     }
+    return true;
+}
+
+function writeLog(string $type = 'mylog', mixed $msg = ''): void
+{
+    $file = APP_DIR . 'logs/' . $type . '.txt';
+    $datetime = date('Y-m-d H:i:s');
+    $logmsg = '###' . $datetime . '### ' . json_encode($msg, JSON_PRETTY_PRINT) . "\r\n";
+    file_put_contents($file, $logmsg, FILE_APPEND | LOCK_EX);
 }
 
 function links(object $meta): string
@@ -247,38 +238,14 @@ function my_mime_content_type(string $filename): string
     }
 }
 
-function genUID(): string
-{
-    $bytes = random_bytes(16);
-    $hex = bin2hex($bytes);
-    return mb_substr($hex, 0, 12);
-}
+if (! function_exists('array_map_recursive')) {
 
-function genGUID(): string
-{
-    $data = random_bytes(16);
-    $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
-    $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
-    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
-}
-
-function createDir(string $path, $mode = 0777, bool $rec = true): bool
-{
-    if (! is_dir($path)) {
-        $oldumask = umask(0);
-        if (! mkdir($path, $mode, $rec)) {
-            umask($oldumask);
-            return false;
+    function array_map_recursive(array &$arr, string $fn): array
+    {
+        $rarr = array();
+        foreach ($arr as $k => $v) {
+            $rarr[$k] = is_array($v) ? array_map_recursive($v, $fn) : $fn($v);
         }
-        umask($oldumask);
+        return $rarr;
     }
-    return true;
-}
-
-function writeLog(string $type = 'mylog', mixed $msg = ''): void
-{
-    $file = APP_DIR . 'logs/' . $type . '.txt';
-    $datetime = date('Y-m-d H:i:s');
-    $logmsg = '###' . $datetime . '### ' . json_encode($msg, JSON_PRETTY_PRINT) . "\r\n";
-    file_put_contents($file, $logmsg, FILE_APPEND | LOCK_EX);
 }
