@@ -238,7 +238,7 @@ DELETE FROM `mst_users`;
 /*!40000 ALTER TABLE `mst_users` DISABLE KEYS */;
 INSERT INTO `mst_users` (`id`, `partner_id`, `c_name`, `email`, `phone`, `homepath`, `realname`, `password`, `perms`, `status`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
 	(1, 1, 'superadmin', 'superadmin@gmail.com', '', 'manage', 'Rakesh Shrestha', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'superadmin', 1, '2026-01-01 02:00:00', 0, '2026-01-01 02:00:00', 0),
-	(2, 1, 'admin', 'admin@gmail.com', '', 'dashboard', 'dashboard', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'admin', 1, '2026-01-01 02:00:00', 1, '2026-01-13 03:07:13', 1),
+	(2, 1, 'admin', 'admin@gmail.com', '', 'dashboard', 'Rakesh Shrestha', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'admin', 1, '2026-01-01 02:00:00', 1, '2026-01-13 03:07:13', 1),
 	(3, 1, 'user', 'user@gmail.com', '', 'dashboard', 'Rakesh Shrestha', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'user', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
 /*!40000 ALTER TABLE `mst_users` ENABLE KEYS */;
 

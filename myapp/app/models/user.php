@@ -40,9 +40,4 @@ final class user extends model
 
         return parent::insert();
     }
-
-    public function update(): bool
-    {
-        return parent::update();
-    }
 }

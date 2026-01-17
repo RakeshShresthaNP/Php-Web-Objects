@@ -17,6 +17,8 @@ final class Validator
 
     private array $errors = [];
 
+    private ?PDO $db = null;
+
     private const ALLOWED_MIMES = [
         'image/jpeg',
         'image/png',
@@ -27,12 +29,14 @@ final class Validator
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' // .xlsx
     ];
 
-    public function __construct(private array &$data, private ?PDO $db = null, private array $customMessages = [], private string $secretKey = 'bank-level-secret-key-123')
-    {}
-
-    public static function make(array &$data, array $rules, ?PDO $db = null, array $messages = []): self
+    public function __construct(private array &$data, private array $customMessages = [], private string $secretKey = 'bank-level-secret-key-123')
     {
-        $instance = new self($data, $db, $messages);
+        $this->db = db();
+    }
+
+    public static function make(array &$data, array $rules, array $messages = []): self
+    {
+        $instance = new self($data, $messages);
         $instance->validate($rules);
         return $instance;
     }
@@ -43,6 +47,11 @@ final class Validator
             $rulesArray = explode('|', $rules);
             if (! isset($this->data[$field]))
                 $this->data[$field] = null;
+
+            if (in_array('sometimes', $rulesArray) && ($this->data[$field] === null || $this->data[$field] === '')) {
+                continue;
+            }
+
             $this->applyRulesToField($field, $this->data[$field], $rulesArray);
         }
     }
@@ -76,11 +85,13 @@ final class Validator
                 'password' => preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', (string) $value),
 
                 // --- Strings & Patterns ---
-                'alpha' => ctype_alpha(str_replace(' ', '', (string) $value)),
-                'alpha_space' => preg_match('/^[a-zA-Z\s]+$/', (string) $value),
-                'alpha_secure' => preg_match('/^[a-zA-Z0-9@._-]+$/', (string) $value),
-                'min' => strlen((string) $value) >= (int) $param,
-                'max' => strlen((string) $value) <= (int) $param,
+                'alpha' => ctype_alpha(str_replace(' ', '', strip_tags((string) $value))),
+                'alpha_space' => preg_match('/^[a-zA-Z\s]+$/', strip_tags((string) $value)),
+                'alpha_secure' => preg_match('/^[a-zA-Z0-9@._-]+$/', strip_tags((string) $value)),
+                // --- Updated Strings & Patterns ---
+                'min' => is_numeric($value) ? (float) $value >= (float) $param : strlen((string) $value) >= (int) $param,
+
+                'max' => is_numeric($value) ? (float) $value <= (float) $param : strlen((string) $value) <= (int) $param,
                 'matches' => (string) $value === (string) ($this->data[$param] ?? ''),
                 'json' => (json_decode((string) $value) !== null),
 

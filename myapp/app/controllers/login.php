@@ -20,9 +20,8 @@ final class cLogin extends cController
 
     public function index()
     {
-        $db = db();
         $ip = $this->currentuserip;
-        $isBlocked = $db->prepare("SELECT 1 FROM sys_blocked_ips WHERE ip_address = ?");
+        $isBlocked = db()->prepare("SELECT 1 FROM sys_blocked_ips WHERE ip_address = ?");
         $isBlocked->execute([
             $ip
         ]);
@@ -112,9 +111,8 @@ final class cLogin extends cController
 
     public function forgotpass()
     {
-        $db = db();
         $ip = $this->currentuserip;
-        $isBlocked = $db->prepare("SELECT 1 FROM sys_blocked_ips WHERE ip_address = ?");
+        $isBlocked = db()->prepare("SELECT 1 FROM sys_blocked_ips WHERE ip_address = ?");
         $isBlocked->execute([
             $ip
         ]);

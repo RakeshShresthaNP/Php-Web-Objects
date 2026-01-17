@@ -12,6 +12,24 @@
 					</div>
 					<!-- /.card-header -->
 					<div class="card-body">
+                    	<?php if (!empty($_SESSION['flash_errors'])) { ?>
+                        <div class="alert alert-danger">
+                    	<ul>
+                        <?php
+                        foreach ($_SESSION['flash_errors'] as $field => $messages) {
+                            foreach ($messages as $msg) {
+                                ?>
+                                <li><strong><?php echo ucfirst($field); ?>:</strong> <?php echo $msg; ?></li>
+                        <?php                    
+                            }
+                        }
+                        ?>
+                        </ul>
+                    	</div>
+                        <?php 
+                        unset($_SESSION['flash_errors']);
+                        }
+                        ?>
 
 						<form action="<?php echo getUrl('manage/users/add') ?>"
 							method="post" id="addprofile" name="addprofile"
@@ -54,10 +72,8 @@
 								</tr>
 								<tr>
 									<td>&nbsp;</td>
-									<td><input type='hidden' id='iserror1' name='iserror1'
-										value='0'> <input type='hidden' id='iserror1' name='iserror2'
-										value='0'> <input type="submit" value="Add" id="submit"
-										class="" name="submit" style="margin-left: 10px;"></td>
+									<td><input type="submit" value="Add" id="submit" class=""
+										name="submit" style="margin-left: 10px;"></td>
 								</tr>
 							</table>
 					

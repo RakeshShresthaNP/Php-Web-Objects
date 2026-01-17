@@ -47,15 +47,36 @@ final class cUsers extends cController
         $user = [];
 
         if ($this->req->isPost()) {
-            $vars = $_POST;
 
-            // Validate password
-            if (empty($vars['password']) || strlen($vars['password']) < 6) {
-                $this->res->redirect('admin/users/manage_add', 'Password must be at least 6 characters long');
+            $vars = getRequestData();
+
+            $rules = [
+                'realname' => 'required|alpha_space',
+                'homepath' => 'required|alpha',
+                'email' => "required|email|unique:mst_users",
+                'password' => 'required|min:12|password',
+                'confirm_password' => 'matches:password'
+            ];
+
+            $messages = [
+                'email.required' => 'We need email address to secure your account.',
+                'email.unique' => 'This email is already registered with another user.',
+                'realname.alpha_space' => 'Names can only contain letters and spaces.',
+                'password.min' => 'Your new password must be at least 12 characters long.',
+                'confirm_password.matches' => 'The password confirmation does not match the new password.',
+                'password.password' => 'Your password must include an uppercase letter, a number, and a special character.'
+            ];
+
+            $v = Validator::make($vars, $rules, $messages);
+
+            if ($v->fails()) {
+                $_SESSION['flash_errors'] = $v->errors();
+
+                $data['user'] = $vars;
+
+                $this->res->view($data);
                 return;
             }
-
-            $data['user'] = $vars;
 
             $vars['password'] = password_hash($vars['password'], PASSWORD_DEFAULT);
             $vars['c_name'] = explode('@', $vars['email'])[0];
@@ -64,8 +85,6 @@ final class cUsers extends cController
             $vars['u_updated'] = $this->user->id;
 
             unset($vars['confirm_password']);
-            unset($vars['iserror1']);
-            unset($vars['iserror2']);
             unset($vars['submit']);
 
             $user = new user();
@@ -90,21 +109,44 @@ final class cUsers extends cController
         $data['user'] = $user;
 
         if ($this->req->isPost()) {
-            $vars = $_POST;
+
+            $vars = getRequestData();
+
+            $userId = $user->id;
+
+            $rules = [
+                'realname' => 'required|alpha_space',
+                'homepath' => 'required|alpha',
+                'email' => "required|email|unique:mst_users,id,$userId",
+                'password' => 'sometimes|min:12|password',
+                'confirm_password' => 'matches:password'
+            ];
+
+            $messages = [
+                'email.required' => 'We need email address to secure your account.',
+                'email.unique' => 'This email is already registered with another user.',
+                'realname.alpha_space' => 'Names can only contain letters and spaces.',
+                'password.min' => 'Your new password must be at least 12 characters long.',
+                'confirm_password.matches' => 'The password confirmation does not match the new password.',
+                'password.password' => 'Your password must include an uppercase letter, a number, and a special character.'
+            ];
+
+            $v = Validator::make($vars, $rules, $messages);
+
+            if ($v->fails()) {
+                $_SESSION['flash_errors'] = $v->errors();
+
+                $this->res->redirect('manage/users/edit/' . $id);
+                return;
+            }
+
             if (! empty($vars['password'])) {
-                // Validate password
-                if (strlen($vars['password']) < 6) {
-                    $this->res->redirect('manage/users/edit/' . $id, 'Password must be at least 6 characters long');
-                    return;
-                }
                 $vars['password'] = password_hash($vars['password'], PASSWORD_DEFAULT);
             } else {
                 $vars['password'] = $user->password;
             }
             $vars['u_updated'] = $this->user->id;
             unset($vars['confirm_password']);
-            unset($vars['iserror1']);
-            unset($vars['iserror2']);
             unset($vars['submit']);
 
             $user->assign($vars);
