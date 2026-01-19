@@ -1,7 +1,9 @@
 <template>
-	<main class="app">
-		<router-view @back="backNavigate"></router-view>
-	</main>
+    <div class="min-h-screen bg-primary">
+        <main class="app-container">
+            <router-view @back="backNavigate"></router-view>
+        </main>
+    </div>
 </template>
 
 <script setup>
@@ -23,19 +25,17 @@ const backNavigate = () => {
 </script>
 
 <style scoped>
-.app {
-    /* Layout & Width - Constrained on mobile/tablet, full width on desktop */
-	@apply w-full md:w-6/12 lg:w-full md:mx-auto;
+.app-container {
+    /* 1. Width: 100% by default, but capped for readability on large screens */
+    @apply w-full max-w-screen-xl mx-auto;
+
+    /* 2. Height: Ensure it fills the viewport and accounts for BottomBar */
+    @apply min-h-screen pt-5 pb-24;
     
-    /* Height & Spacing */
-    @apply min-h-screen py-5 pb-20;
-    
-    /* Responsive Padding (Edges) */
-    @apply px-4 sm:px-6 lg:px-8;
-    
-    /* Aesthetics */
-    @apply bg-primary;
-	
-	@apply sticky top-0;
+    /* 3. Responsive Padding: Prevents content from touching screen edges */
+    @apply px-4 sm:px-6 md:px-10;
+
+    /* 4. Smooth transitions for responsive changes */
+    @apply transition-all duration-300;
 }
 </style>
