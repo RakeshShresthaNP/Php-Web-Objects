@@ -28,6 +28,8 @@ final class Loader
         if ($a >= 'A' && $a <= 'Z') {
             if (str_starts_with($classname, 'Event')) {
                 require_once EVENTS_DIR . mb_strtolower($classname) . '.php';
+            } else if (str_starts_with($classname, 'Helper')) {
+                require_once HELPERS_DIR . mb_strtolower($classname) . '.php';
             } else if (str_starts_with($classname, 'Queue')) {
                 require_once QUEUES_DIR . mb_strtolower($classname) . '.php';
             } else {

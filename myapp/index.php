@@ -31,7 +31,14 @@ try {
     Application::process($request, $response);
 } catch (ApiException $e) {
     $data['code'] = $e->getCode();
-    $data['error'] = $e->getMessage();
+
+    $msg = (json_decode((string) $e->getMessage()));
+
+    if ($msg !== null) {
+        $data['error'] = $msg;
+    } else {
+        $data['error'] = $e->getMessage();
+    }
 
     writeLog('apiexception_' . date('Y_m_d'), $data);
 
@@ -39,7 +46,7 @@ try {
 } catch (Exception $e) {
     $data['message'] = $e->getMessage();
 
-    if ($request->isAjax()) {
+    if ($request->isAjax() || $request->apimode) {
         $data['layout'] = false;
     }
 

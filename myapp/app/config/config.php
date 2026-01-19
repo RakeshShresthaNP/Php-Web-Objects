@@ -44,6 +44,7 @@ define('VIEW_DIR', APP_DIR . 'views/');
 define('MODS_DIR', APP_DIR . 'models/');
 define('EVENTS_DIR', APP_DIR . 'events/');
 define('QUEUES_DIR', APP_DIR . 'queues/');
+define('HELPERS_DIR', APP_DIR . 'helpers/');
 
 date_default_timezone_set(SYSTEM_TIMEZONE);
 

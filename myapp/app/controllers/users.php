@@ -165,7 +165,6 @@ final class cUsers extends cController
         $user = new user($userid);
         $user->status = 2;
         $user->u_updated = $this->user->id;
-
         $user->update();
 
         $this->res->redirect('manage/users', 'User Disabled');

@@ -88,9 +88,7 @@ final class Validator
                 'alpha' => ctype_alpha(str_replace(' ', '', strip_tags((string) $value))),
                 'alpha_space' => preg_match('/^[a-zA-Z\s]+$/', strip_tags((string) $value)),
                 'alpha_secure' => preg_match('/^[a-zA-Z0-9@._-]+$/', strip_tags((string) $value)),
-                // --- Updated Strings & Patterns ---
                 'min' => is_numeric($value) ? (float) $value >= (float) $param : strlen((string) $value) >= (int) $param,
-
                 'max' => is_numeric($value) ? (float) $value <= (float) $param : strlen((string) $value) <= (int) $param,
                 'matches' => (string) $value === (string) ($this->data[$param] ?? ''),
                 'json' => (json_decode((string) $value) !== null),
@@ -104,14 +102,41 @@ final class Validator
                 'amount' => is_numeric($value) && bccomp((string) $value, '0', 2) > 0,
                 'min_amt' => bccomp((string) $value, (string) $param, 2) >= 0,
                 'max_amt' => bccomp((string) $value, (string) $param, 2) <= 0,
-                'currency' => in_array(strtoupper((string) $value), [
-                    'USD',
-                    'EUR',
-                    'GBP',
-                    'AED'
-                ]) && (bool) ($value = strtoupper($value)),
+                'currency' => in_array(strtoupper((string) $value), ['USD', 'EUR', 'GBP', 'AED']) && (bool) ($value = strtoupper($value)),
                 'balance' => $this->checkUserBalance($value, $param),
                 'velocity' => $this->checkVelocity($param),
+
+                // Phone Validator logic
+                'phone' => (function () use (&$value, $param) {
+                    $clean = preg_replace('/[^\d]/', '', (string) $value);
+
+                    // Length & Spam Guard
+                    if (strlen($clean) < 7 || strlen($clean) > 15 || preg_match('/^(\d)\1{9,}$/', $clean)) {
+                        return false;
+                    }
+
+                    $country = strtoupper($param ?? 'DEFAULT');
+                    $config = HelperGeo::$phonePatterns[$country] ?? HelperGeo::$phonePatterns['DEFAULT'];
+
+                    $isValid = (bool) preg_match($config['regex'], $clean);
+                    if ($isValid && ! empty($config['prefix'])) {
+                        $value = '+' . $config['prefix'] . $clean; // Store in E.164
+                    }
+                    return $isValid;
+                })(),
+
+                // Zip Validator logic
+                'zip' => (function () use ($value, $param) {
+                    $val = trim((string) $value);
+                    $country = strtoupper($param ?? 'DEFAULT');
+
+                    if (in_array($country, HelperGeo::NO_ZIP_COUNTRIES) && empty($val)) {
+                        return true;
+                    }
+
+                    $regex = HelperGeo::$postalPatterns[$country] ?? HelperGeo::$postalPatterns['DEFAULT'];
+                    return (bool) preg_match($regex, $val);
+                })(),
 
                 // --- Database Integrity (With Ignore & Composite Support) ---
                 'unique' => $this->dbLookup($field, $value, $param, true),
