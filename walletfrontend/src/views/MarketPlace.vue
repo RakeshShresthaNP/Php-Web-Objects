@@ -3,7 +3,7 @@
         <HeaderMarket />
         
         <!-- Search and Filter Section -->
-        <section class="mt-6 mb-6">
+        <section class="mt-6 mb-6 w-full max-w-md md:max-w-lg mx-auto">
             <!-- Search Bar -->
             <div class="relative mb-4">
                 <input
@@ -16,7 +16,7 @@
             </div>
 
             <!-- Filter and Sort -->
-            <div class="flex gap-3 mb-4">
+            <div class="flex flex-col sm:flex-row gap-3 mb-4">
                 <!-- Category Filter -->
                 <select
                     v-model="selectedCategory"
@@ -48,12 +48,12 @@
         </section>
 
         <!-- Products Grid -->
-        <section class="flex flex-wrap justify-between">
+        <section class="flex flex-wrap justify-between gap-4">
             <template v-if="filteredProducts.length > 0">
                 <div
                     v-for="product in filteredProducts"
                     :key="product.id"
-                    class="w-5/12 mb-10 cursor-pointer hover:opacity-80 transition-opacity"
+                    class="w-full sm:w-5/12 mb-6 sm:mb-10 cursor-pointer hover:opacity-80 transition-opacity"
                     @click="viewProduct(product)"
                 >
                     <img :src="product.image" :alt="product.name" class="w-full mb-2 rounded-lg" />
@@ -83,7 +83,7 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import HeaderMarket from '@/components/HeaderMarket.vue'
+import HeaderMarket from '@/components/Header.vue'
 import { useProducts } from '@/stores/products'
 import { formatCurrency } from '@/utils/dateFormatter'
 import { useToastNotification } from '@/composables/useToast'

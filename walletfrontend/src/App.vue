@@ -24,8 +24,8 @@ const backNavigate = () => {
 
 <style scoped>
 .app {
-    /* Layout & Width */
-    @apply w-full md:w-6/12 lg:w-full md:mx-auto;
+    /* Layout & Width - Constrained on mobile/tablet, full width on desktop */
+	@apply w-full md:w-6/12 lg:w-full md:mx-auto;
     
     /* Height & Spacing */
     @apply min-h-screen py-5 pb-20;

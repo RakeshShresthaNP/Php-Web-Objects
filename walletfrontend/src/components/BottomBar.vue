@@ -5,14 +5,16 @@
 }
 
 .bottom-bar {
-	@apply bg-secondary flex px-10 py-4 justify-between text-secondary; 
+	@apply bg-secondary flex justify-between text-secondary;
+	@apply px-6 py-3 sm:px-8 sm:py-4 lg:px-10;
+	gap: 0.5rem;
 }
 
 </style>
 
 <template>
 	<main v-if="isMainNav" class="wrapper">
-		<section class="bottom-bar responsive-container">
+		<section class="bottom-bar w-full max-w-md md:max-w-2xl lg:w-full lg:max-w-none mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
 			<template v-for="nav in navigations" :key="nav.id">
 				<span
 					@click="menuAction(nav)"

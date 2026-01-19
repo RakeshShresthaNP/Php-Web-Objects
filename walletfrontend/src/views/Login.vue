@@ -18,7 +18,7 @@ input {
         </section>
             
         <section class="mt-10">
-            <form @submit.prevent="login" action="">
+            <form @submit.prevent="login" action="" class="w-full max-w-md mx-auto md:max-w-lg">
                 <ValidatedInput
                     v-model="formData.username"
                     name="username"
@@ -48,24 +48,20 @@ input {
             </form>
         </section>
 
-        <section class="mt-24 text-gray-300">
-            <div class="flex gap-3">
-                <span class="bg-secondary rounded-lg grid place-items-center w-2/12 p-1">
+        <section class="mt-16 text-gray-300 text-center w-10/12 mx-auto">
+                <span>
                     <i class="fas fa-lightbulb text-sm"></i>
                 </span>
-                <p class="text-sm w-10/12">
+                <p class="text-sm">
                     {{ $t('auth.noAccount') }}
                 </p>
-            </div>
                 
-            <div class="flex gap-3 mt-5 h-10">
-                <span class="bg-secondary rounded-lg grid place-items-center w-2/12 p-1">
+                <span>
                     <i class="fas fa-lightbulb text-sm"></i>
                 </span>
-                <p class="text-sm w-10/12">
+                <p class="text-sm">
                     {{ $t('auth.forgotPassword') }} <a href="" class="text-blue-500">{{ $t('auth.here') }}</a>
                 </p>
-            </div>
         </section>
     </main>
 </template>

@@ -2,7 +2,7 @@
   <div class="input-wrapper">
     <input
       :id="name"
-      :type="type"
+      :type="inputType"
       :value="modelValue"
       :placeholder="placeholder"
       :disabled="disabled"

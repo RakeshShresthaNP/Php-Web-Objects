@@ -9,7 +9,7 @@
 		</template>		
 	</section>
 	<section class="mt-10 fixed bottom-0 left-0 right-0 bg-primary">
-		<section class="responsive-container px-4 py-3 pb-6">
+		<section class="w-full max-w-md md:max-w-2xl lg:w-full lg:max-w-none mx-auto px-4 py-3 pb-6 lg:px-8 xl:px-12">
 			<div class="w-full flex justify-between text-gray-300">
 				<span>Total :</span>
 				<span>Rp.145.000,00-</span>

@@ -1,9 +1,9 @@
 <template>
     <main class="text-gray-300">
         <Header :title="$t('exchangePoints.title')" :sub="$t('exchangePoints.subtitle')" />
-        <section class="mt-20 flex flex-wrap justify-between">
+        <section class="mt-20 flex flex-wrap justify-between gap-4">
             <template v-for="card in 12">
-                <div class="w-5/12 flex flex-col mb-4">
+                <div class="w-full sm:w-5/12 flex flex-col mb-4">
                     <span class="bg-secondary rounded-lg px-2 py-8 grid place-items-center">
                         <i class="text-gray-600 fa fa-camera"></i>
                     </span>

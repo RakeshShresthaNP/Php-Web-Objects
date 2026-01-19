@@ -4,7 +4,15 @@
 }
 
 .header-bar {
-	@apply text-gray-200 bg-primary flex flex-wrap items-center justify-between p-5;
+	@apply text-gray-200 bg-primary flex items-center justify-between;
+	@apply px-3 py-3 sm:px-4 sm:py-4 lg:p-5;
+	min-height: 56px;
+}
+
+@media (min-width: 640px) {
+	.header-bar {
+		min-height: 64px;
+	}
 }
 </style>
 

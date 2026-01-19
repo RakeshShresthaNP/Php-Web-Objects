@@ -8,7 +8,19 @@
 	user-select: none;
 }
 
+/* Ensure images are responsive */
+img {
+	max-width: 100%;
+	height: auto;
+}
+
+
+/* Prevent horizontal scroll on mobile */
+body {
+	overflow-x: hidden;
+}
+
 /* Global Class */
 .responsive-container {
-	@apply w-full md:w-6/12 lg:w-full md:mx-auto px-4 sm:px-6 lg:px-8;
+	@apply w-full md:w-6/12 lg:w-full md:mx-auto px-4 sm:px-6 lg:px-8
 }

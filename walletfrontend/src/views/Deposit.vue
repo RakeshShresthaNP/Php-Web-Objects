@@ -19,12 +19,12 @@ input[type=text], select {
 				{{ $t('deposit.formHint') }}
 			</p>
 		</section>
-		<form class="mt-8 w-full flex flex-wrap justify-between">
-			<div class="input-wrapper w-5/12">
+		<form class="mt-8 w-full max-w-md md:max-w-lg mx-auto flex flex-wrap justify-between gap-4">
+			<div class="input-wrapper w-full sm:w-5/12">
 				<label>{{ $t('deposit.wasteKg') }}</label>
 				<input type="text" :placeholder="$t('deposit.wasteWeight')" />
 			</div>
-			<div class="input-wrapper w-5/12">
+			<div class="input-wrapper w-full sm:w-5/12">
 				<label>{{ $t('deposit.method') }}</label>
 				<select>
 					<option>{{ $t('deposit.depositMethod') }}</option>
@@ -32,7 +32,7 @@ input[type=text], select {
 					<option>{{ $t('deposit.pickupService') }}</option>
 				</select>
 			</div>
-			<div class="input-wrapper mt-8 mb-3 w-full">
+			<div class="input-wrapper mt-4 sm:mt-8 mb-3 w-full">
 				<label>{{ $t('deposit.pickupLocation') }}</label>
 				<select>
 					<option>{{ $t('deposit.wasteBankUnit') }}</option>
@@ -40,7 +40,7 @@ input[type=text], select {
 					<option>{{ $t('deposit.unitAlalak') }}</option>
 				</select>
 			</div>
-			<p class="text-xs text-gray-300">
+			<p class="text-xs text-gray-300 w-full">
 				<i class="fas fa-lightbulb mr-1"></i>
 				{{ $t('deposit.deliveryHint') }}
 			</p>
