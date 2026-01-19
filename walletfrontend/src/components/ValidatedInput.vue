@@ -1,29 +1,34 @@
 <template>
-  <div class="input-wrapper">
-    <input
-      :id="name"
-      :type="inputType"
-      :value="modelValue"
-      :placeholder="placeholder"
-      :disabled="disabled"
-      :class="[
-        'text-gray-300 active:ring-1 focus:ring-1 ring-green-500 duration-300 rounded-lg w-full bg-secondary h-full px-3 focus:ring-2 active:ring-2 ring-secondary',
-        hasError ? 'ring-red-500 focus:ring-red-500' : ''
-      ]"
-      @input="handleInput"
-      @blur="handleBlur"
-    />
-    <span
-      v-if="showPasswordToggle && type === 'password'"
-      @click="togglePassword"
-      class="bg-green-500 rounded-lg w-3/12 h-full grid place-items-center cursor-pointer hover:bg-green-600 transition-colors"
-    >
-      <i :class="showPassword ? 'fa-eye' : 'fa-eye-slash'" class="fa text-lg"></i>
-    </span>
+  <div class="relative w-full mb-3">
+    <div class="input-wrapper">
+      <input
+        :id="name"
+        :type="inputType"
+        :value="modelValue"
+        :placeholder="placeholder"
+        :disabled="disabled"
+        :class="[
+          'text-gray-300 active:ring-1 focus:ring-1 ring-green-500 duration-300 rounded-lg w-full bg-secondary h-full pl-3 pr-12 focus:ring-2 active:ring-2 ring-secondary outline-none',
+          hasError ? 'ring-red-500 focus:ring-red-500' : ''
+        ]"
+        @input="handleInput"
+        @blur="handleBlur"
+      />
+      
+      <button
+        v-if="showPasswordToggle && type === 'password'"
+        type="button"
+        @click="togglePassword"
+        class="absolute right-2 top-1/2 -translate-y-1/2 bg-green-500 hover:bg-green-600 w-10 h-10 rounded-lg flex items-center justify-center transition-colors z-10"
+      >
+        <i :class="showPassword ? 'fa-eye' : 'fa-eye-slash'" class="fa text-lg text-black"></i>
+      </button>
+    </div>
+
+    <small v-if="error" class="mt-1 block text-red-600 font-medium text-sm">
+      {{ error }}
+    </small>
   </div>
-  <small v-if="error" class="mt-1 block text-red-600 font-medium text-sm">
-    {{ error }}
-  </small>
 </template>
 
 <script setup>

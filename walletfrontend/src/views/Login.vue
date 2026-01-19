@@ -48,21 +48,28 @@ input {
             </form>
         </section>
 
-        <section class="mt-16 text-gray-300 text-center w-10/12 mx-auto">
-                <span>
-                    <i class="fas fa-lightbulb text-sm"></i>
-                </span>
-                <p class="text-sm">
-                    {{ $t('auth.noAccount') }}
-                </p>
-                
-                <span>
-                    <i class="fas fa-lightbulb text-sm"></i>
-                </span>
-                <p class="text-sm">
-                    {{ $t('auth.forgotPassword') }} <a href="" class="text-blue-500">{{ $t('auth.here') }}</a>
-                </p>
-        </section>
+		<section class="mt-16 text-gray-300 w-full max-w-md mx-auto md:max-w-lg px-4 md:px-0">
+		  
+		  <div class="flex items-start gap-3 mb-4">
+			<span class="mt-0.5">
+			  <i class="fas fa-lightbulb text-sm"></i>
+			</span>
+			<p class="text-sm leading-relaxed">
+			  {{ $t('auth.noAccount') }}
+			</p>
+		  </div>
+		  
+		  <div class="flex items-start gap-3">
+			<span class="mt-0.5">
+			  <i class="fas fa-lightbulb text-sm"></i>
+			</span>
+			<p class="text-sm leading-relaxed">
+			  {{ $t('auth.forgotPassword') }} 
+			  <a href="" class="text-blue-500 hover:underline">{{ $t('auth.here') }}</a>
+			</p>
+		  </div>
+
+		</section>
     </main>
 </template>
 
