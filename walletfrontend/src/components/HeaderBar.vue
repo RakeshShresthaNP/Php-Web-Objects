@@ -18,7 +18,7 @@
 
 <template>
 	<main class="wrapper">
-		<section class="responsive-container header-bar">
+		<section class="header-bar">
 			<slot name="start"></slot>
 			<slot name="end"></slot>
 			<slot name="bottom"></slot>

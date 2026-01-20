@@ -1,6 +1,6 @@
 <template>
-    <main class="pt-20"> 
-        <HeaderMarket />
+    <main class="text-gray-300"> 
+        <Header :title="$t('marketplace.title')" :sub="$t('marketplace.subtitle')" />
         
         <!-- Search and Filter Section -->
         <section class="mt-6 mb-6 w-full max-w-md md:max-w-lg mx-auto">
@@ -83,7 +83,7 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import HeaderMarket from '@/components/Header.vue'
+import Header from '@/components/Header.vue'
 import { useProducts } from '@/stores/products'
 import { formatCurrency } from '@/utils/dateFormatter'
 import { useToastNotification } from '@/composables/useToast'

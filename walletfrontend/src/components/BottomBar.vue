@@ -1,12 +1,12 @@
 <style scoped>
 
 .wrapper {
-	@apply z-50 fixed bottom-0 left-0 right-0;
+	@apply fixed bottom-0 left-0 right-0 z-50;
 }
 
 .bottom-bar {
 	@apply bg-secondary flex justify-between text-secondary;
-	@apply px-6 py-3 sm:px-8 sm:py-4 lg:px-10;
+	@apply px-3 py-3 sm:px-4 sm:py-4 lg:p-5;
 	gap: 0.5rem;
 }
 
@@ -14,7 +14,7 @@
 
 <template>
 	<main v-if="isMainNav" class="wrapper">
-		<section class="bottom-bar w-full max-w-md md:max-w-2xl lg:w-full lg:max-w-none mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
+		<section class="bottom-bar">
 			<template v-for="nav in navigations" :key="nav.id">
 				<span
 					@click="menuAction(nav)"

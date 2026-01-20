@@ -10,7 +10,7 @@ input[type=text], select {
 
 </style>
 <template>
-	<main>
+	<main class="text-gray-300">
 		<Header :title="$t('deposit.title')" :sub="$t('deposit.subtitle')" />
 		<section class="text-gray-300 mt-20">
 			<h1 class="text-lg font-medium">{{ $t('deposit.form') }}</h1>

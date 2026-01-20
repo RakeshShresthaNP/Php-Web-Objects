@@ -9,9 +9,8 @@
                     <i class="fa fa-bars text-lg sm:text-xl"></i>
                 </button>
                 <i v-if="useArrow" @click="router.go(-1)" class="active:scale-95 duration-300 fa fa-arrow-left text-lg sm:text-xl flex-shrink-0"></i>
-                <div class="min-w-0 flex-1">
+                <div v-if="title" class="min-w-0 flex-1">
                     <h1 class="font-semibold text-base sm:text-xl truncate">{{ title }}</h1>
-                    <p class="text-xs sm:text-sm truncate">{{ sub }}</p>
                 </div>
             </section>
         </template>
@@ -123,7 +122,7 @@ import { useI18n } from 'vue-i18n'
 const props = defineProps({
     title: {
         type: String,
-        default: 'Title'
+        default: ''
     },
     sub: {
         type: String,

@@ -1,5 +1,5 @@
 <template>
-	<main>
+	<main class="text-gray-300">
 		<Header :useArrow="false" :title="$t('profile.title')" :sub="$t('profile.subtitle')" />
 		<section class="mt-20">
 			<div class="w-10/12 mx-auto flex flex-col items-center text-gray-300">

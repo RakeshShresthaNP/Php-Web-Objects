@@ -1,15 +1,12 @@
 <template>
-	
-	<section class="mt-20 text-gray-300">
+	<main class="text-gray-300">
 		<Header :title="$t('cart.title')" :sub="$t('cart.subtitle')" />
-	</section>
-	<section class="mt-20 mb-20">
-		<template v-for="(cart, x) in carts" :key="x">
-			<CardProduct :cart="cart" />
-		</template>		
-	</section>
-	<section class="mt-10 fixed bottom-0 left-0 right-0 bg-primary">
-		<section class="w-full max-w-md md:max-w-2xl lg:w-full lg:max-w-none mx-auto px-4 py-3 pb-6 lg:px-8 xl:px-12">
+		<section class="mt-20 mb-20">
+			<template v-for="(cart, x) in carts" :key="x">
+				<CardProduct :cart="cart" />
+			</template>		
+		</section>
+		<section class="mt-20 mb-20">
 			<div class="w-full flex justify-between text-gray-300">
 				<span>Total :</span>
 				<span>Rp.145.000,00-</span>
@@ -20,7 +17,7 @@
 				</span>
 			</button>
 		</section>
-	</section>
+	</main>
 </template>
 
 <script setup>

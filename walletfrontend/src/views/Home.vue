@@ -8,7 +8,7 @@
 
 <template>
 	<main class="pt-20">
-		<HeaderHome />
+		<Header  :useArrow="false" :useTitle="false"  />
 		<BalanceCard />
 		<section class="mt-12"> 
 			<h1 class="title">{{ $t('home.services') }}</h1>
@@ -27,7 +27,7 @@
 
 <script setup>
 
-import HeaderHome from '@/components/HeaderHome.vue'
+import Header from '@/components/Header.vue'
 import BalanceCard from '@/components/BalanceCard.vue'
 import Services from '@/components/Services.vue'
 import Promo from '@/components/Promo.vue'

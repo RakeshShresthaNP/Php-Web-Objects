@@ -16,13 +16,7 @@
 		<div class="flex flex-col h-full">
 			<!-- Header -->
 			<div class="bg-primary p-5 flex items-center justify-between">
-				<div class="flex items-center gap-3">
-					<img src="/avatar.jpg" class="rounded-full" width="40" />
-					<div class="text-gray-300">
-						<p class="font-semibold text-sm">{{ fullname }}</p>
-						<small class="text-xs text-gray-400">{{ $t('app.name') }}</small>
-					</div>
-				</div>
+				<img src="/logo-icon.svg" class="rounded-full" />
 				<button 
 					@click="closeMenu"
 					class="text-gray-300 hover:text-white active:scale-95 duration-300"
