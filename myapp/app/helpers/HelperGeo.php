@@ -12,7 +12,7 @@
  */
 declare(strict_types = 1);
 
-class HelperGeo
+final class HelperGeo
 {
 
     public static array $postalPatterns = [
