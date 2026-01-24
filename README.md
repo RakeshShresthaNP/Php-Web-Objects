@@ -130,7 +130,7 @@ $results = $user->paginateGraph($schema, 1, 10);
 * **Hardened Security:** Built-in protection against XSS and SQL Injection.
 * **Auth & API:** Integrated Authentication scaffolding and JWT API support.
 * **Modern UI:** Dashboard integration with pre-built visual elements. For AI compatibility and further info https://github.com/RakeshShresthaNP/VWEB-Dashboard
-* **Extended Libraries:** Event/Queue Management Mechanism, WebSocket Server Mechanism, AuditLog Data Structure, Mailer(Native PHP or SMTP), Data Validation Rules, Support for Firebase Messaging, SMPP (SMSC), QR Codes, AES Encryption, Time based OTP, Excel (XLSX) Import, Pagination, and SoapClient for NTLMStream.
+* **Extended Libraries:** Event/Queue Management Mechanism, WebSocket Server Mechanism, AuditLog Data Structure, CreditScore Helper Routine, Mailer(Native PHP or SMTP), Data Validation Rules, Support for Firebase Messaging, SMPP (SMSC), QR Codes, AES Encryption, Time based OTP, Excel (XLSX) Import, Pagination, and SoapClient for NTLMStream.
 
 ---
 
