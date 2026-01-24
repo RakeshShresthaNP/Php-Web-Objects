@@ -78,6 +78,11 @@ class model
         $this->_rs[$key] = $val;
     }
 
+    public function getData(): array
+    {
+        return $this->_rs;
+    }
+
     // --- Query Builder ---
     public function select(string $fields = '*'): self
     {
@@ -125,7 +130,7 @@ class model
                 $operator,
                 '='
             ];
-        $prefix = empty($this->_where) ? "" : "OR ";
+        $prefix = empty($this->_where) ? "" : " OR ";
         $this->_where[] = "{$prefix}{$column} {$operator} ?";
         $this->_bindings[] = $value;
         return $this;
@@ -167,7 +172,7 @@ class model
         return $this;
     }
 
-    public function whereIn(string $column, array &$values, string $boolean = 'AND'): self
+    public function whereIn(string $column, array &$values, string $boolean = ' AND'): self
     {
         if (empty($values))
             return $this;
@@ -178,7 +183,7 @@ class model
         return $this;
     }
 
-    public function whereBetween(string $column, array &$values, string $boolean = 'AND', bool $not = false): self
+    public function whereBetween(string $column, array &$values, string $boolean = ' AND', bool $not = false): self
     {
         if (count($values) !== 2)
             return $this;
@@ -292,7 +297,7 @@ class model
         $stmt->execute(array_merge($this->_bindings, $this->_havingBindings));
         $this->resetQuery();
 
-        $results = $stmt->fetchAll();
+        $results = $stmt->fetchAll(PDO::FETCH_OBJ);
         if (! $results)
             return []; // Always return empty array instead of null
 

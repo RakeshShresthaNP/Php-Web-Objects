@@ -1,30 +1,8 @@
 <?php
 declare(strict_types = 1);
 
+require_once 'db.php';
 require_once '../myapp/app/models/model.php';
-
-// 1. Connection Logic
-function db()
-{
-    static $pdo;
-    if (! $pdo) {
-        $pdo = new PDO("mysql:host=localhost;dbname=meworm", "root", "");
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    }
-    return $pdo;
-}
-
-// 2. Test Runner
-function it(string $desc, callable $fn)
-{
-    echo str_pad($desc, 50, ".");
-    try {
-        $fn();
-        echo "✅\n<br>";
-    } catch (Throwable $e) {
-        echo "❌\n   ERROR: {$e->getMessage()}\n<br>";
-    }
-}
 
 echo "--- ORM METHOD COVERAGE TEST ---\n<br>";
 
@@ -51,18 +29,13 @@ it("Analytics: Revenue by Product Category", function () {
 
     // 1. Correct the alias to pr.category
     // 2. Use find() instead of toSql() to get the actual data
-    $results = $m->selectRaw("pr.category, SUM(p.quantity * p.unit_price) as total_revenue")
+    $data = $m->selectRaw("pr.category, SUM(p.quantity * p.unit_price) as total_revenue")
         ->join('products pr', 'pr.id', '=', 'p.product_id')
         ->groupBy('pr.category')
         ->orderBy('total_revenue', 'DESC')
         ->find(); // This executes the SQL and returns array|model|null
 
-    // find() returns a single object if LIMIT 1, or an array of objects
-    $data = is_array($results) ? $results : ($results ? [
-        $results
-    ] : []);
-
-    if (empty($data) || ! empty($data[0]->total_revenue)) {
+    if (empty($data)) {
         throw new Exception("Analytics failed: No data returned.");
     }
 
@@ -98,24 +71,19 @@ it("Mega-Graph: Advanced Aggregates", function () {
 it("Analytics: Daily Active Users (DAU)", function () {
     $m = new model('site_analytics');
 
-    $results = $m->selectRaw("DATE(d_created) as log_date, COUNT(DISTINCT user_id) as unique_users")
+    $data = $m->selectRaw("DATE(d_created) as log_date, COUNT(DISTINCT user_id) as unique_users")
         ->groupBy("log_date")
         ->orderBy("log_date", "DESC")
         ->limit(7)
         ->find();
 
     // 1. Check if the query returned anything at all
-    if ($results === null) {
+    if (empty($data)) {
         throw new Exception("Analytics failed: No activity found in site_analytics table.");
     }
 
-    // 2. Normalize result to an array
-    $data = is_array($results) ? $results : [
-        $results
-    ];
-
     // 3. Now perform your check
-    if (! empty($data[0]->unique_users)) {
+    if (empty($data[0]->unique_users)) {
         throw new Exception("Analytics failed: DAU count is missing.");
     }
 

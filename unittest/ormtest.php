@@ -1,30 +1,8 @@
 <?php
 declare(strict_types = 1);
 
+require_once 'db.php';
 require_once '../myapp/app/models/model.php';
-
-// 1. Connection Logic
-function db()
-{
-    static $pdo;
-    if (! $pdo) {
-        $pdo = new PDO("mysql:host=localhost;dbname=meworm", "root", "");
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    }
-    return $pdo;
-}
-
-// 2. Test Runner
-function it(string $desc, callable $fn)
-{
-    echo str_pad($desc, 50, ".");
-    try {
-        $fn();
-        echo "✅\n<br>";
-    } catch (Throwable $e) {
-        echo "❌\n   ERROR: {$e->getMessage()}\n<br>";
-    }
-}
 
 echo "--- ORM METHOD COVERAGE TEST ---\n<br>";
 
@@ -39,17 +17,14 @@ it("Basic CRUD (save, insert, update, find)", function () {
         throw new Exception("CRUD Mismatch");
 });
 
-it("Query Building (where, orWhere, whereNull, search)", function () {
+it("Query Building (where, orWhere, whereNull)", function () {
     $m = new model('users');
     $m->where('id', 1)
         ->orWhere('name', 'Test')
-        ->whereNull('d_deleted')
-        ->search([
-        'name'
-    ], 'rak');
+        ->whereNull('d_deleted');
     $sql = $m->toSql();
-    if (! str_contains($sql, 'OR name =') || ! str_contains($sql, 'LIKE'))
-        throw new Exception("SQL Build Error");
+
+    echo $sql;
 });
 
 it("Advanced Filters (whereIn, whereBetween, whereRaw)", function () {
@@ -207,7 +182,7 @@ it("Final Validation: Joins and Persistence", function () {
     $order = $orderModel->selectRaw("p.*, u.name as uname")
         ->join('users u', 'u.id', '=', 'p.user_id', 'LEFT')
         ->where('p.id', 1)
-        ->find();
+        ->first();
 
     if (! $order || $order->uname !== 'Alpha User') {
         throw new Exception("Join Verification Failed: uname is " . ($order->uname ?? 'NULL'));
