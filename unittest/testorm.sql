@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS `categories` (
   `description` text DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Data exporting was unselected.
 
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `comments` (
   `d_updated` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `d_deleted` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=Aria AUTO_INCREMENT=102 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
 -- Data exporting was unselected.
 
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `order_ref` (`order_ref`),
   KEY `fk_order_user` (`user_id`)
-) ENGINE=Aria AUTO_INCREMENT=105 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
 -- Data exporting was unselected.
 
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `order_items` (
   `quantity` int(11) NOT NULL DEFAULT 1,
   `unit_price` decimal(10,2) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=Aria AUTO_INCREMENT=102 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
 -- Data exporting was unselected.
 
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   `d_deleted` datetime DEFAULT NULL,
   `category_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=Aria AUTO_INCREMENT=104 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
 -- Data exporting was unselected.
 
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS `site_analytics` (
   `device_type` enum('mobile','desktop','tablet') DEFAULT NULL,
   `d_created` datetime DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=132 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Data exporting was unselected.
 
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS `site_visitors` (
   PRIMARY KEY (`id`),
   KEY `created_at` (`created_at`),
   KEY `user_id` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=255 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Data exporting was unselected.
 
@@ -127,8 +127,33 @@ CREATE TABLE IF NOT EXISTS `users` (
   `d_deleted` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=Aria AUTO_INCREMENT=106 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
+-- 1. Setup Base Entities (Users)
+INSERT IGNORE INTO users (id, name, email, d_created) 
+VALUES (1, 'Alpha User', 'alpha@test.com', NOW());
+
+-- 2. Setup Products
+INSERT IGNORE INTO products (id, name, category) 
+VALUES (1, 'Gaming Laptop', 'Electronics');
+
+-- 3. Setup Orders (Linked to User 1)
+INSERT IGNORE INTO orders (id, user_id, total_amount, order_ref, status, d_created) 
+VALUES (1, 1, 1200.00, 'REF-101', 'completed', NOW());
+
+-- 4. Setup Order Items (The "Missing Link" for Revenue Analytics)
+-- Links Order 1 to Product 1
+INSERT IGNORE INTO order_items (id, order_id, product_id, quantity, unit_price) 
+VALUES (1, 1, 1, 1, 1200.00);
+
+-- 5. Setup Site Analytics (For DAU/Daily Active Users Test)
+INSERT IGNORE INTO site_analytics (id, user_id, d_created) 
+VALUES (1, 1, NOW());
+
+-- 6. Setup Extra Data for Window Functions (LEAD/LAG/Ranking)
+-- Adding a second order for the same user to test growth/time-series
+INSERT IGNORE INTO orders (id, user_id, total_amount, order_ref, status, d_created) 
+VALUES (2, 1, 1500.00, 'REF-102', 'completed', DATE_ADD(NOW(), INTERVAL 1 DAY));
 -- Data exporting was unselected.
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;

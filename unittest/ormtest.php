@@ -12,7 +12,7 @@ it("Basic CRUD (save, insert, update, find)", function () {
     $u->name = "Test";
     $u->email = "test@test.com";
     $id = $u->save();
-    $found = (new model('users'))->where('id', $id)->find();
+    $found = (new model('users'))->where('id', $id)->first();
     if ($found->name !== "Test")
         throw new Exception("CRUD Mismatch");
 });
