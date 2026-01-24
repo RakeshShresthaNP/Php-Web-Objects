@@ -133,7 +133,9 @@ button:hover {
 
 	<script src="assets/dashboard/wsclient.js"></script>
 
-	<script>
+	<script>	
+	const pwoToken = "<?php echo $_SESSION['pwo_token'] ?? ''; ?>";
+    	
     // 1. Initialize WSClient
     const ws = new WSClient('ws://127.0.0.1:8080', 'pwo_token');
     ws.connect();
