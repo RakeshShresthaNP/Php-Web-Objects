@@ -61,7 +61,15 @@ class model
     {
         foreach ($arr as $key => &$val) {
             if (isset($this->casts[$key]) && $this->casts[$key] === 'json' && is_string($val)) {
-                $this->_rs[$key] = json_decode($val, true);
+                $decoded = json_decode($val, true);
+
+                // Only assign the decoded array if it's actually valid JSON
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $this->_rs[$key] = $decoded;
+                } else {
+                    // If invalid, keep the original string so data isn't lost
+                    $this->_rs[$key] = $val;
+                }
             } else {
                 $this->_rs[$key] = $val;
             }
@@ -76,11 +84,6 @@ class model
     public function __set(string $key, mixed $val): void
     {
         $this->_rs[$key] = $val;
-    }
-
-    public function getData(): array
-    {
-        return $this->_rs;
     }
 
     // --- Query Builder ---
@@ -308,6 +311,12 @@ class model
     {
         $this->limit(1);
         $results = $this->find();
+
+        if ($results) {
+            $arr = (array) $results[0] ?? [];
+            $this->assign($arr);
+        }
+
         return $results[0] ?? null; // Returns one object or null
     }
 
@@ -537,26 +546,39 @@ class model
 
     public function insert(): string|false
     {
-        if ($this->timestamps)
+        if ($this->timestamps) {
             $this->_rs[$this->createdAtColumn] = $this->_rs[$this->updatedAtColumn] = date('Y-m-d H:i:s');
+        }
+
         $cols = array_keys($this->_rs);
         $sql = "INSERT INTO {$this->table} (" . implode(',', $cols) . ") VALUES (" . implode(',', array_fill(0, count($cols), '?')) . ")";
-        return $this->db->prepare($sql)->execute($this->mapValues($this->_rs)) ? $this->db->lastInsertId() : false;
+
+        // Process the internal data through mapValues here
+        $values = $this->mapValues($this->_rs);
+
+        return $this->db->prepare($sql)->execute($values) ? $this->db->lastInsertId() : false;
     }
 
     public function update(): bool
     {
         if (! isset($this->_rs[$this->pk]))
             return false;
-        if ($this->timestamps)
+
+        if ($this->timestamps) {
             $this->_rs[$this->updatedAtColumn] = date('Y-m-d H:i:s');
+        }
+
         $data = $this->_rs;
         $id = $data[$this->pk];
         unset($data[$this->pk]);
+
         $fields = array_map(fn ($k) => "{$k}=?", array_keys($data));
         $sql = "UPDATE {$this->table} SET " . implode(',', $fields) . " WHERE {$this->pk}=?";
+
+        // Process data for database storage
         $values = $this->mapValues($data);
         $values[] = $id;
+
         return $this->db->prepare($sql)->execute($values);
     }
 

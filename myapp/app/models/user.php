@@ -20,14 +20,7 @@ final class user extends model
         parent::__construct('mst_users', 'id');
 
         if ($id > 0) {
-            // Find the data
             $res = $this->where('id', $id)->first();
-
-            // If data is found, 'hydrate' this specific instance
-            if ($res) {
-                $data = (array) $res;
-                $this->assign($data);
-            }
         }
     }
 

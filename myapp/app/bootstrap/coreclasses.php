@@ -88,6 +88,8 @@ final class Request
 
     private static $_context = null;
 
+    private array $virtualHeaders = [];
+
     public static function getContext(): object
     {
         if (self::$_context === null) {
@@ -127,9 +129,20 @@ final class Request
         }
     }
 
+    public function setVirtualContext(array $params, array $headers = []): void
+    {
+        $this->virtualHeaders = $headers;
+
+        // If a token is passed in params, we manually set it
+        // so getPayloadData() can still work.
+        if (isset($params['token'])) {
+            $this->virtualHeaders['Authorization'] = 'Bearer ' . $params['token'];
+        }
+    }
+
     public function getHeaders(): object
     {
-        $headers = array();
+        $headers = (array) $this->virtualHeaders;
 
         foreach ($_SERVER as $param => $value) {
             if (strpos($param, 'HTTP_') === 0) {
@@ -159,6 +172,13 @@ final class Request
     public function getToken(): string|null
     {
         $tokenheader = null;
+
+        if (isset($this->virtualHeaders['Authorization'])) {
+            $tokenheader = $this->virtualHeaders['Authorization'];
+            if (preg_match('/Bearer\s(\S+)/', $tokenheader, $matches)) {
+                return $matches[1];
+            }
+        }
 
         if (isset($_SERVER['Authorization'])) {
             $tokenheader = mb_trim($_SERVER['Authorization']);
@@ -245,11 +265,19 @@ final class Request
             $cache->set($this->controller, $cdata);
         }
 
-        if ($cdata->status == 2) {
+        if ($cdata) {
+            if ($cdata->status == 2) {
+                if ($this->apimode) {
+                    throw new ApiException("$this->controller Does not Exist", 503);
+                } else {
+                    throw new Exception("$this->controller Does not Exist", 503);
+                }
+            }
+        } else {
             if ($this->apimode) {
-                throw new ApiException('Module Does not Exist', 503);
+                throw new ApiException("$this->controller Does not Exist", 503);
             } else {
-                throw new Exception('Module Does not Exist', 503);
+                throw new Exception("$this->controller Does not Exist", 503);
             }
         }
 
@@ -272,7 +300,7 @@ final class Request
 
         if (! $iscontollerallowed) {
             if ($this->apimode) {
-                throw new ApiException('Access to module: ' . $this->controller . ' not allowed!', 503);
+                throw new ApiException('Access to controller: ' . $this->controller . ' not allowed!', 503);
             } else {
                 res()->redirect('login', '<div class="text-error-500">Access to module: ' . $this->controller . ' not allowed!</div>');
             }
@@ -304,11 +332,19 @@ final class Request
             $cache->set($this->controller . '_' . $this->method, $mdata);
         }
 
-        if ($mdata->status == 2) {
+        if ($mdata) {
+            if ($mdata->status == 2) {
+                if ($this->apimode) {
+                    throw new ApiException($this->controller . '_' . $this->method . ' Does not Exist', 503);
+                } else {
+                    throw new Exception($this->controller . '_' . $this->method . ' Does not Exist', 503);
+                }
+            }
+        } else {
             if ($this->apimode) {
-                throw new ApiException('Method Does not Exist', 503);
+                throw new ApiException($this->controller . '_' . $this->method . ' Does not Exist', 503);
             } else {
-                throw new Exception('Method Does not Exist', 503);
+                throw new Exception($this->controller . '_' . $this->method . ' Does not Exist', 503);
             }
         }
 

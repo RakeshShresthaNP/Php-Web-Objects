@@ -20,14 +20,7 @@ final class partner extends model
         parent::__construct('mst_partners', 'id');
 
         if ($id > 0) {
-            // Find the data
             $res = $this->where('id', $id)->first();
-
-            // If data is found, 'hydrate' this specific instance
-            if ($res) {
-                $data = (array) $res;
-                $this->assign($data);
-            }
         }
     }
 
