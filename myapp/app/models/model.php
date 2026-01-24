@@ -57,24 +57,6 @@ class model
         $this->db = db();
     }
 
-    public function __sleep(): array
-    {
-        // We explicitly list what to save.
-        // We leave 'db' out so it doesn't crash.
-        return [
-            'table',
-            'pk',
-            '_rs',
-            'casts',
-            'timestamps',
-            'softDelete',
-            'createdAtColumn',
-            'updatedAtColumn',
-            'deletedAtColumn'
-        ];
-    }
-
-    // --- Memory-Efficient Assignment ---
     public function assign(array &$arr): void
     {
         foreach ($arr as $key => &$val) {
@@ -94,11 +76,6 @@ class model
     public function __set(string $key, mixed $val): void
     {
         $this->_rs[$key] = $val;
-    }
-
-    public function getData(): array
-    {
-        return $this->_rs;
     }
 
     // --- Query Builder ---
@@ -154,6 +131,35 @@ class model
         return $this;
     }
 
+    /**
+     * Perform a MySQL Full-Text search.
+     * Note: Requires a FULLTEXT index on the specified columns.
+     */
+    public function whereMatch(array|string $columns, string $term, string $boolean = 'AND'): self
+    {
+        $cols = is_array($columns) ? implode(',', $columns) : $columns;
+        $prefix = empty($this->_where) ? "" : "{$boolean} ";
+
+        $this->_where[] = "{$prefix}MATCH({$cols}) AGAINST(? IN NATURAL LANGUAGE MODE)";
+        $this->_bindings[] = $term;
+
+        return $this;
+    }
+
+    /**
+     * Perform a Boolean Mode Full-Text search for more complex operators (+, -, *).
+     */
+    public function whereMatchBoolean(array|string $columns, string $term, string $boolean = 'AND'): self
+    {
+        $cols = is_array($columns) ? implode(',', $columns) : $columns;
+        $prefix = empty($this->_where) ? "" : "{$boolean} ";
+
+        $this->_where[] = "{$prefix}MATCH({$cols}) AGAINST(? IN BOOLEAN MODE)";
+        $this->_bindings[] = $term;
+
+        return $this;
+    }
+
     public function whereNull(string $column, string $boolean = 'AND'): self
     {
         $prefix = empty($this->_where) ? "" : "{$boolean} ";
@@ -202,6 +208,18 @@ class model
         return $this;
     }
 
+    public function whereGroup(callable $callback): self
+    {
+        $nested = new self($this->table, $this->pk);
+        $callback($nested);
+        if (! empty($nested->_where)) {
+            $prefix = empty($this->_where) ? "" : "AND ";
+            $this->_where[] = "{$prefix}(" . implode(' ', $nested->_where) . ")";
+            $this->_bindings = array_merge($this->_bindings, $nested->_bindings);
+        }
+        return $this;
+    }
+
     public function having(string $column, string $operator, mixed $value): self
     {
         $prefix = empty($this->_having) ? "" : "AND ";
@@ -216,37 +234,47 @@ class model
         return $this;
     }
 
-    public function search(array $columns, string $term): self
-    {
-        if (empty($term))
-            return $this;
-        return $this->whereGroup(function ($q) use (&$columns, $term) {
-            foreach ($columns as &$column)
-                $q->orWhere($column, 'LIKE', "%{$term}%");
-        });
-    }
-
-    public function whereGroup(callable $callback): self
-    {
-        $nested = new self($this->table, $this->pk);
-        $callback($nested);
-        if (! empty($nested->_where)) {
-            $prefix = empty($this->_where) ? "" : "AND ";
-            $this->_where[] = "{$prefix}(" . implode(' ', $nested->_where) . ")";
-            $this->_bindings = array_merge($this->_bindings, $nested->_bindings);
-        }
-        return $this;
-    }
-
     public function groupBy(string ...$columns): self
     {
         $this->_groupBy = " GROUP BY " . implode(', ', $columns);
         return $this;
     }
 
-    public function orderBy(string $column, string $direction = 'ASC'): self
+    public function orderBy(string|array $columns, string $direction = 'ASC'): self
     {
-        $this->_order = " ORDER BY {$column} " . (strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC');
+        $orders = [];
+
+        // 1. Handle comma-separated strings (REST style: "-price,name")
+        if (is_string($columns) && str_contains($columns, ',')) {
+            $columns = explode(',', $columns);
+        }
+
+        // 2. Normalize to array
+        $columns = (array) $columns;
+
+        foreach ($columns as $col) {
+            $col = trim($col);
+            $currentDir = strtoupper($direction);
+
+            // 3. Handle minus prefix for DESC (e.g., "-price")
+            if (str_starts_with($col, '-')) {
+                $currentDir = 'DESC';
+                $col = ltrim($col, '-');
+            }
+
+            // 4. Basic Security: Only allow alphanumeric and underscores (prevents SQL injection)
+            // Note: If using JSON sorting, you'd allow '->' or '$'
+            if (preg_match('/^[a-zA-Z0-9_\.]+$/', $col)) {
+                $orders[] = "{$col} {$currentDir}";
+            }
+        }
+
+        if (! empty($orders)) {
+            // Append to existing orders or set new
+            $prefix = empty($this->_order) ? " ORDER BY " : "{$this->_order}, ";
+            $this->_order = $prefix . implode(', ', $orders);
+        }
+
         return $this;
     }
 
@@ -257,22 +285,25 @@ class model
     }
 
     // --- Execution ---
-    public function find(): array|static|null
+    public function find(): array
     {
         $sql = $this->buildSelectSql($this->selectedFields) . $this->_order . $this->_limit;
         $stmt = $this->db->prepare($sql);
         $stmt->execute(array_merge($this->_bindings, $this->_havingBindings));
         $this->resetQuery();
-        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $results = $stmt->fetchAll();
         if (! $results)
-            return null;
-        $instances = [];
-        foreach ($results as &$row) {
-            $instance = new static($this->table, $this->pk);
-            $instance->assign($row);
-            $instances[] = $instance;
-        }
-        return (str_contains($this->_limit, 'LIMIT 1') || count($instances) === 1) ? $instances[0] : $instances;
+            return []; // Always return empty array instead of null
+
+        return $results;
+    }
+
+    public function first(): ?object
+    {
+        $this->limit(1);
+        $results = $this->find();
+        return $results[0] ?? null; // Returns one object or null
     }
 
     public function paginate(int $page = 1, int $perPage = 15): object
@@ -281,9 +312,7 @@ class model
         $this->limit($perPage, (max(1, $page) - 1) * $perPage);
         $data = $this->find();
         return (object) [
-            'items' => is_array($data) ? $data : ($data ? [
-                $data
-            ] : []),
+            'items' => $data,
             'meta' => (object) [
                 'total_records' => $total,
                 'total_pages' => (int) ceil($total / $perPage),
@@ -308,7 +337,7 @@ class model
             $clone = clone $this;
             $results = $clone->limit($count, ($page - 1) * $count)->find();
 
-            if (! $results)
+            if (empty($results))
                 break;
 
             // $results is now guaranteed to be an array
@@ -330,17 +359,23 @@ class model
                 $clone->where("{$alias}.{$this->pk}", '>', $lastId);
             }
 
+            // find() now always returns an array
             $results = $clone->orderBy("{$alias}.{$this->pk}", 'ASC')
                 ->limit($count)
                 ->find();
 
-            if (! $results)
+            if (empty($results)) {
                 break;
+            }
 
-            if ($callback($results) === false)
+            if ($callback($results) === false) {
                 return false;
+            }
 
-            $lastId = end($results)->{$this->pk};
+            // Get the PK from the last object in the array
+            $lastEntry = end($results);
+            $lastId = $lastEntry->{$this->pk};
+
             unset($results, $clone);
         }
         return true;

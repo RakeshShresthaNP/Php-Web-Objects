@@ -31,6 +31,7 @@ final class cUsers extends cController
         $pusers = $user->select('*')
             ->where('perms', '<>', 'superadmin')
             ->paginate($currentPage, $perPage);
+
         $partners = $partner->getAllPartnersAsGraph();
 
         $data['users'] = $pusers->items;

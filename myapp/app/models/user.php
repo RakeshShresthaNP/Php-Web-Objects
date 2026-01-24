@@ -21,13 +21,11 @@ final class user extends model
 
         if ($id > 0) {
             // Find the data
-            $res = $this->where('id', $id)
-                ->limit(1)
-                ->find();
+            $res = $this->where('id', $id)->first();
 
             // If data is found, 'hydrate' this specific instance
             if ($res) {
-                $data = $res->getData();
+                $data = (array) $res;
                 $this->assign($data);
             }
         }

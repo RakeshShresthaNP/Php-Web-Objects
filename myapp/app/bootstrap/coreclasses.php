@@ -18,16 +18,16 @@ require_once APP_DIR . 'bootstrap/loader.php';
 
 unset($_REQUEST);
 
-function setCurrentUser(?user &$userdata = null): void
+function setCurrentUser(?object &$userdata = null): void
 {
-    Session::getContext(SESS_TYPE)->set('authUser', $userdata?->getData());
+    Session::getContext(SESS_TYPE)->set('authUser', $userdata);
 }
 
 function getCurrentUser(): ?object
 {
     $authUser = Session::getContext(SESS_TYPE)->get('authUser');
     if ($authUser) {
-        return (object) $authUser;
+        return $authUser;
     } else {
         return null;
     }
@@ -240,7 +240,7 @@ final class Request
             $cdata = $cache->get($this->controller);
         } else {
             $data = new model('sys_modules');
-            $cdata = $data->where('c_name', $this->controller)->find();
+            $cdata = $data->where('c_name', $this->controller)->first();
 
             $cache->set($this->controller, $cdata);
         }
@@ -299,7 +299,7 @@ final class Request
             $mdata = $cache->get($this->controller . '_' . $this->method);
         } else {
             $data = new model('sys_methods');
-            $mdata = $data->where('c_name', $this->controller . '_' . $this->method)->find();
+            $mdata = $data->where('c_name', $this->controller . '_' . $this->method)->first();
 
             $cache->set($this->controller . '_' . $this->method, $mdata);
         }

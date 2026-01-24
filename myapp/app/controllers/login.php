@@ -56,7 +56,7 @@ final class cLogin extends cController
                 return;
             }
 
-            $user = $muser->where('email', $params['username'])->find();
+            $user = $muser->where('email', $params['username'])->first();
 
             if (! $user) {
                 $this->dispatcher->dispatch(new EventLogin($params['username'], $ip, false));
@@ -146,7 +146,7 @@ final class cLogin extends cController
                     return;
                 }
 
-                $user = $muser->where('email', $params['username'])->find();
+                $user = $muser->where('email', $params['username'])->first();
 
                 if (! $user) {
                     $this->dispatcher->dispatch(new EventForgotPassword($params['username'], $ip, false));

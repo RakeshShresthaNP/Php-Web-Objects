@@ -89,12 +89,12 @@ final class cAuth extends cController
             $username = $fdata['username'];
             $password = $fdata['password'];
 
-            $user = $muser->where('email', $username)->find();
+            $user = $muser->where('email', $username)->first();
 
             if ($user) {
                 $passwordValid = false;
 
-                if (AuthSecurity::verifyAndUpgrade($params['password'], $user->password, $user->id)) {
+                if (AuthSecurity::verifyAndUpgrade($fdata['password'], $user->password, $user->id)) {
                     $passwordValid = true;
                 }
 
