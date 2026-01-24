@@ -20,11 +20,19 @@ unset($_REQUEST);
 
 function setCurrentUser(?object &$userdata = null): void
 {
-    Session::getContext(SESS_TYPE)->set('authUser', $userdata);
+    // Prevent session errors in CLI/WebSocket mode
+    if (PHP_SAPI !== 'cli') {
+        Session::getContext(SESS_TYPE)->set('authUser', $userdata);
+    }
 }
 
 function getCurrentUser(): ?object
 {
+    // Sessions aren't used in persistent WebSocket connections
+    if (PHP_SAPI === 'cli') {
+        return null;
+    }
+
     $authUser = Session::getContext(SESS_TYPE)->get('authUser');
     if ($authUser) {
         return $authUser;
@@ -51,7 +59,7 @@ function getRequestIP(): string
     } elseif (! empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
         $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
     } else {
-        $ip = $_SERVER['REMOTE_ADDR'];
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
     }
 
     return $ip;
@@ -88,6 +96,7 @@ final class Request
 
     private static $_context = null;
 
+    // Added: For WebSocket virtual environment
     private array $virtualHeaders = [];
 
     public static function getContext(): object
@@ -99,6 +108,15 @@ final class Request
         return self::$_context;
     }
 
+    /**
+     * Added: Important for Memory Management in WebSockets.
+     * Prevents user data from "bleeding" into the next socket message.
+     */
+    public static function resetContext(): void
+    {
+        self::$_context = null;
+    }
+
     public function isAjax(): bool
     {
         return ! empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strcasecmp($_SERVER['HTTP_X_REQUESTED_WITH'], 'xmlhttprequest') === 0;
@@ -106,7 +124,7 @@ final class Request
 
     public function isPost(): bool
     {
-        return ($_SERVER['REQUEST_METHOD'] === 'POST');
+        return (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST');
     }
 
     public function getPartner(string $hostname = ''): void
@@ -129,12 +147,14 @@ final class Request
         }
     }
 
+    /**
+     * Added: Allows the WebSocket server to inject auth tokens
+     * and headers into the MVC request lifecycle.
+     */
     public function setVirtualContext(array $params, array $headers = []): void
     {
         $this->virtualHeaders = $headers;
 
-        // If a token is passed in params, we manually set it
-        // so getPayloadData() can still work.
         if (isset($params['token'])) {
             $this->virtualHeaders['Authorization'] = 'Bearer ' . $params['token'];
         }
@@ -164,7 +184,7 @@ final class Request
         $headers = array();
 
         $Browser = new DeviceInfo();
-        $headers = (object) $Browser->getAll($_SERVER['HTTP_USER_AGENT']);
+        $headers = (object) $Browser->getAll($_SERVER['HTTP_USER_AGENT'] ?? 'WebSocket-Client');
 
         return $headers;
     }
@@ -286,11 +306,9 @@ final class Request
         if ($cdata->perms == "none") {
             $iscontollerallowed = true;
         } else {
-            $p1 = explode(",", $this->cusertype);
+            $p1 = explode(",", $this->cusertype ?? 'none');
             $p2 = explode(",", $cdata->perms);
 
-            // array_intersect finds common values between the two arrays
-            // If the resulting array is not empty, there is a match
             if (! empty(array_intersect($p1, $p2))) {
                 $iscontollerallowed = true;
             } else {
@@ -353,11 +371,9 @@ final class Request
         if ($mdata->perms == "none") {
             $ismethodallowed = true;
         } else {
-            $p1 = explode(",", $this->cusertype);
+            $p1 = explode(",", $this->cusertype ?? 'none');
             $p2 = explode(",", $mdata->perms);
 
-            // array_intersect finds common values between the two arrays
-            // If the resulting array is not empty, there is a match
             if (! empty(array_intersect($p1, $p2))) {
                 $ismethodallowed = true;
             } else {
@@ -412,12 +428,16 @@ final class Response
 
     public function setHeader(string $type = ''): void
     {
-        header($type);
+        if (PHP_SAPI !== 'cli') {
+            header($type);
+        }
     }
 
     public function setStatus(int $status = 200): void
     {
-        http_response_code($status);
+        if (PHP_SAPI !== 'cli') {
+            http_response_code($status);
+        }
     }
 
     public function redirect(string $path = '', string $alertmsg = ''): void
@@ -428,8 +448,10 @@ final class Response
 
         $redir = getUrl($path);
 
-        header("Location: $redir");
-        exit();
+        if (PHP_SAPI !== 'cli') {
+            header("Location: $redir");
+            exit();
+        }
     }
 
     public function view(array &$data = array(), string $viewname = ''): void
@@ -476,11 +498,16 @@ final class Response
 
     public static function addSplashMsg(string $msg = ''): void
     {
-        Session::getContext(SESS_TYPE)->set('splashmessage', $msg);
+        if (PHP_SAPI !== 'cli') {
+            Session::getContext(SESS_TYPE)->set('splashmessage', $msg);
+        }
     }
 
     public static function getSplashMsg(): ?string
     {
+        if (PHP_SAPI === 'cli')
+            return null;
+
         $sess = Session::getContext(SESS_TYPE);
         $msg = $sess->get('splashmessage');
         if ($msg) {
@@ -528,8 +555,8 @@ abstract class cController
     {
         $this->dispatcher = new DispatcherEvent();
 
-        $this->req = req();
-        $this->res = res();
+        $this->req = Request::getContext();
+        $this->res = Response::getContext();
 
         $this->headers = $this->req->getHeaders();
         $this->deviceinfo = $this->req->getDeviceInfo();
@@ -539,7 +566,7 @@ abstract class cController
         $this->user = $this->req->user;
         $this->cusertype = isset($this->user->perms) ? $this->user->perms : 'none';
 
-        $this->currenthost = $this->headers->Host;
+        $this->currenthost = $this->headers->Host ?? 'localhost';
         $this->currentuserip = getRequestIP();
     }
 }
@@ -558,7 +585,7 @@ final class Application
         ), '', SITE_URI . $_SERVER['REQUEST_URI']));
         $uriparts = array_filter($uriparts);
 
-        $request->getPartner($_SERVER['SERVER_NAME']);
+        $request->getPartner($_SERVER['SERVER_NAME'] ?? 'localhost');
 
         $user = $request->getPayloadData();
 
@@ -598,4 +625,3 @@ final class Application
         ), $args);
     }
 }
-

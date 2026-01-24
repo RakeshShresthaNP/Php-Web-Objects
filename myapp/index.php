@@ -12,6 +12,8 @@
  */
 declare(strict_types = 1);
 
+set_time_limit(10);
+
 define('APP_DIR', realpath(dirname(__FILE__)) . '/app/');
 
 $siteuri = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['SERVER_NAME'];
