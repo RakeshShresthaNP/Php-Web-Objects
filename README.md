@@ -130,7 +130,7 @@ $results = $user->paginateGraph($schema, 1, 10);
 * **Hardened Security:** Built-in protection against XSS and SQL Injection.
 * **Auth & API:** Integrated Authentication scaffolding and JWT API support.
 * **Modern UI:** Dashboard integration with pre-built visual elements. For AI compatibility and further info https://github.com/RakeshShresthaNP/VWEB-Dashboard
-* **Extended Libraries:** Event/Queue Management Mechanism, AuditLog Data Structure, Mailer(Native PHP or SMTP), Data Validation Rules, Support for Firebase Messaging, SMPP (SMSC), QR Codes, AES Encryption, Time based OTP, Excel (XLSX) Import, Pagination, and SoapClient for NTLMStream.
+* **Extended Libraries:** Event/Queue Management Mechanism, WebSocket Server Mechanism, AuditLog Data Structure, Mailer(Native PHP or SMTP), Data Validation Rules, Support for Firebase Messaging, SMPP (SMSC), QR Codes, AES Encryption, Time based OTP, Excel (XLSX) Import, Pagination, and SoapClient for NTLMStream.
 
 ---
 
@@ -159,7 +159,7 @@ This framework is engineered for environments where performance, disk space, and
 Our core design principle is **"Zero-Waste Architecture."** By using a native Dependency Injection mechanism and a slim MVC core, we achieve significantly higher throughput on lower-tier hardware.
 
 #### 📦 Library & Disk Size Advantage
-Traditional frameworks require downloading thousands of external files to achieve basic functionality. This framework includes its AI, ML, and Finance suites as highly optimized, native components.
+Traditional frameworks require downloading thousands of external files to achieve basic functionality. This framework includes its AI, ML and Finance suites as highly optimized, native components.
 
 * **This Framework Core:** ~3MB (Full featured)
 * **Typical Node.js Project:** 600MB - 1.2GB (due to `node_modules`)
