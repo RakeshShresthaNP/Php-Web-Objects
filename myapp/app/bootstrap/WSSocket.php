@@ -208,6 +208,28 @@ final class WSSocket
         }
     }
 
+    /**
+     * Sends a message to all connected clients
+     * * @param array|string $data The message to send
+     *
+     * @param int|null $excludeId
+     *            The spl_object_id to skip (usually the sender)
+     */
+    public function broadcast(array|string $data, ?int $excludeId = null): void
+    {
+        $payload = is_array($data) ? json_encode($data) : $data;
+        $maskedData = $this->mask($payload);
+
+        foreach ($this->clients as $id => $client) {
+            if ($excludeId !== null && $id === $excludeId) {
+                continue;
+            }
+
+            // Use @ to suppress notice if a client disconnected during the loop
+            @socket_write($client['socket'], $maskedData, strlen($maskedData));
+        }
+    }
+
     private function doHandshake(int $id, string $buffer): void
     {
         if (preg_match("/Sec-WebSocket-Key: (.*)\r\n/", $buffer, $match)) {
