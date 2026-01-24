@@ -99,6 +99,9 @@ final class Request
     // Added: For WebSocket virtual environment
     private array $virtualHeaders = [];
 
+    public string $controllerDir = CONT_DIR;
+
+    // Default to standard directory
     public static function getContext(): object
     {
         if (self::$_context === null) {
@@ -268,10 +271,12 @@ final class Request
         $this->pathprefix = mb_strtolower(mb_substr($pathprefix, 0, - 1));
         $this->controller = mb_strtolower($controllername);
 
-        $controllerfile = CONT_DIR . mb_strtolower($this->controller) . '.php';
+        $controllerfile = $this->controllerDir . mb_strtolower($this->controller) . '.php';
+
         if (! preg_match('#^[A-Za-z0-9_-]+$#', $this->controller) || ! is_readable($controllerfile)) {
+            // Fallback to Main Controller
             $this->controller = MAIN_CONTROLLER;
-            $controllerfile = CONT_DIR . MAIN_CONTROLLER . '.php';
+            $controllerfile = $this->controllerDir . MAIN_CONTROLLER . '.php';
         }
 
         $cache = cache();

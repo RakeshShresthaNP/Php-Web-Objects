@@ -141,6 +141,9 @@ final class WSSocket
             Request::resetContext();
 
             $req = Request::getContext();
+
+            $req->controllerDir = APP_DIR . 'wscontrollers/';
+
             $params = $data['params'] ?? [];
             $headers = $data['headers'] ?? [];
 
