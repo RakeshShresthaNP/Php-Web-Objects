@@ -52,17 +52,23 @@ function getUrl(string $path = null): string
 
 function getRequestIP(): string
 {
-    $ip = null;
+    $req = Request::getContext();
+    $virtualHeaders = $req->getHeaders(); // This pulls from your virtualHeaders array
 
-    if (! empty($_SERVER['HTTP_CLIENT_IP'])) {
-        $ip = $_SERVER['HTTP_CLIENT_IP'];
-    } elseif (! empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-    } else {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    if (isset($virtualHeaders->{'X-Forwarded-For'})) {
+        $ips = explode(',', $virtualHeaders->{'X-Forwarded-For'});
+        return trim($ips[0]);
     }
 
-    return $ip;
+    // Standard HTTP Fallbacks
+    if (! empty($_SERVER['HTTP_CLIENT_IP'])) {
+        return $_SERVER['HTTP_CLIENT_IP'];
+    } elseif (! empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        return trim($ips[0]);
+    } else {
+        return $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    }
 }
 
 function customError(int $errno, string $errstr, string $errfile, int $errline): void

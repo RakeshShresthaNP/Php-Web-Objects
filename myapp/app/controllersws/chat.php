@@ -79,13 +79,14 @@ final class cChat extends cController
         $db = DB::getContext();
 
         $sql = "SELECT
-                c.message,
-                c.d_created as time,
-                u.realname as sender
-            FROM chat_logs c
-            INNER JOIN mst_users u ON c.user_id = u.id
-            ORDER BY c.id DESC
-            LIMIT 50";
+            c.id,
+            c.message,
+            c.d_created as time,
+            u.realname as sender
+        FROM chat_logs c
+        INNER JOIN mst_users u ON c.user_id = u.id
+        ORDER BY c.id DESC
+        LIMIT 50";
 
         try {
             $stmt = $db->query($sql);

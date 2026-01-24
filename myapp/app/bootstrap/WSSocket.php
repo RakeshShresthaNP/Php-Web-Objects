@@ -140,32 +140,54 @@ final class WSSocket
             $req = Request::getContext();
             $req->controllerDir = WS_CONT_DIR;
 
+            // 1. Prepare Virtual Environment
             $params = $data['params'] ?? [];
+
+            /**
+             * GLOBAL IP INJECTION:
+             * We pull the Real IP captured during doHandshake and inject it into headers.
+             * This allows sys_auditlogs to see the real user, not 127.0.0.1.
+             */
             $headers = $data['headers'] ?? [];
+            $headers['X-Forwarded-For'] = $this->clients[$id]['ip'] ?? '127.0.0.1';
 
             $req->apimode = true;
             $req->setVirtualContext($params, $headers);
 
+            // 2. Identify Partner/Tenant (Uses mst_partners table)
             $allHeaders = $req->getHeaders();
             $hostname = $allHeaders->{'X-Forwarded-Host'} ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
             $req->getPartner($hostname);
 
+            // 3. Authenticate User (Uses sys_sessions & mst_users)
             $user = $req->getPayloadData();
             if ($user) {
                 $req->user = $user;
                 $req->cusertype = $user->perms ?? 'none';
             }
 
+            /**
+             * 4.
+             * Framework Security Verification
+             * verifyController checks 'sys_modules'
+             * verifyMethod checks 'sys_methods'
+             */
             $con = $req->verifyController('', $data['controller']);
             $met = $req->verifyMethod($con, $data['method']);
 
+            /**
+             * 5.
+             * Call Controller with "Global" Access
+             * We pass ($params, $this, $id).
+             * This gives the controller the ability to call $server->broadcast()
+             */
             $response = call_user_func_array([
                 $con,
                 $met
             ], [
                 $params,
-                $this,
-                $id
+                $this, // Pass the WSSocket instance for global broadcasting
+                $id // Pass the unique sender ID
             ]);
 
             if ($response !== null) {
@@ -180,7 +202,7 @@ final class WSSocket
         } catch (Exception $e) {
             $this->send($id, [
                 'status' => 'error',
-                'message' => 'Internal logic error',
+                'message' => 'Internal logic error: ' . $e->getMessage(),
                 'code' => 500
             ]);
         }
@@ -200,12 +222,25 @@ final class WSSocket
 
     private function doHandshake(int $id, string $buffer): void
     {
+        // Capture Real IP from Proxy (Nginx/Apache)
+        $remoteIp = '0.0.0.0';
+        if (preg_match("/X-Forwarded-For: (.*)\r\n/", $buffer, $ips)) {
+            $remoteIp = trim(explode(',', $ips[1])[0]);
+        } elseif (preg_match("/X-Real-IP: (.*)\r\n/", $buffer, $ra)) {
+            $remoteIp = trim($ra[1]);
+        }
+
+        // Store IP in the client metadata for global use
+        $this->clients[$id]['ip'] = $remoteIp;
+        $this->clients[$id]['full_headers'] = $buffer;
+
         if (preg_match("/Sec-WebSocket-Key: (.*)\r\n/", $buffer, $match)) {
             $key = base64_encode(sha1($match[1] . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', true));
             $upgrade = "HTTP/1.1 101 Switching Protocols\r\n" . "Upgrade: websocket\r\n" . "Connection: Upgrade\r\n" . "Sec-WebSocket-Accept: $key\r\n\r\n";
 
             socket_write($this->clients[$id]['socket'], $upgrade, strlen($upgrade));
             $this->clients[$id]['handshake'] = true;
+            echo "Handshake successful for #{$id} from IP: {$remoteIp}" . PHP_EOL;
         }
     }
 
