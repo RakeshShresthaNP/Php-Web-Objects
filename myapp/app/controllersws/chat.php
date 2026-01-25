@@ -1,151 +1,154 @@
 <?php
+
+/**
+ # Copyright Rakesh Shrestha (rakesh.shrestha@gmail.com)
+ # All rights reserved.
+ #
+ # Redistribution and use in source and binary forms, with or without
+ # modification, are permitted provided that the following conditions are
+ # met:
+ #
+ # Redistributions must retain the above copyright notice.
+ */
 declare(strict_types = 1);
 
 final class cChat extends cController
 {
 
-    private $max_size = 5242880;
-
-    // 5MB in bytes
-
-    /**
-     * Helper to ensure user is authenticated.
-     * In some WebSocket setups, $this->user is not auto-populated from session,
-     * so we use the token passed in $params.
-     */
-    private function authenticate(array $params): void
+    public function uploadchunk(array $params = []): void
     {
-        $token = $params['token'] ?? null;
-
-        // If user isn't set, try to authenticate via token here if your framework supports it
-        // e.g., $this->user = Auth::getUserByToken($token);
-
-        if (! $this->user || ! isset($this->user->id)) {
-            throw new ApiException("Authentication Required", 401);
-        }
-    }
-
-    /**
-     * renamed from uploadchunk to upload_chunk to match sys_methods
-     */
-    /**
-     * Changed back to uploadchunk (no underscore) to match your preference
-     */
-    public function uploadchunk(array $params = []): array
-    {
-        // This creates a file named 'debug_upload.txt' in your 'public' or 'myapp' folder
-        file_put_contents('debug_upload.txt', "Method called at: " . date('Y-m-d H:i:s') . PHP_EOL, FILE_APPEND);
-        
-        //$this->authenticate($params);
-
         $fileId = $params['file_id'] ?? null;
-        $chunk = $params['chunk'] ?? '';
+        $chunk = $params['chunk'] ?? null;
         $index = (int) ($params['index'] ?? 0);
 
-        if (! $fileId)
-            return [
-                'status' => 'error',
-                'message' => 'Missing File ID'
-            ];
+        if (! $fileId || ! $chunk)
+            return;
 
-        $tempDir = APP_DIR . '../uploads/temp/' . $fileId . '/';
-        if (! is_dir($tempDir))
-            mkdir($tempDir, 0777, true);
-
+        // Strip metadata ONLY on the first chunk.
         if ($index === 0 && strpos($chunk, ',') !== false) {
             $chunk = explode(',', $chunk)[1];
         }
 
-        file_put_contents($tempDir . $index, base64_decode($chunk));
-        return [
-            'status' => 'chunk_received',
-            'index' => $index
-        ];
-    }
-
-    public function send(array $params = [], ?WSSocket $server = null, ?int $senderId = null): array
-    {
-        $this->authenticate($params);
-
-        $text = $params['message'] ?? '';
-        $fileId = $params['file_id'] ?? null;
-        $fileName = $params['file_name'] ?? 'attachment';
-        $finalUrl = null;
-
-        if ($fileId) {
-            $tempDir = APP_DIR . '../uploads/temp/' . $fileId . '/';
-            $uploadDir = APP_DIR . '../uploads/chat/';
-            if (! is_dir($uploadDir))
-                mkdir($uploadDir, 0777, true);
-
-            $chunks = glob($tempDir . '*');
-            $totalSize = array_sum(array_map('filesize', $chunks));
-
-            if ($totalSize > $this->max_size) {
-                foreach ($chunks as $f)
-                    unlink($f);
-                @rmdir($tempDir);
-                return [
-                    'status' => 'error',
-                    'message' => 'File too large'
-                ];
-            }
-
-            $extension = pathinfo($fileName, PATHINFO_EXTENSION);
-            $savePath = $uploadDir . time() . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
-
-            $finalFile = fopen($savePath, 'wb');
-            natsort($chunks);
-            foreach ($chunks as $chunkFile) {
-                fwrite($finalFile, file_get_contents($chunkFile));
-                unlink($chunkFile);
-            }
-            fclose($finalFile);
-            @rmdir($tempDir);
-
-            // Update this to your actual project URL
-            $finalUrl = 'http://localhost/pwo/myapp/' . $savePath;
+        $tempDir = APP_DIR . '../public/assets/temp/' . $fileId . '/';
+        if (! is_dir($tempDir)) {
+            mkdir($tempDir, 0777, true);
         }
 
-        $structuredMessage = json_encode([
-            'text' => htmlspecialchars($text),
-            'file' => $finalUrl,
-            'file_name' => $fileName
-        ]);
+        $chunkName = str_pad((string) $index, 5, '0', STR_PAD_LEFT) . '.part';
+
+        // We save the RAW BASE64 STRING. Do NOT decode yet.
+        file_put_contents($tempDir . $chunkName, $chunk);
+    }
+
+    /**
+     * Reassembles chunks into a valid binary file and saves chat record.
+     */
+    public function send(array $params = [], ?WSSocket $server = null, ?int $senderId = null): array
+    {
+        if (! $this->user) {
+            throw new ApiException("Authentication required", 401);
+        }
+
+        $message = trim($params['message'] ?? '');
+        $fileId = $params['file_id'] ?? null;
+        $fileName = $params['file_name'] ?? null;
+        $finalDbPath = null;
+
+        // --- REASSEMBLE CHUNKS ---
+        if ($fileId && $fileName) {
+            $tempDir = APP_DIR . '../public/assets/temp/' . $fileId . '/';
+            // Define subfolder for DB storage (relative to public root)
+            $uploadSubDir = 'public/assets/uploads/chat/' . date('Y/m') . '/';
+            $fullDestPath = APP_DIR . '../' . $uploadSubDir;
+
+            // Create the destination folder if it doesn't exist
+            if (! is_dir($fullDestPath)) {
+                mkdir($fullDestPath, 0777, true);
+            }
+
+            $safeName = time() . '_' . preg_replace("/[^a-zA-Z0-9\._-]/", "", $fileName);
+            $targetFile = $fullDestPath . $safeName;
+
+            $parts = glob($tempDir . "*.part");
+            sort($parts); // Ensure 00000, 00001 order
+
+            if (count($parts) > 0) {
+                // 1. Join all chunks into one long Base64 string
+                // This prevents corruption caused by splitting Base64 blocks
+                $fullBase64String = '';
+                foreach ($parts as $part) {
+                    $fullBase64String .= file_get_contents($part);
+                    @unlink($part); // Delete chunk file immediately after reading
+                }
+
+                // 2. Decode the entire complete string into binary data
+                $binaryData = base64_decode($fullBase64String);
+
+                if ($binaryData !== false) {
+                    // 3. Save the binary data as a real image file
+                    file_put_contents($targetFile, $binaryData);
+                    $finalDbPath = $uploadSubDir . $safeName;
+                }
+
+                // --- ROBUST CLEANUP ---
+                // Even if unlinks above failed, we scan the folder to ensure it's empty
+                if (is_dir($tempDir)) {
+                    $remainingFiles = array_diff(scandir($tempDir), array(
+                        '.',
+                        '..'
+                    ));
+                    foreach ($remainingFiles as $file) {
+                        @unlink($tempDir . DIRECTORY_SEPARATOR . $file);
+                    }
+                    // Once empty, the folder can be removed
+                    @rmdir($tempDir);
+                }
+            }
+        }
+
+        // --- DATABASE LOGIC ---
+        $senderName = $this->user->realname ?? "User";
+        $uid = $this->user->id ?? 0;
 
         $chatLog = new model('chat_logs');
-        $chatLog->user_id = (int) $this->user->id;
-        $chatLog->message = $structuredMessage;
+        $chatLog->sender_id = $uid;
+        $chatLog->message = htmlspecialchars($message);
+        $chatLog->file_path = $finalDbPath; // Path starts with 'assets/...'
+        $chatLog->file_name = $fileName;
         $chatLog->save();
 
-        $broadcastData = [
-            'sender' => $this->user->realname ?? "User",
-            'message' => $structuredMessage,
+        $chatData = [
+            'id' => $chatLog->id,
+            'sender' => $senderName,
+            'message' => $chatLog->message,
+            'file_path' => $finalDbPath,
             'time' => date('H:i')
         ];
 
         if ($server) {
             $server->broadcast([
                 'type' => 'new_message',
-                'data' => $broadcastData
+                'data' => $chatData
             ], $senderId);
         }
 
         return [
             'status' => 'success',
             'type' => 'chat_confirmation',
-            'data' => $broadcastData
+            'data' => $chatData
         ];
     }
 
     public function history(array $params = []): array
     {
-        $this->authenticate($params);
+        if (! $this->user || ! isset($this->user->id)) {
+            throw new ApiException("Authentication Error: Valid user session required.", 401);
+        }
 
         $hmodel = new model('chat_logs');
-        $history = $hmodel->select('p.id, p.message, p.d_created as time, u.realname as sender')
-            ->join('mst_users u', 'u.id', '=', 'p.user_id', 'LEFT')
-            ->where('p.user_id', '=', (int) $this->user->id)
+        $history = $hmodel->select('p.id, p.message, p.file_path, p.file_name, p.d_created as time, u.realname as sender')
+            ->join('mst_users u', 'u.id', '=', 'p.sender_id', 'LEFT')
+            ->where('p.sender_id', '=', (int) $this->user->id)
             ->orderBy('p.id', 'DESC')
             ->limit(50)
             ->find();
@@ -157,30 +160,30 @@ final class cChat extends cController
         ];
     }
 
-    /**
-     * New Method for the Trash Icon
-     */
-    public function clear_history(array $params = []): array
+    public function delete(array $params = [], ?WSSocket $server = null): array
     {
-        $this->authenticate($params);
-
-        $db = new model('chat_logs');
-        $db->where('user_id', '=', (int) $this->user->id)->delete();
-
-        return [
-            'status' => 'success',
-            'message' => 'History cleared'
-        ];
-    }
-
-    public function delete(array $params = []): array
-    {
-        $this->authenticate($params);
         $messageId = (int) ($params['message_id'] ?? 0);
         $hmodel = new model('chat_logs');
-        $hmodel->where('id', '=', $messageId)
-            ->where('user_id', '=', $this->user->id)
-            ->delete();
+        $message = $hmodel->find($messageId);
+
+        if ($message) {
+            if (! empty($message->file_path)) {
+                $physicalPath = APP_DIR . '../public/' . $message->file_path;
+                if (file_exists($physicalPath)) {
+                    @unlink($physicalPath);
+                }
+            }
+            $message->delete();
+
+            if ($server) {
+                $server->broadcast([
+                    'type' => 'message_deleted',
+                    'data' => [
+                        'id' => $messageId
+                    ]
+                ]);
+            }
+        }
 
         return [
             'status' => 'success',
