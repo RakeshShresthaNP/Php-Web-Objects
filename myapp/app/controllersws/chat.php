@@ -15,46 +15,34 @@ declare(strict_types = 1);
 final class cChat extends cController
 {
 
-    /**
-     * Handles incoming chat messages and broadcasts them.
-     * * @param array $params Data from the client
-     *
-     * @param WSSocket|null $server
-     *            The socket server instance for broadcasting
-     * @param int|null $senderId
-     *            The unique socket ID of the sender
-     */
     public function send(array $params = [], ?WSSocket $server = null, ?int $senderId = null): array
     {
-        // 1. Safe Message Retrieval
+        if (! $this->user) {
+            throw new ApiException("Authentication required", 401);
+        }
+
         $message = trim($params['message'] ?? '');
         if (empty($message)) {
             throw new ApiException("Message cannot be empty", 422);
         }
 
-        $cleanMessage = htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
-        $db = DB::getContext();
+        // Determine identity
+        $senderName = ($this->user && isset($this->user->realname)) ? $this->user->realname : "Visitor #" . $senderId;
+        $uid = ($this->user && isset($this->user->id)) ? $this->user->id : 0;
 
-        // 2. Safe User ID (Use 0 if not logged in for testing)
-        $uid = ($this->user) ? $this->user->id : 0;
-        $senderName = ($this->user) ? ($this->user->realname ?? $this->user->c_name) : "Guest #$senderId";
+        $chatLog = new model('chat_logs');
+        $chatLog->user_id = $uid;
+        $chatLog->message = htmlspecialchars($message);
 
-        // 3. Insert
-        $stmt = $db->prepare("INSERT INTO chat_logs (user_id, message, d_created) VALUES (?, ?, UTC_TIMESTAMP())");
-        $stmt->execute([
-            $uid,
-            $cleanMessage
-        ]);
-        $newId = (int) $db->lastInsertId();
+        $chatLog->save();
 
         $chatData = [
-            'id' => $newId,
+            'id' => $chatLog->id, // model auto-captures lastInsertId
             'sender' => $senderName,
-            'message' => $cleanMessage,
+            'message' => $chatLog->message,
             'time' => date('H:i')
         ];
 
-        // 4. Broadcast
         if ($server) {
             $server->broadcast([
                 'type' => 'new_message',
@@ -69,128 +57,66 @@ final class cChat extends cController
         ];
     }
 
-    public function sendold(array $params = [], ?WSSocket $server = null, ?int $senderId = null): array
-    {
-        /*
-         * if (! $this->user) {
-         * throw new ApiException("Authentication required", 401);
-         * }
-         */
-        $message = trim($params['message'] ?? '');
-        if (empty($message)) {
-            throw new ApiException("Message cannot be empty", 422);
-        }
-
-        $cleanMessage = htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
-        $db = DB::getContext();
-
-        // 1. Insert into Aria-backed chat_logs table
-        $stmt = $db->prepare("INSERT INTO chat_logs (user_id, message, d_created) VALUES (?, ?, UTC_TIMESTAMP())");
-        $stmt->execute([
-            $this->user->id,
-            $cleanMessage
-        ]);
-
-        // 2. Capture the new ID
-        $newId = (int) $db->lastInsertId();
-
-        $chatData = [
-            'id' => $newId, // Critical for JS element targeting
-            'sender' => $this->user->realname ?? $this->user->c_name, // Using your mst_users columns
-            'message' => $cleanMessage,
-            'time' => date('H:i')
-        ];
-
-        // 3. Broadcast to others
-        if ($server) {
-            $server->broadcast([
-                'type' => 'new_message',
-                'data' => $chatData
-            ], $senderId);
-        }
-
-        // 4. Return to sender
-        return [
-            'status' => 'success',
-            'type' => 'chat_confirmation',
-            'data' => $chatData
-        ];
-    }
-
-    /**
-     * Retrieve chat history joined with user names
-     */
     public function history(array $params = []): array
     {
-        // 1. Authorization Check
-        /*
-        if (! $this->user) {
-            throw new ApiException("Unauthorized", 401);
+        // 1. Validate Partner Context
+        if (! $this->partner) {
+            throw new ApiException("Security Error: Partner context not initialized.", 401);
         }
-        */
 
-        // 2. Get DB Context
-        $db = DB::getContext();
-
-        $sql = "SELECT
-            c.id,
-            c.message,
-            c.d_created as time,
-            u.realname as sender
-        FROM chat_logs c
-        INNER JOIN mst_users u ON c.user_id = u.id
-        ORDER BY c.id DESC
-        LIMIT 50";
-
-        try {
-            $stmt = $db->query($sql);
-            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            // Reverse so the oldest of the 'last 50' is at the top of the chat
-            $history = array_reverse($rows);
-
-            return [
-                'status' => 'success',
-                'type' => 'chat_history', // WSClient.js listens for 'ws_chat_history'
-                'data' => $history
-            ];
-        } catch (Exception $e) {
-            throw new ApiException("Could not retrieve chat history", 500);
+        // 2. Validate Secret Key Presence
+        $sKey = $this->partner->settings[0]->secretkey ?? null;
+        if (! $sKey) {
+            throw new ApiException("Security Error: Secret key missing for this partner.", 401);
         }
+
+        // 3. Validate Authenticated User
+        if (! $this->user || ! isset($this->user->id)) {
+            throw new ApiException("Authentication Error: Valid user session required.", 401);
+        }
+
+        // 4. Initialize Model
+        $hmodel = new model('chat_logs');
+
+        /**
+         * Query Builder Logic:
+         * We pass 'u.id' and 'chat_logs.user_id' as separate arguments
+         * because your model->join() concatenates them internally.
+         */
+        $history = $hmodel->select('p.id, p.message, p.d_created as time, u.realname as sender')
+            ->join('mst_users u', 'u.id', '=', 'p.user_id', 'LEFT')
+            ->where('p.user_id', '=', (int) $this->user->id)
+            ->orderBy('p.id', 'DESC')
+            ->limit(50)
+            ->find();
+
+        // 5. Format and Return
+        return [
+            'status' => 'success',
+            'type' => 'chat_history',
+            // Reversing ensures the oldest messages are at the top and newest at the bottom
+            'data' => array_reverse($history)
+        ];
     }
 
-    /**
-     * Allows admins to delete a specific message
-     */
     public function delete(array $params = [], ?WSSocket $server = null): array
     {
-        // WSSocket::dispatch already verified 'admin' or 'superadmin' via sys_methods
-        if (! $this->user) {
-            throw new ApiException("Unauthorized", 401);
-        }
-
         $messageId = (int) ($params['message_id'] ?? 0);
 
-        if ($messageId <= 0) {
-            throw new ApiException("Invalid message ID", 422);
-        }
+        $hmodel = new model('chat_logs');
+        $message = $hmodel->find($messageId);
 
-        // 2. Database Deletion
-        $db = DB::getContext();
-        $stmt = $db->prepare("DELETE FROM chat_logs WHERE id = ?");
-        $stmt->execute([
-            $messageId
-        ]);
+        if ($message) {
+            $message->delete();
 
-        // 3. Broadcast the Deletion
-        // We tell everyone to remove this ID from their screen
-        if ($server) {
-            $server->broadcast([
-                'type' => 'message_deleted',
-                'data' => [
-                    'id' => $messageId
-                ]
-            ]);
+            if ($server) {
+                $server->broadcast([
+                    'type' => 'message_deleted',
+                    'data' => [
+                        'id' => $messageId
+                    ]
+                ]);
+            }
         }
 
         return [

@@ -202,6 +202,7 @@ final class Request
     {
         $tokenheader = null;
 
+        // 1. Check WebSocket Virtual Headers
         if (isset($this->virtualHeaders['Authorization'])) {
             $tokenheader = $this->virtualHeaders['Authorization'];
             if (preg_match('/Bearer\s(\S+)/', $tokenheader, $matches)) {
@@ -209,6 +210,7 @@ final class Request
             }
         }
 
+        // 2. Check Standard Global Headers
         if (isset($_SERVER['Authorization'])) {
             $tokenheader = mb_trim($_SERVER['Authorization']);
         } else if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
@@ -216,7 +218,6 @@ final class Request
         }
 
         if (! empty($tokenheader)) {
-
             if (preg_match('/Bearer\s(\S+)/', $tokenheader, $matches)) {
                 return $matches[1];
             }
@@ -233,13 +234,15 @@ final class Request
             return null;
         }
 
+        // 1. Ensure Partner and Secret Key are loaded
         if (isset($this->partner->settings[0]->secretkey)) {
             $secret_key = $this->partner->settings[0]->secretkey;
         } else {
-            throw new ApiException('Invalid partner setting.', 401);
+            // If we are in WebSocket mode, this indicates getPartner() wasn't called or failed
+            throw new ApiException('Invalid partner setting. Secret Key not found.', 401);
         }
 
-        // split the token
+        // 2. Split the token into its three parts
         $tokenParts = explode('.', $jwt);
         if (count($tokenParts) !== 3) {
             throw new ApiException('Invalid token format.', 401);
@@ -249,22 +252,26 @@ final class Request
         $payload = $tokenParts[1];
         $signatureProvided = $tokenParts[2];
 
-        // build a signature based on the header and payload using the secret
+        // 3. Rebuild the signature using the Database Secret Key
+        // The 'true' flag is vital: it outputs raw binary for the base64 encoder
         $signature = hash_hmac('sha256', $header . "." . $payload, $secret_key, true);
         $base64UrlSignature = base64_jwt_encode($signature);
 
-        // verify it matches the signature provided in the token
+        // 4. Verify it matches the signature provided in the token
         if (! hash_equals($base64UrlSignature, $signatureProvided)) {
-            throw new ApiException('Signature is not valid.', 401);
+            // If this fails, the token was signed with a different key than what is in the DB
+            throw new ApiException('Signature is not valid. Check if Login Key matches DB Key.', 401);
         }
 
-        // decode and check the expiration time
+        // 5. Decode and check the expiration time
         $payloadDecoded = base64_jwt_decode($payload);
         $payloadData = json_decode($payloadDecoded);
+
         if (! $payloadData || ! isset($payloadData->exp)) {
             throw new ApiException('Invalid token payload.', 401);
         }
 
+        // 6. Check if token is expired
         if (time() > $payloadData->exp) {
             throw new ApiException('Token has expired.', 401);
         }

@@ -3,12 +3,6 @@
 /**
  # Copyright Rakesh Shrestha (rakesh.shrestha@gmail.com)
  # All rights reserved.
- #
- # Redistribution and use in source and binary forms, with or without
- # modification, are permitted provided that the following conditions are
- # met:
- #
- # Redistributions must retain the above copyright notice.
  */
 declare(strict_types = 1);
 
@@ -93,7 +87,8 @@ final class WSSocket
         $this->clients[$id] = [
             'socket' => $socket,
             'handshake' => false,
-            'last_seen' => time()
+            'last_seen' => time(),
+            'ip' => '0.0.0.0'
         ];
         echo "New client connected: #{$id}" . PHP_EOL;
     }
@@ -116,13 +111,10 @@ final class WSSocket
 
             $this->clients[$id]['last_seen'] = time();
 
-            // Internal Fast-Track Ping
             if ($data && isset($data['method']) && $data['method'] === 'ping') {
                 try {
                     DB::getContext();
-                } catch (Exception $e) {
-                    echo "⚠️ DB Reconnect failed during ping: " . $e->getMessage() . PHP_EOL;
-                }
+                } catch (Exception $e) {}
                 $this->send($id, [
                     'status' => 'success',
                     'type' => 'pong',
@@ -133,95 +125,59 @@ final class WSSocket
 
             if ($data && isset($data['controller'], $data['method'])) {
                 $this->dispatch($id, $data);
-            } else {
-                $this->send($id, "Server received: " . $payload);
             }
         }
     }
 
     private function dispatch(int $id, array $data): void
     {
+        //writeLog('debug', "FULL DATA FROM JS: " . json_encode($data));
+        
         try {
             Request::resetContext();
             $req = Request::getContext();
             $req->controllerDir = WS_CONT_DIR;
-
-            // 1. Prepare Virtual Environment
+            
             $params = $data['params'] ?? [];
-
-            /**
-             * GLOBAL IP INJECTION:
-             * We pull the Real IP captured during doHandshake and inject it into headers.
-             * This allows sys_auditlogs to see the real user, not 127.0.0.1.
-             */
             $headers = $data['headers'] ?? [];
-            $headers['X-Forwarded-For'] = $this->clients[$id]['ip'] ?? '127.0.0.1';
-
+            
+            // 1. EXTRACT TOKEN FROM PARAMS
+            // If the JS sent { params: { token: 'xyz' } }, we must put it in headers
+            if (isset($params['token']) && !empty($params['token'])) {
+                $headers['Authorization'] = 'Bearer ' . $params['token'];
+            }
+            
+            $hostname = $headers['X-Forwarded-Host'];
+            
             $req->apimode = true;
+            
+            // 2. SET VIRTUAL CONTEXT (This fills $req->virtualHeaders)
             $req->setVirtualContext($params, $headers);
-
-            // 2. Identify Partner/Tenant (Uses mst_partners table)
-            $allHeaders = $req->getHeaders();
-            $hostname = $allHeaders->{'X-Forwarded-Host'} ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+            
+            // 3. LOAD PARTNER
             $req->getPartner($hostname);
-
-            // 3. Authenticate User (Uses sys_sessions & mst_users)
+            
+            // 4. AUTHENTICATE (Now getToken() will find it!)
             $user = $req->getPayloadData();
             if ($user) {
                 $req->user = $user;
                 $req->cusertype = $user->perms ?? 'none';
-            } else {
-                // MOCK USER FOR LOCAL TESTING
-                $req->user = (object) [
-                    'id' => 999,
-                    'realname' => 'Local Tester',
-                    'perms' => 'admin'
-                ];
-                $req->cusertype = 'admin';
             }
-
-            /**
-             * 4.
-             * Framework Security Verification
-             * verifyController checks 'sys_modules'
-             * verifyMethod checks 'sys_methods'
-             */
+            
             $con = $req->verifyController('', $data['controller']);
             $met = $req->verifyMethod($con, $data['method']);
-
-            /**
-             * 5.
-             * Call Controller with "Global" Access
-             * We pass ($params, $this, $id).
-             * This gives the controller the ability to call $server->broadcast()
-             */
-            $response = call_user_func_array([
-                $con,
-                $met
-            ], [
-                $params,
-                $this, // Pass the WSSocket instance for global broadcasting
-                $id // Pass the unique sender ID
-            ]);
-
+            
+            $response = call_user_func_array([$con, $met], [$params, $this, $id]);
+            
             if ($response !== null) {
                 $this->send($id, $response);
             }
         } catch (ApiException $e) {
-            $this->send($id, [
-                'status' => 'error',
-                'message' => $e->getMessage(),
-                'code' => $e->getCode()
-            ]);
-        } catch (Exception $e) {
-            $this->send($id, [
-                'status' => 'error',
-                'message' => 'Internal logic error: ' . $e->getMessage(),
-                'code' => 500
-            ]);
+            writeLog('error', "WS Dispatch Error: " . $e->getMessage());
+            $this->send($id, ['status' => 'error', 'message' => $e->getMessage(), 'code' => 401]);
         }
     }
-
+    
     public function broadcast(array|string $data, ?int $excludeId = null): void
     {
         $payload = is_array($data) ? json_encode($data) : $data;
@@ -236,17 +192,12 @@ final class WSSocket
 
     private function doHandshake(int $id, string $buffer): void
     {
-        // Capture Real IP from Proxy (Nginx/Apache)
         $remoteIp = '0.0.0.0';
         if (preg_match("/X-Forwarded-For: (.*)\r\n/", $buffer, $ips)) {
             $remoteIp = trim(explode(',', $ips[1])[0]);
-        } elseif (preg_match("/X-Real-IP: (.*)\r\n/", $buffer, $ra)) {
-            $remoteIp = trim($ra[1]);
         }
 
-        // Store IP in the client metadata for global use
         $this->clients[$id]['ip'] = $remoteIp;
-        $this->clients[$id]['full_headers'] = $buffer;
 
         if (preg_match("/Sec-WebSocket-Key: (.*)\r\n/", $buffer, $match)) {
             $key = base64_encode(sha1($match[1] . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', true));
@@ -254,12 +205,14 @@ final class WSSocket
 
             socket_write($this->clients[$id]['socket'], $upgrade, strlen($upgrade));
             $this->clients[$id]['handshake'] = true;
-            echo "Handshake successful for #{$id} from IP: {$remoteIp}" . PHP_EOL;
+            echo "Handshake OK #{$id} from {$remoteIp}" . PHP_EOL;
         }
     }
 
     private function send(int $id, array|string $data): void
     {
+        if (! isset($this->clients[$id]))
+            return;
         $text = is_array($data) ? json_encode($data) : $data;
         $response = $this->mask($text);
         @socket_write($this->clients[$id]['socket'], $response, strlen($response));

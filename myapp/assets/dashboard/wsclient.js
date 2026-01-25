@@ -62,27 +62,25 @@ class WSClient {
      * The MVC Bridge
      * Sends a request structured for the PHP WSSocket::dispatch method
      */
-    call(controller, method, params = {}) {
-        if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-            console.error("WSClient: Cannot call method, socket is not OPEN.");
-            return;
-        }
+	call(controller, method, params = {}, headers = {}) {
+	    // FORCE refresh the token from storage right before sending
+	    const currentToken = localStorage.getItem('pwoToken');
+	    if (currentToken) {
+	        params.token = currentToken;
+	    }
 
-        // Fetch JWT for PHP's Request::getPayloadData()
-        const token = localStorage.getItem(this.tokenKey);
+	    const payload = JSON.stringify({
+	        controller: controller,
+	        method: method,
+	        params: params,
+	        headers: headers
+	    });
 
-        const payload = {
-            controller: controller,
-            method: method,
-            params: {
-                ...params,
-                token: token // Injected for server-side authentication
-            }
-        };
-
-        this.socket.send(JSON.stringify(payload));
-    }
-
+	    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+	        this.socket.send(payload);
+	    }
+	}
+	
     /**
      * Internal Heartbeat
      * Triggers WSSocket::process internal ping to keep DB connection warm
