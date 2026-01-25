@@ -31,7 +31,7 @@ final class cChat extends cController
         $uid = ($this->user && isset($this->user->id)) ? $this->user->id : 0;
 
         $chatLog = new model('chat_logs');
-        $chatLog->user_id = $uid;
+        $chatLog->sender_id = $uid;
         $chatLog->message = htmlspecialchars($message);
 
         $chatLog->save();
@@ -59,18 +59,6 @@ final class cChat extends cController
 
     public function history(array $params = []): array
     {
-        // 1. Validate Partner Context
-        if (! $this->partner) {
-            throw new ApiException("Security Error: Partner context not initialized.", 401);
-        }
-
-        // 2. Validate Secret Key Presence
-        $sKey = $this->partner->settings[0]->secretkey ?? null;
-        if (! $sKey) {
-            throw new ApiException("Security Error: Secret key missing for this partner.", 401);
-        }
-
-        // 3. Validate Authenticated User
         if (! $this->user || ! isset($this->user->id)) {
             throw new ApiException("Authentication Error: Valid user session required.", 401);
         }
@@ -84,8 +72,8 @@ final class cChat extends cController
          * because your model->join() concatenates them internally.
          */
         $history = $hmodel->select('p.id, p.message, p.d_created as time, u.realname as sender')
-            ->join('mst_users u', 'u.id', '=', 'p.user_id', 'LEFT')
-            ->where('p.user_id', '=', (int) $this->user->id)
+            ->join('mst_users u', 'u.id', '=', 'p.sender_id', 'LEFT')
+            ->where('p.sender_id', '=', (int) $this->user->id)
             ->orderBy('p.id', 'DESC')
             ->limit(50)
             ->find();

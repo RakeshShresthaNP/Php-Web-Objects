@@ -5,7 +5,7 @@
  */
 (async function() {
     // 1. CONFIGURATION
-    const WS_CLIENT_PATH = 'assets/dashboard/wsclient.js';
+    const WS_CLIENT_PATH = 'assets/public/wsclient.js';
     const SOCKET_URL = window.location.protocol === 'https:' 
         ? `wss://${window.location.hostname}/ws` 
         : `ws://localhost:8080`;
@@ -24,7 +24,7 @@
 
     try {
         await Promise.all([
-            loadScript('https://cdn.tailwindcss.com'),
+            loadScript('assets/public/tailwind.css'),
             loadScript(WS_CLIENT_PATH)
         ]);
     } catch (err) { 
