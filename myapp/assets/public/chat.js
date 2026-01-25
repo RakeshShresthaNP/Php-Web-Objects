@@ -4,7 +4,7 @@
  */
 (async function() {
     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-    const WS_CLIENT_PATH = 'assets/dashboard/wsclient.js';
+    const WS_CLIENT_PATH = 'assets/public/wsclient.js';
     const SOCKET_URL = window.location.protocol === 'https:' 
         ? `wss://${window.location.hostname}/ws` 
         : `ws://localhost:8080`;
@@ -21,7 +21,7 @@
     };
 
     try {
-        await Promise.all([loadScript('assets/public/tailwind.css'), loadScript(WS_CLIENT_PATH)]);
+        await Promise.all([loadScript('https://cdn.tailwindcss.com'), loadScript(WS_CLIENT_PATH)]);
     } catch (err) { return; }
 
     // UI INJECTION

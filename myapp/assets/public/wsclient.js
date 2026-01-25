@@ -63,6 +63,12 @@ class WSClient {
      * Sends a request structured for the PHP WSSocket::dispatch method
      */
 	call(controller, method, params = {}, headers = {}) {
+	    // FORCE refresh the token from storage right before sending
+	    const currentToken = localStorage.getItem('pwoToken');
+	    if (currentToken) {
+	        params.token = currentToken;
+	    }
+
 	    const payload = JSON.stringify({
 	        controller: controller,
 	        method: method,
