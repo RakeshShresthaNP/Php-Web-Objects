@@ -16,14 +16,20 @@
 
 -- Dumping structure for table pwo.chat_logs
 CREATE TABLE IF NOT EXISTS `chat_logs` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` bigint(20) unsigned NOT NULL,
-  `message` text NOT NULL,
-  `d_created` timestamp NULL DEFAULT utc_timestamp(),
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sender_id` int(11) NOT NULL COMMENT 'Link to your users table',
+  `partner_id` int(11) NOT NULL DEFAULT 0,
+  `message` longtext DEFAULT NULL COMMENT 'Stores text or JSON string for files',
+  `file_id` varchar(50) DEFAULT NULL COMMENT 'Temporary ID for chunking',
+  `file_name` varchar(255) DEFAULT NULL,
+  `file_path` varchar(255) DEFAULT NULL,
+  `is_read` tinyint(1) DEFAULT 0,
+  `d_created` timestamp NOT NULL DEFAULT utc_timestamp(),
   `d_updated` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `key_chat_logs_user` (`user_id`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+  KEY `sender_idx` (`sender_id`),
+  KEY `file_id_idx` (`file_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table pwo.chat_logs: 0 rows
 DELETE FROM `chat_logs`;
