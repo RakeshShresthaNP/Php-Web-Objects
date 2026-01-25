@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS `chat_logs` (
   PRIMARY KEY (`id`),
   KEY `sender_idx` (`sender_id`),
   KEY `file_id_idx` (`file_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table pwo.chat_logs: 0 rows
 DELETE FROM `chat_logs`;
