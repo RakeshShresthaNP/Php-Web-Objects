@@ -14,6 +14,22 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+-- Dumping structure for table pwo.chat_logs
+CREATE TABLE IF NOT EXISTS `chat_logs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `message` text NOT NULL,
+  `d_created` timestamp NULL DEFAULT utc_timestamp(),
+  `d_updated` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `key_chat_logs_user` (`user_id`)
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+
+-- Dumping data for table pwo.chat_logs: 0 rows
+DELETE FROM `chat_logs`;
+/*!40000 ALTER TABLE `chat_logs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `chat_logs` ENABLE KEYS */;
+
 -- Dumping structure for table pwo.documentextractions
 CREATE TABLE IF NOT EXISTS `documentextractions` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -138,7 +154,7 @@ CREATE TABLE IF NOT EXISTS `mst_partners` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `key_partnershost` (`hostname`),
   KEY `key_partners` (`c_name`,`email`)
-) ENGINE=Aria AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
 -- Dumping data for table pwo.mst_partners: 2 rows
 DELETE FROM `mst_partners`;
@@ -172,7 +188,7 @@ CREATE TABLE IF NOT EXISTS `mst_partner_settings` (
 DELETE FROM `mst_partner_settings`;
 /*!40000 ALTER TABLE `mst_partner_settings` DISABLE KEYS */;
 INSERT INTO `mst_partner_settings` (`id`, `partner_id`, `secretkey`, `mailhost`, `mailport`, `mailusername`, `mailpassword`, `geoip_api_key`, `firebase_api_key`, `gemini_api_key`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
-	(1, 1, 'PHPisCool', 'smtp.gmail.com', '587', '', '', '', '', '', '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
+	(1, 1, 'Nepal@123', 'smtp.gmail.com', '587', '', '', '', '', '', '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
 /*!40000 ALTER TABLE `mst_partner_settings` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.mst_reportpivots
@@ -368,8 +384,8 @@ INSERT INTO `sys_methods` (`id`, `c_name`, `module_id`, `controllername`, `contr
 	(26, 'mathtest_index', 10, 'mathtest', 'index', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
 	(27, 'mltest_index', 9, 'mltest', 'index', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
 	(28, 'planimport_api_importhr', 13, 'planimport', 'api_importhr', '', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(29, 'chat_send', 14, 'chat', 'send', NULL, 'admin,superadmin,user,none', 1, '2026-01-24 09:46:56', 1, NULL, NULL),
-	(30, 'chat_history', 14, 'chat', 'history', NULL, 'admin,superadmin,user,none', 1, '2026-01-24 09:46:56', 1, NULL, NULL),
+	(29, 'chat_send', 14, 'chat', 'send', NULL, 'none', 1, '2026-01-24 09:46:56', 1, NULL, NULL),
+	(30, 'chat_history', 14, 'chat', 'history', NULL, 'admin,superadmin,user', 1, '2026-01-24 09:46:56', 1, NULL, NULL),
 	(31, 'chat_delete', 14, 'chat', 'delete', NULL, 'admin,superadmin', 1, '2026-01-24 09:48:48', 1, NULL, NULL);
 /*!40000 ALTER TABLE `sys_methods` ENABLE KEYS */;
 
@@ -405,7 +421,7 @@ INSERT INTO `sys_modules` (`id`, `c_name`, `perms`, `status`, `d_created`, `u_cr
 	(11, 'financetest', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
 	(12, 'geminitest', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
 	(13, 'planimport', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(14, 'chat', 'admin,superadmin,user,none', 1, '2026-01-24 09:46:56', 1, NULL, NULL);
+	(14, 'chat', 'none', 1, '2026-01-24 09:46:56', 1, NULL, NULL);
 /*!40000 ALTER TABLE `sys_modules` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.sys_sessions
