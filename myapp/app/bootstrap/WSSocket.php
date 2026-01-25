@@ -170,6 +170,14 @@ final class WSSocket
             if ($user) {
                 $req->user = $user;
                 $req->cusertype = $user->perms ?? 'none';
+            } else {
+                // MOCK USER FOR LOCAL TESTING
+                $req->user = (object) [
+                    'id' => 999,
+                    'realname' => 'Local Tester',
+                    'perms' => 'admin'
+                ];
+                $req->cusertype = 'admin';
             }
 
             /**

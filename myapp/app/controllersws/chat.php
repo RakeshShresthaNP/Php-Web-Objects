@@ -26,10 +26,56 @@ final class cChat extends cController
      */
     public function send(array $params = [], ?WSSocket $server = null, ?int $senderId = null): array
     {
-        if (! $this->user) {
-            throw new ApiException("Authentication required", 401);
+        // 1. Safe Message Retrieval
+        $message = trim($params['message'] ?? '');
+        if (empty($message)) {
+            throw new ApiException("Message cannot be empty", 422);
         }
 
+        $cleanMessage = htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
+        $db = DB::getContext();
+
+        // 2. Safe User ID (Use 0 if not logged in for testing)
+        $uid = ($this->user) ? $this->user->id : 0;
+        $senderName = ($this->user) ? ($this->user->realname ?? $this->user->c_name) : "Guest #$senderId";
+
+        // 3. Insert
+        $stmt = $db->prepare("INSERT INTO chat_logs (user_id, message, d_created) VALUES (?, ?, UTC_TIMESTAMP())");
+        $stmt->execute([
+            $uid,
+            $cleanMessage
+        ]);
+        $newId = (int) $db->lastInsertId();
+
+        $chatData = [
+            'id' => $newId,
+            'sender' => $senderName,
+            'message' => $cleanMessage,
+            'time' => date('H:i')
+        ];
+
+        // 4. Broadcast
+        if ($server) {
+            $server->broadcast([
+                'type' => 'new_message',
+                'data' => $chatData
+            ], $senderId);
+        }
+
+        return [
+            'status' => 'success',
+            'type' => 'chat_confirmation',
+            'data' => $chatData
+        ];
+    }
+
+    public function sendold(array $params = [], ?WSSocket $server = null, ?int $senderId = null): array
+    {
+        /*
+         * if (! $this->user) {
+         * throw new ApiException("Authentication required", 401);
+         * }
+         */
         $message = trim($params['message'] ?? '');
         if (empty($message)) {
             throw new ApiException("Message cannot be empty", 422);
@@ -77,9 +123,11 @@ final class cChat extends cController
     public function history(array $params = []): array
     {
         // 1. Authorization Check
+        /*
         if (! $this->user) {
             throw new ApiException("Unauthorized", 401);
         }
+        */
 
         // 2. Get DB Context
         $db = DB::getContext();
