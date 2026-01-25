@@ -3,6 +3,12 @@
 /**
  # Copyright Rakesh Shrestha (rakesh.shrestha@gmail.com)
  # All rights reserved.
+ #
+ # Redistribution and use in source and binary forms, with or without
+ # modification, are permitted provided that the following conditions are
+ # met:
+ #
+ # Redistributions must retain the above copyright notice.
  */
 declare(strict_types = 1);
 
@@ -96,88 +102,123 @@ final class WSSocket
     private function process(Socket $socket): void
     {
         $id = spl_object_id($socket);
-        $bytes = @socket_recv($socket, $buffer, 2048, 0);
+
+        /**
+         * Buffer size: 300 KB (307200 bytes)
+         * This accommodates:
+         * - 256 KB of Base64 chunk data
+         * - ~10 KB of JSON metadata (controller, method, token)
+         * - WebSocket frame headers
+         */
+        $maxBuffer = 307200;
+        $bytes = @socket_recv($socket, $buffer, $maxBuffer, 0);
 
         if ($bytes === 0 || $bytes === false) {
             $this->disconnect($id);
             return;
         }
 
+        // 1. Handle Handshake
         if (! $this->clients[$id]['handshake']) {
             $this->doHandshake($id, $buffer);
-        } else {
-            $payload = $this->unmask($buffer);
-            $data = json_decode($payload, true);
+            return;
+        }
 
-            $this->clients[$id]['last_seen'] = time();
+        // 2. Unmask the WebSocket Frame
+        $payload = $this->unmask($buffer);
 
-            if ($data && isset($data['method']) && $data['method'] === 'ping') {
-                try {
-                    DB::getContext();
-                } catch (Exception $e) {}
-                $this->send($id, [
-                    'status' => 'success',
-                    'type' => 'pong',
-                    'time' => time()
-                ]);
-                return;
+        if (! $payload) {
+            return; // Skip empty or malformed frames
+        }
+
+        // 3. Decode JSON Data
+        $data = json_decode($payload, true);
+
+        // Update activity timestamp
+        $this->clients[$id]['last_seen'] = time();
+
+        // 4. Handle Internal Heartbeat (Ping/Pong)
+        if ($data && isset($data['method']) && $data['method'] === 'ping') {
+            try {
+                // Keeps the MySQL connection from timing out
+                DB::getContext();
+            } catch (Exception $e) {
+                writeLog('error', "DB Heartbeat failed: " . $e->getMessage());
             }
 
-            if ($data && isset($data['controller'], $data['method'])) {
-                $this->dispatch($id, $data);
-            }
+            $this->send($id, [
+                'status' => 'success',
+                'type' => 'pong',
+                'time' => time()
+            ]);
+            return;
+        }
+
+        // 5. MVC Dispatcher Bridge
+        if ($data && isset($data['controller'], $data['method'])) {
+            $this->dispatch($id, $data);
         }
     }
 
     private function dispatch(int $id, array $data): void
     {
-        //writeLog('debug', "FULL DATA FROM JS: " . json_encode($data));
-        
+        // writeLog('debug', "FULL DATA FROM JS: " . json_encode($data));
         try {
             Request::resetContext();
             $req = Request::getContext();
             $req->controllerDir = WS_CONT_DIR;
-            
+
             $params = $data['params'] ?? [];
             $headers = $data['headers'] ?? [];
-            
+
             // 1. EXTRACT TOKEN FROM PARAMS
             // If the JS sent { params: { token: 'xyz' } }, we must put it in headers
-            if (isset($params['token']) && !empty($params['token'])) {
+            if (isset($params['token']) && ! empty($params['token'])) {
                 $headers['Authorization'] = 'Bearer ' . $params['token'];
             }
-            
+
             $hostname = $headers['X-Forwarded-Host'];
-            
+
             $req->apimode = true;
-            
+
             // 2. SET VIRTUAL CONTEXT (This fills $req->virtualHeaders)
             $req->setVirtualContext($params, $headers);
-            
+
             // 3. LOAD PARTNER
             $req->getPartner($hostname);
-            
+
             // 4. AUTHENTICATE (Now getToken() will find it!)
             $user = $req->getPayloadData();
             if ($user) {
                 $req->user = $user;
                 $req->cusertype = $user->perms ?? 'none';
             }
-            
+
             $con = $req->verifyController('', $data['controller']);
             $met = $req->verifyMethod($con, $data['method']);
-            
-            $response = call_user_func_array([$con, $met], [$params, $this, $id]);
-            
+
+            $response = call_user_func_array([
+                $con,
+                $met
+            ], [
+                $params,
+                $this,
+                $id
+            ]);
+
             if ($response !== null) {
                 $this->send($id, $response);
             }
         } catch (ApiException $e) {
             writeLog('error', "WS Dispatch Error: " . $e->getMessage());
-            $this->send($id, ['status' => 'error', 'message' => $e->getMessage(), 'code' => 401]);
+            $this->send($id, [
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'code' => 401
+            ]);
         }
     }
-    
+
     public function broadcast(array|string $data, ?int $excludeId = null): void
     {
         $payload = is_array($data) ? json_encode($data) : $data;
@@ -220,19 +261,28 @@ final class WSSocket
 
     private function unmask(string $text): string
     {
+        if (strlen($text) < 2)
+            return "";
+
         $length = ord($text[1]) & 127;
+
         if ($length == 126) {
+            // Extended payload: 2 bytes for length + 4 bytes for mask
             $masks = substr($text, 4, 4);
             $data = substr($text, 8);
         } elseif ($length == 127) {
+            // Huge payload: 8 bytes for length + 4 bytes for mask
             $masks = substr($text, 10, 4);
             $data = substr($text, 14);
         } else {
+            // Standard payload: 4 bytes for mask
             $masks = substr($text, 2, 4);
             $data = substr($text, 6);
         }
+
         $decoded = "";
-        for ($i = 0; $i < strlen($data); ++ $i) {
+        $dataLength = strlen($data);
+        for ($i = 0; $i < $dataLength; ++ $i) {
             $decoded .= $data[$i] ^ $masks[$i % 4];
         }
         return $decoded;
