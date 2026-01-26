@@ -22,18 +22,25 @@ if (recognition) {
 // --- EXPORTED: Handle File Selection ---
 export function handleFile(f, state) {
     if (!f) return;
-    if (f.size > 5 * 1024 * 1024) { alert("File too large (max 5MB)"); return; }
+    if (f.size > 10 * 1024 * 1024) { alert("File too large (max 10MB)"); return; }
     
     state.isReadingFile = true;
     const preview = document.getElementById('pwo-preview');
     const filename = document.getElementById('pwo-filename');
     
     preview.classList.remove('hidden');
-    filename.innerText = "Reading...";
+    filename.innerText = "Preparing file...";
 
     const r = new FileReader();
     r.onload = (ev) => { 
-        state.pendingFile = { data: ev.target.result, name: f.name }; 
+        // EXTENSION: Create localUrl for instant UI rendering
+        const localUrl = URL.createObjectURL(f); 
+        
+        state.pendingFile = { 
+            data: ev.target.result, 
+            name: f.name,
+            localUrl: localUrl // Store for UI
+        }; 
         filename.innerText = "✓ " + f.name; 
         state.isReadingFile = false; 
     };
@@ -56,18 +63,32 @@ export async function handleSend(state, ws) {
     if (!txt && !state.pendingFile) return;
     
     const tempId = Date.now();
-    render({ message: txt, is_me: true, temp_id: tempId }, false, true);
+    
+    // EXTENSION: Pass localUrl and file_name to render immediately
+    render({ 
+        message: txt, 
+        is_me: true, 
+        temp_id: tempId, 
+        file_name: state.pendingFile?.name,
+        localUrl: state.pendingFile?.localUrl 
+    }, true, true);
     
     const prog = document.getElementById('pwo-progress-container'), bar = document.getElementById('pwo-progress-bar');
     
     if (state.pendingFile) {
         if(prog) prog.classList.remove('hidden');
         const data = state.pendingFile.data, CHUNK = 16384, total = Math.ceil(data.length / CHUNK);
+        
         for (let i = 0; i < total; i++) {
             ws.call('chat', 'uploadchunk', { file_id: tempId, chunk: data.substring(i * CHUNK, (i + 1) * CHUNK), index: i, token: t }, getAuthHeaders());
             if(bar) bar.style.width = ((i + 1) / total) * 100 + '%';
-            await new Promise(r => setTimeout(r, 15));
+            
+            // CORRUPTION FIX: Increased delay to 30ms to ensure server handles the write safely
+            await new Promise(r => setTimeout(r, 30)); 
         }
+        
+        // Ensure final write buffer has cleared before sending 'send' command
+        await new Promise(r => setTimeout(r, 100));
         ws.call('chat', 'send', { message: txt, file_id: tempId, file_name: state.pendingFile.name, temp_id: tempId, token: t }, getAuthHeaders());
     } else {
         ws.call('chat', 'send', { message: txt, temp_id: tempId, token: t }, getAuthHeaders());

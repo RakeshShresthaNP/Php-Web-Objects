@@ -43,6 +43,18 @@ final class cChat extends cController
         }
         $chunkName = str_pad((string) $index, 6, '0', STR_PAD_LEFT) . '.part';
         file_put_contents($tempDir . $chunkName, $chunk);
+
+        // >>> ADD THESE LINES BELOW <<<
+        // This tells the frontend: "I have safely written this chunk, send the next one."
+        if ($server) {
+            $server->send($senderId, [
+                'type' => 'chunk_ack',
+                'detail' => [
+                    'index' => $index,
+                    'file_id' => $fileId
+                ]
+            ]);
+        }
     }
 
     // --- ORIGINAL SEND (UNTOUCHED FILE LOGIC) ---

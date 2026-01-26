@@ -8,12 +8,30 @@ export const PWO_STYLES = `
     #pwo-window { z-index: 9999; display: none; }
     #pwo-bubble { z-index: 9999; }
     .msg-me { align-self: flex-end; }
+    
+    /* FIX: Vertical Scrollbar for long messages */
+    .msg-body { 
+        max-height: 300px; 
+        overflow-y: auto; 
+        overflow-x: hidden;
+        word-break: break-word;
+        white-space: pre-wrap; /* CRITICAL: Preserves line breaks */
+    }
+    
+    /* Optional: Style the scrollbar to be thin and clean */
+    .msg-body::-webkit-scrollbar { width: 3px; }
+    .msg-body::-webkit-scrollbar-thumb { 
+        background: rgba(0,0,0,0.1); 
+        border-radius: 10px; 
+    }
+
     .rec-active { color: #ef4444 !important; animation: pulse 1.5s infinite; }
     @keyframes pulse {
         0% { transform: scale(1); opacity: 1; }
         50% { transform: scale(1.1); opacity: 0.8; }
         100% { transform: scale(1); opacity: 1; }
     }
+
     #chat-box::-webkit-scrollbar { width: 4px; }
     #chat-box::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
 </style>
