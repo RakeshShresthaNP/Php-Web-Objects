@@ -72,7 +72,8 @@
 
     // --- 3. STATE ---
     const chatBox = document.getElementById('chat-box'), chatIn = document.getElementById('chat-in'), micBtn = document.getElementById('pwo-mic');
-    let isSocketStarted = false, isRecording = false, pendingFile = null, mediaRecorder = null, audioChunks = [], recognition = null;
+    let isReadingFile = false; // <--- ADD THIS LINE
+	let isSocketStarted = false, isRecording = false, pendingFile = null, mediaRecorder = null, audioChunks = [], recognition = null;
     const ws = new WSClient(SOCKET_URL, localStorage.getItem('pwoToken') || "");
     const getAuthHeaders = () => ({ 'X-Forwarded-Host': window.location.hostname });
 
@@ -103,33 +104,60 @@
     }
 
     // --- 5. CORE LOGIC ---
-    const handleSend = async () => {
+	const handleSend = async () => {
         if (isRecording) stopRecording();
+
+        // 1. GUARD: Wait if file is still being read
+        let waitCount = 0;
+        while (isReadingFile && waitCount < 20) {
+            await new Promise(r => setTimeout(r, 100));
+            waitCount++;
+        }
+
         const txt = chatIn.value.trim(), t = localStorage.getItem('pwoToken');
         if (!txt && !pendingFile) return;
 
-        if (pendingFile) {
-            const prog = document.getElementById('pwo-progress-container');
-            const bar = document.getElementById('pwo-progress-bar');
-            prog.classList.remove('hidden');
+        // DEFINE UI ELEMENTS OUTSIDE THE IF BLOCK
+        const prog = document.getElementById('pwo-progress-container');
+        const bar = document.getElementById('pwo-progress-bar');
 
-            const data = pendingFile.data, CHUNK = 16384; // Smaller chunk for stability
-            const total = Math.ceil(data.length / CHUNK), fid = Date.now();
+        if (pendingFile) {
+            if (prog) prog.classList.remove('hidden');
+
+            const data = pendingFile.data;
+            const CHUNK = 16384;
+            const total = Math.ceil(data.length / CHUNK);
+            const fid = Date.now();
 
             for (let i = 0; i < total; i++) {
-                ws.call('chat', 'uploadchunk', { file_id: fid, chunk: data.substring(i * CHUNK, (i + 1) * CHUNK), index: i, token: t }, getAuthHeaders());
-                bar.style.width = ((i + 1) / total) * 100 + '%';
-                await new Promise(r => setTimeout(r, 10)); // Essential delay for Chrome/Firefox stability
+                ws.call('chat', 'uploadchunk', { 
+                    file_id: fid, 
+                    chunk: data.substring(i * CHUNK, (i + 1) * CHUNK), 
+                    index: i, 
+                    token: t 
+                }, getAuthHeaders());
+
+                if (bar) bar.style.width = ((i + 1) / total) * 100 + '%';
+                await new Promise(r => setTimeout(r, 15)); 
             }
+
             ws.call('chat', 'send', { message: txt, file_id: fid, file_name: pendingFile.name, token: t }, getAuthHeaders());
         } else {
             ws.call('chat', 'send', { message: txt, token: t }, getAuthHeaders());
         }
 
-        chatIn.value = ''; pendingFile = null; document.getElementById('pwo-preview').classList.add('hidden');
-        setTimeout(() => prog.classList.add('hidden'), 500);
+        // CLEANUP
+        chatIn.value = '';
+        pendingFile = null;
+        const preview = document.getElementById('pwo-preview');
+        if (preview) preview.classList.add('hidden');
+        
+        // NOW 'prog' IS DEFINED FOR THIS SCOPE
+        setTimeout(() => {
+            if (prog) prog.classList.add('hidden');
+        }, 500);
     };
-
+					
     const stopRecording = () => {
         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
             mediaRecorder.stop();
@@ -143,26 +171,21 @@
     const fInput = document.getElementById('pwo-file-input');
     document.getElementById('pwo-attach').onclick = () => fInput.click();
 
-    fInput.addEventListener('change', function(e) {
-        const f = this.files[0];
-        if (f) {
-            const loader = document.getElementById('pwo-file-loader');
-            const nameSpan = document.getElementById('pwo-filename');
-            document.getElementById('pwo-preview').classList.remove('hidden');
-            loader.classList.remove('hidden');
-            nameSpan.innerText = "Loading...";
-
-            const r = new FileReader();
-            r.onload = (ev) => {
-                pendingFile = { data: ev.target.result, name: f.name };
-                nameSpan.innerText = "✓ " + f.name;
-                loader.classList.add('hidden');
-                fInput.value = ""; 
-            };
-            r.readAsDataURL(f);
-        }
-    });
-
+	fInput.addEventListener('change', function(e) {
+	    const f = this.files[0];
+	    if (f) {
+	        isReadingFile = true; // <--- ADD THIS
+	        // ... (your existing UI code)
+	        const r = new FileReader();
+	        r.onload = (ev) => {
+	            pendingFile = { data: ev.target.result, name: f.name };
+	            isReadingFile = false; // <--- ADD THIS
+	            fInput.value = ""; 
+	        };
+	        r.readAsDataURL(f);
+	    }
+	});
+	
     micBtn.onclick = async () => {
         if (!isRecording) {
             try {
