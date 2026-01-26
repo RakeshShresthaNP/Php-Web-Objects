@@ -250,7 +250,7 @@ final class WSSocket
         }
     }
 
-    private function send(int $id, array|string $data): void
+    public function send(int $id, array|string $data): void
     {
         if (! isset($this->clients[$id]))
             return;

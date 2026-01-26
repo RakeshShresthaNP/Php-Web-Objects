@@ -7,6 +7,7 @@ let analyser;
 let dataArray;
 let timerInterval;
 let seconds = 0;
+let finalTranscriptStored = "";
 
 // Internal Auth Header Helper
 const getAuthHeaders = () => ({ 'X-Forwarded-Host': window.location.hostname });
@@ -65,6 +66,7 @@ export async function handleSend(state, ws) {
     const tempId = Date.now();
     
     // EXTENSION: Pass localUrl and file_name to render immediately
+	/*
     render({ 
         message: txt, 
         is_me: true, 
@@ -72,6 +74,7 @@ export async function handleSend(state, ws) {
         file_name: state.pendingFile?.name,
         localUrl: state.pendingFile?.localUrl 
     }, true, true);
+	*/
     
     const prog = document.getElementById('pwo-progress-container'), bar = document.getElementById('pwo-progress-bar');
     
@@ -107,6 +110,7 @@ export async function handleMic(state) {
     const ctx = canvas.getContext('2d');
     
     if (!state.isRecording) {
+		finalTranscriptStored = chatIn.value ? chatIn.value.trim() + " " : "";
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -159,17 +163,43 @@ export async function handleMic(state) {
                 r.readAsDataURL(blob);
             };
 
-            if (recognition) {
-                recognition.onresult = (e) => {
-                    let trans = '';
-                    for (let i = e.resultIndex; i < e.results.length; ++i) {
-                        if (e.results[i].isFinal) trans += e.results[i][0].transcript;
-                    }
-                    if (trans) chatIn.value = trans;
-                };
-                recognition.start();
-            }
+			if (recognition) {
+	            recognition.continuous = true; // Key for appending
+	            recognition.interimResults = true;
 
+	            recognition.onresult = (e) => {
+	                let interimTranscript = '';
+	                let currentSessionFinal = '';
+
+	                for (let i = e.resultIndex; i < e.results.length; ++i) {
+	                    if (e.results[i].isFinal) {
+	                        currentSessionFinal += e.results[i][0].transcript;
+	                    } else {
+	                        interimTranscript += e.results[i][0].transcript;
+	                    }
+	                }
+
+	                // Update the global store with confirmed text
+	                // We use += only for things marked as Final by the engine
+	                const updatedText = finalTranscriptStored + currentSessionFinal;
+	                
+	                // Display: Persistent Base + New Final + Thinking (interim)
+	                chatIn.value = updatedText + interimTranscript;
+	            };
+
+	            recognition.onend = () => {
+	                // When mic stops, save the final state into our global store 
+	                // so the next time you click mic, it starts from here.
+	                finalTranscriptStored = chatIn.value; 
+	                
+	                chatIn.focus();
+	                const len = chatIn.value.length;
+	                chatIn.setSelectionRange(len, len);
+	            };
+
+	            recognition.start();
+	        }
+											
             state.mediaRecorder.start();
             state.isRecording = true;
             document.getElementById('pwo-mic').classList.add('rec-active');
