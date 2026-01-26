@@ -126,24 +126,41 @@
     }
 
 	function render(data, isNew = false, isPending = false) {
+        // 1. EXIT: If there's no content and it's not a pending state, do nothing
         if (!data.message && !data.file_path && !isPending) return;
+
         const myId = localStorage.getItem('pwoUserId');
         const isMe = data.is_me || (data.sender_id && String(data.sender_id) === String(myId));
         
-        if (data.temp_id && document.getElementById(`pending-${data.temp_id}`)) document.getElementById(`pending-${data.temp_id}`).remove();
+        // 2. DUPLICATION FIX: If a real message arrives, find and remove its 'Pending' version
+        if (data.temp_id) {
+            const existingPending = document.getElementById(`pending-${data.temp_id}`);
+            if (existingPending) {
+                existingPending.remove();
+            }
+        }
+
+        // 3. ID CHECK: Prevent adding the same official message twice
         if (data.id && document.getElementById(`msg-${data.id}`)) return;
-        if (isNew && !isMe) { NOTIFY_SOUND.play().catch(e => { }); startTabFlash(); }
+
+        // 4. NOTIFICATION: Play sound and flash tab for incoming messages
+        if (isNew && !isMe) { 
+            NOTIFY_SOUND.play().catch(e => { }); 
+            startTabFlash(); 
+        }
         
         const msg = document.createElement('div');
+        // Unique ID prefix to differentiate between temporary and permanent bubbles
         msg.id = isPending ? `pending-${data.temp_id}` : `msg-${data.id || Date.now()}`;
         
-        // REMOVED 'p-3' from here so the bubble has 0px padding by default
+        // STYLING: 'relative' is required for the absolute-positioned checkmarks
         msg.className = `rounded-2xl max-w-[85%] text-sm mb-2 shadow-sm relative ${isMe ? 'bg-emerald-600 text-white self-end msg-me' : 'bg-white border text-gray-800 self-start msg-remote'}`;
         
+        // 5. MEDIA RENDERER
         let mediaHtml = '';
         if (data.file_path) {
             const path = data.file_path.toLowerCase();
-            // Wrap media in its own padding only if it exists
+            // Each media type gets its own padding wrapper to stay clean
             if (path.match(/\.(webm|mp3|wav|ogg|m4a)$/)) {
                 const aid = 'aud-' + Math.random().toString(36).substr(2, 5);
                 mediaHtml = `<div class="p-3 pb-1"><div class="audio-container"><button class="play-btn" onclick="const a=document.getElementById('${aid}'); a.paused?a.play():a.pause(); this.innerText=a.paused?'▶':'⏸'">▶</button><audio id="${aid}" src="${data.file_path}"></audio><span class="text-[9px] font-bold uppercase ml-2">Voice Note</span></div></div>`;
@@ -154,50 +171,95 @@
             }
         }
 
-        // Only create the text container if there is actually text
-        // This removes the "unnecessary box" because 0 text = 0 height/padding
+        // 6. TEXT RENDERER: Only creates a box if message exists (Fixes the "unnecessary bubble")
+        // We use 'pb-4' to ensure there is space at the bottom for the status checkmarks
         const textHtml = data.message ? `<div class="p-3 pt-1 pb-4"><span class="break-words">${parseMarkdown(data.message)}</span></div>` : '<div class="pb-4"></div>';
 
+        // 7. STATUS ICONS: Absolute positioning ensures they don't move the text or media
         let statusIcon = isPending ? '🕒' : (data.is_read == 1 ? '✓✓' : '✓');
-        const statusHtml = isMe ? `<span class="msg-status" style="position:absolute; bottom:4px; right:8px; font-size:9px; opacity:0.7;">${statusIcon}</span>` : '';
+        const statusHtml = isMe ? `<span class="msg-status" style="position:absolute; bottom:4px; right:8px; font-size:9px; opacity:0.7; color: ${data.is_read == 1 ? '#38bdf8' : 'inherit'}">${statusIcon}</span>` : '';
         
+        // Assemble and append
         msg.innerHTML = `${mediaHtml}${textHtml}${statusHtml}`;
         chatBox.appendChild(msg);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
-		        
+				        
     // --- 5. CORE LOGIC (Restored fid variable for stability) ---
-    const handleSend = async () => {
+	const handleSend = async () => {
         if (isRecording) stopRecording();
-        let waitCount = 0;
-        while (isReadingFile && waitCount < 20) { await new Promise(r => setTimeout(r, 100)); waitCount++; }
         
-        const txt = chatIn.value.trim(), t = localStorage.getItem('pwoToken');
+        // Safety: Wait for FileReader to finish before proceeding
+        let waitCount = 0;
+        while (isReadingFile && waitCount < 20) { 
+            await new Promise(r => setTimeout(r, 100)); 
+            waitCount++; 
+        }
+        
+        const txt = chatIn.value.trim();
+        const t = localStorage.getItem('pwoToken');
         if (!txt && !pendingFile) return;
         
+        // Generate the unique ID used to track this message until the server confirms it
         const tempId = Date.now();
+        
+        // Render the "Pending" bubble (the duplication fix in 'render' will look for this tempId)
         render({ message: txt, is_me: true, temp_id: tempId }, false, true);
         
-        const prog = document.getElementById('pwo-progress-container'), bar = document.getElementById('pwo-progress-bar');
+        const prog = document.getElementById('pwo-progress-container');
+        const bar = document.getElementById('pwo-progress-bar');
         
         if (pendingFile) {
             if(prog) prog.classList.remove('hidden');
-            const data = pendingFile.data, CHUNK = 16384, total = Math.ceil(data.length / CHUNK), fid = tempId;
+            
+            const data = pendingFile.data;
+            const CHUNK = 16384;
+            const total = Math.ceil(data.length / CHUNK);
+            const fid = tempId; // Use tempId as the file reference for stability
+            
             for (let i = 0; i < total; i++) {
-                ws.call('chat', 'uploadchunk', { file_id: fid, chunk: data.substring(i * CHUNK, (i + 1) * CHUNK), index: i, token: t }, getAuthHeaders());
+                ws.call('chat', 'uploadchunk', { 
+                    file_id: fid, 
+                    chunk: data.substring(i * CHUNK, (i + 1) * CHUNK), 
+                    index: i, 
+                    token: t 
+                }, getAuthHeaders());
+                
                 if(bar) bar.style.width = ((i + 1) / total) * 100 + '%';
+                // Small delay to prevent WebSocket buffer overflow in Chrome
                 await new Promise(r => setTimeout(r, 15));
             }
-            ws.call('chat', 'send', { message: txt, file_id: fid, file_name: pendingFile.name, temp_id: tempId, token: t }, getAuthHeaders());
+            
+            // Finalize the message with the file attachment
+            ws.call('chat', 'send', { 
+                message: txt, 
+                file_id: fid, 
+                file_name: pendingFile.name, 
+                temp_id: tempId, 
+                token: t 
+            }, getAuthHeaders());
         } else {
-            ws.call('chat', 'send', { message: txt, temp_id: tempId, token: t }, getAuthHeaders());
+            // Standard text-only message
+            ws.call('chat', 'send', { 
+                message: txt, 
+                temp_id: tempId, 
+                token: t 
+            }, getAuthHeaders());
         }
         
-        chatIn.value = ''; pendingFile = null; isReadingFile = false;
+        // UI Cleanup
+        chatIn.value = ''; 
+        pendingFile = null; 
+        isReadingFile = false;
         document.getElementById('pwo-preview').classList.add('hidden');
-        setTimeout(() => { if(prog) prog.classList.add('hidden'); if(bar) bar.style.width = '0%'; }, 500);
+        
+        // Reset progress bar after a short delay
+        setTimeout(() => { 
+            if(prog) prog.classList.add('hidden'); 
+            if(bar) bar.style.width = '0%'; 
+        }, 500);
     };
-
+		
     const stopRecording = () => {
         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
             mediaRecorder.stop();
@@ -287,17 +349,20 @@
     };
 
     // --- 7. BINDINGS & LISTENERS ---
-    document.getElementById('pwo-bubble').onclick = () => {
+	document.getElementById('pwo-bubble').onclick = () => {
         const win = document.getElementById('pwo-window');
-        win.style.display = win.style.display === 'none' ? 'flex' : 'none';
-        if (win.style.display === 'flex') {
+        const isOpen = win.style.display === 'none';
+        win.style.display = isOpen ? 'flex' : 'none';
+        
+        if (isOpen) {
             const token = localStorage.getItem('pwoToken');
             if (token && !isSocketStarted) { ws.connect(); isSocketStarted = true; }
+            // Tell server we read everything when opening
             if (token) ws.call('chat', 'mark_read', { target_user_id: 0, token: token }, getAuthHeaders());
         }
         stopTabFlash();
     };
-
+		
     document.getElementById('pwo-export').onclick = () => {
         let content = "--- PWO CHAT LOG ---\n\n";
         document.querySelectorAll('#chat-box > div').forEach(div => {
@@ -316,8 +381,18 @@
         ws.call('chat', 'history', { token: localStorage.getItem('pwoToken') }, getAuthHeaders());
     });
 
-    window.addEventListener('ws_new_message', e => render(e.detail.data || e.detail, true));
-    
+	window.addEventListener('ws_new_message', e => {
+        const data = e.detail.data || e.detail;
+        render(data, true);
+        
+        // NEW: If window is open when message arrives, mark it read immediately
+        const win = document.getElementById('pwo-window');
+        const token = localStorage.getItem('pwoToken');
+        if (win.style.display === 'flex' && token && !data.is_me) {
+            ws.call('chat', 'mark_read', { target_user_id: 0, token: token }, getAuthHeaders());
+        }
+    });
+		    
     window.addEventListener('ws_chat_history', e => { 
         chatBox.innerHTML = ''; 
         const h = e.detail.data || [];
@@ -326,8 +401,16 @@
     });
 
     window.addEventListener('ws_typing', () => { document.getElementById('pwo-typing').classList.remove('hidden'); setTimeout(()=>document.getElementById('pwo-typing').classList.add('hidden'), 3000); });
-    window.addEventListener('ws_message_read', () => { document.querySelectorAll('.msg-me .msg-status').forEach(el => { el.innerText = '✓✓'; el.classList.add('is-read'); })});
-
+    
+	window.addEventListener('ws_message_read', () => { 
+        // Updates all your sent messages to blue double checks
+        document.querySelectorAll('.msg-me .msg-status').forEach(el => { 
+            el.innerText = '✓✓'; 
+            el.style.color = '#38bdf8'; 
+            el.style.opacity = '1';
+        });
+    });
+		
     document.getElementById('pwo-do-login').onclick = async () => {
         const u = document.getElementById('pwo-user').value, p = document.getElementById('pwo-pass').value;
         const resp = await fetch('api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u, password:p}) });
