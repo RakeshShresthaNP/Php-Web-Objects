@@ -1,14 +1,21 @@
 <?php
-declare(strict_types = 1);
 
 /**
- * # Copyright Rakesh Shrestha (rakesh.shrestha@gmail.com)
+ # Copyright Rakesh Shrestha (rakesh.shrestha@gmail.com)
+ # All rights reserved.
+ #
+ # Redistribution and use in source and binary forms, with or without
+ # modification, are permitted provided that the following conditions are
+ # met:
+ #
+ # Redistributions must retain the above copyright notice.
  */
+declare(strict_types = 1);
 
 // --- DEFINE CONSISTENT PATHS ---
 if (! defined('PWO_DIR_ASSETS')) {
     // Exact physical root based on your diagnostics
-    $basePath = "D:\\XAMPP\\www\\pwo\\myapp";
+    $basePath = APP_DIR . "../";
 
     define('DIR_TEMP', $basePath . "\\public\\assets\\temp\\");
     define('DIR_UPLOADS', $basePath . "\\public\\assets\\uploads\\chat\\");

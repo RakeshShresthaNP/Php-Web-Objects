@@ -2,6 +2,7 @@
  # PWO Support - Master Script
  # Optimized: Lazy Socket Connection, Chrome Sequential Uploads, & History
  */
+
 (async function() {
     const SOCKET_URL = window.location.protocol === 'https:' 
         ? `wss://${window.location.hostname}/ws` 
