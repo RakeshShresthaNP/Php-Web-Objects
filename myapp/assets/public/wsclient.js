@@ -144,3 +144,6 @@ class WSClient {
         window.dispatchEvent(event);
     }
 }
+
+export default WSClient;
+
