@@ -17,19 +17,17 @@
 -- Dumping structure for table pwo.chat_logs
 CREATE TABLE IF NOT EXISTS `chat_logs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `sender_id` int(11) NOT NULL COMMENT 'Link to your users table',
-  `partner_id` int(11) NOT NULL DEFAULT 0,
-  `message` longtext DEFAULT NULL COMMENT 'Stores text or JSON string for files',
-  `file_id` varchar(50) DEFAULT NULL COMMENT 'Temporary ID for chunking',
-  `file_name` varchar(255) DEFAULT NULL,
-  `file_path` varchar(255) DEFAULT NULL,
-  `is_read` tinyint(1) DEFAULT 0,
-  `d_created` timestamp NOT NULL DEFAULT utc_timestamp(),
-  `d_updated` timestamp NULL DEFAULT NULL,
+  `sender_id` int(11) NOT NULL COMMENT 'Links to mst_users.id',
+  `message` text DEFAULT NULL,
+  `file_path` varchar(512) DEFAULT NULL COMMENT 'Path to the reassembled file',
+  `file_name` varchar(255) DEFAULT NULL COMMENT 'Original name of the uploaded file',
+  `status` tinyint(1) DEFAULT 1 COMMENT '1: active, 0: deleted',
+  `d_created` datetime DEFAULT current_timestamp(),
+  `d_updated` datetime DEFAULT NULL ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
-  KEY `sender_idx` (`sender_id`),
-  KEY `file_id_idx` (`file_id`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `idx_sender` (`sender_id`),
+  KEY `idx_created` (`d_created`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table pwo.chat_logs: 0 rows
 DELETE FROM `chat_logs`;
