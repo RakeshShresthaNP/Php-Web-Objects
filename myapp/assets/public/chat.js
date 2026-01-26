@@ -82,7 +82,7 @@ bubble.onclick = () => {
             ws.connect(); 
             state.isSocketStarted = true; 
         }
-        ws.call('chat', 'mark_read', { target_user_id: 0, token: Auth.getToken() }, getAuthHeaders());
+        ws.call('chat', 'markread', { target_user_id: 0, token: Auth.getToken() }, getAuthHeaders());
     }
 };
 
@@ -135,7 +135,7 @@ window.addEventListener('ws_new_message', e => {
     const data = e.detail.data || e.detail;
     render(data, true);
     if (win.style.display === 'flex' && !data.is_me) {
-        ws.call('chat', 'mark_read', { target_user_id: 0, token: Auth.getToken() }, getAuthHeaders());
+        ws.call('chat', 'markread', { target_user_id: 0, token: Auth.getToken() }, getAuthHeaders());
     }
 });
 

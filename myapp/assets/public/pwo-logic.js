@@ -1,15 +1,15 @@
 import { render } from './pwo-ui.js';
 
-// Internal Variables for Mic & Timer
+// Global variables to maintain state across recording sessions
 let animationId;
 let audioCtx;
 let analyser;
 let dataArray;
 let timerInterval;
 let seconds = 0;
-let finalTranscriptStored = "";
+let finalTranscriptStored = ""; // Persistent memory for speech-to-text
 
-// Internal Auth Header Helper
+// Helper for auth headers
 const getAuthHeaders = () => ({ 'X-Forwarded-Host': window.location.hostname });
 
 // 1. Initialize Speech Recognition
@@ -20,7 +20,7 @@ if (recognition) {
     recognition.interimResults = true;
 }
 
-// --- EXPORTED: Handle File Selection ---
+// --- HANDLE FILE SELECTION ---
 export function handleFile(f, state) {
     if (!f) return;
     if (f.size > 10 * 1024 * 1024) { alert("File too large (max 10MB)"); return; }
@@ -34,13 +34,10 @@ export function handleFile(f, state) {
 
     const r = new FileReader();
     r.onload = (ev) => { 
-        // EXTENSION: Create localUrl for instant UI rendering
-        const localUrl = URL.createObjectURL(f); 
-        
         state.pendingFile = { 
             data: ev.target.result, 
             name: f.name,
-            localUrl: localUrl // Store for UI
+            localUrl: URL.createObjectURL(f) 
         }; 
         filename.innerText = "✓ " + f.name; 
         state.isReadingFile = false; 
@@ -48,10 +45,11 @@ export function handleFile(f, state) {
     r.readAsDataURL(f);
 }
 
-// --- EXPORTED: Handle Message Sending ---
+// --- HANDLE MESSAGE SENDING ---
 export async function handleSend(state, ws) {
     if (state.isRecording) stopRecording(state);
     
+    // Wait if file is still being processed by FileReader
     let waitCount = 0;
     while (state.isReadingFile && waitCount < 20) { 
         await new Promise(r => setTimeout(r, 100)); 
@@ -64,45 +62,40 @@ export async function handleSend(state, ws) {
     if (!txt && !state.pendingFile) return;
     
     const tempId = Date.now();
-    
-    // EXTENSION: Pass localUrl and file_name to render immediately
-	/*
-    render({ 
-        message: txt, 
-        is_me: true, 
-        temp_id: tempId, 
-        file_name: state.pendingFile?.name,
-        localUrl: state.pendingFile?.localUrl 
-    }, true, true);
-	*/
-    
-    const prog = document.getElementById('pwo-progress-container'), bar = document.getElementById('pwo-progress-bar');
+    const prog = document.getElementById('pwo-progress-container');
+    const bar = document.getElementById('pwo-progress-bar');
     
     if (state.pendingFile) {
         if(prog) prog.classList.remove('hidden');
         const data = state.pendingFile.data, CHUNK = 16384, total = Math.ceil(data.length / CHUNK);
         
         for (let i = 0; i < total; i++) {
-            ws.call('chat', 'uploadchunk', { file_id: tempId, chunk: data.substring(i * CHUNK, (i + 1) * CHUNK), index: i, token: t }, getAuthHeaders());
-            if(bar) bar.style.width = ((i + 1) / total) * 100 + '%';
+            ws.call('chat', 'uploadchunk', { 
+                file_id: tempId, 
+                chunk: data.substring(i * CHUNK, (i + 1) * CHUNK), 
+                index: i, 
+                token: t 
+            }, getAuthHeaders());
             
-            // CORRUPTION FIX: Increased delay to 30ms to ensure server handles the write safely
-            await new Promise(r => setTimeout(r, 30)); 
+            if(bar) bar.style.width = ((i + 1) / total) * 100 + '%';
+            await new Promise(r => setTimeout(r, 35)); // Safety delay for server writes
         }
         
-        // Ensure final write buffer has cleared before sending 'send' command
         await new Promise(r => setTimeout(r, 100));
-        ws.call('chat', 'send', { message: txt, file_id: tempId, file_name: state.pendingFile.name, temp_id: tempId, token: t }, getAuthHeaders());
+        ws.call('chat', 'send', { message: txt, file_id: tempId, file_name: state.pendingFile.name, token: t }, getAuthHeaders());
     } else {
-        ws.call('chat', 'send', { message: txt, temp_id: tempId, token: t }, getAuthHeaders());
+        ws.call('chat', 'send', { message: txt, token: t }, getAuthHeaders());
     }
     
-    chatIn.value = ''; state.pendingFile = null;
+    // --- RESET EVERYTHING AFTER SEND ---
+    chatIn.value = ''; 
+    finalTranscriptStored = ""; // CRITICAL: Reset transcription memory
+    state.pendingFile = null;
     document.getElementById('pwo-preview').classList.add('hidden');
     setTimeout(() => { if(prog) prog.classList.add('hidden'); if(bar) bar.style.width = '0%'; }, 500);
 }
 
-// --- EXPORTED: Handle Mic (Recording + Waveform + Timer) ---
+// --- HANDLE MIC (Recording + Transcribe + Visualizer) ---
 export async function handleMic(state) {
     const chatIn = document.getElementById('chat-in');
     const canvas = document.getElementById('pwo-waveform');
@@ -110,9 +103,13 @@ export async function handleMic(state) {
     const ctx = canvas.getContext('2d');
     
     if (!state.isRecording) {
-		finalTranscriptStored = chatIn.value ? chatIn.value.trim() + " " : "";
+        // Step 1: Initialize Persistent Memory
+        finalTranscriptStored = chatIn.value ? chatIn.value.trim() + " " : "";
+
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            // Audio Visualizer Setup
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioCtx.createAnalyser();
             const source = audioCtx.createMediaStreamSource(stream);
@@ -120,20 +117,52 @@ export async function handleMic(state) {
             analyser.fftSize = 256;
             dataArray = new Uint8Array(analyser.frequencyBinCount);
 
+            // Media Recorder Setup (Voice File)
             state.mediaRecorder = new MediaRecorder(stream);
             state.audioChunks = [];
             
-            // Timer Logic
+            state.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) state.audioChunks.push(e.data); };
+            
+            state.mediaRecorder.onstop = () => {
+                const blob = new Blob(state.audioChunks, { type: 'audio/webm' });
+                const r = new FileReader();
+                r.onload = (ev) => {
+                    state.pendingFile = { 
+                        data: ev.target.result, 
+                        name: `voice_${Date.now()}.webm`,
+                        localUrl: URL.createObjectURL(blob)
+                    };
+                    document.getElementById('pwo-filename').innerText = "✓ Voice Note Ready";
+                    document.getElementById('pwo-preview').classList.remove('hidden');
+                    stream.getTracks().forEach(t => t.stop());
+                };
+                r.readAsDataURL(blob);
+            };
+
+            // Transcription Logic (Append Fix)
+            if (recognition) {
+                recognition.onresult = (e) => {
+                    let interim = '', sessionFinal = '';
+                    for (let i = e.resultIndex; i < e.results.length; ++i) {
+                        if (e.results[i].isFinal) sessionFinal += e.results[i][0].transcript;
+                        else interim += e.results[i][0].transcript;
+                    }
+                    if (sessionFinal !== "") finalTranscriptStored += sessionFinal + " ";
+                    chatIn.value = finalTranscriptStored + interim;
+                    chatIn.scrollTop = chatIn.scrollHeight;
+                };
+                recognition.start();
+            }
+
+            // UI: Start Timer
             seconds = 0;
-            timerDisplay.innerText = "● 0:00";
             timerInterval = setInterval(() => {
                 seconds++;
-                const mins = Math.floor(seconds / 60);
-                const secs = seconds % 60;
+                const mins = Math.floor(seconds / 60), secs = seconds % 60;
                 timerDisplay.innerText = `● ${mins}:${secs.toString().padStart(2, '0')}`;
             }, 1000);
 
-            // Waveform Logic
+            // UI: Start Visualizer
             const draw = () => {
                 animationId = requestAnimationFrame(draw);
                 analyser.getByteFrequencyData(dataArray);
@@ -150,77 +179,27 @@ export async function handleMic(state) {
             };
             draw();
 
-            state.mediaRecorder.ondataavailable = e => state.audioChunks.push(e.data);
-            state.mediaRecorder.onstop = () => {
-                const blob = new Blob(state.audioChunks, { type: 'audio/webm' });
-                const r = new FileReader();
-                r.onload = (ev) => {
-                    state.pendingFile = { data: ev.target.result, name: `voice_${Date.now()}.webm` };
-                    document.getElementById('pwo-filename').innerText = "✓ Voice Note Ready";
-                    document.getElementById('pwo-preview').classList.remove('hidden');
-                    stream.getTracks().forEach(t => t.stop());
-                };
-                r.readAsDataURL(blob);
-            };
-
-			if (recognition) {
-	            recognition.continuous = true; // Key for appending
-	            recognition.interimResults = true;
-
-	            recognition.onresult = (e) => {
-	                let interimTranscript = '';
-	                let currentSessionFinal = '';
-
-	                for (let i = e.resultIndex; i < e.results.length; ++i) {
-	                    if (e.results[i].isFinal) {
-	                        currentSessionFinal += e.results[i][0].transcript;
-	                    } else {
-	                        interimTranscript += e.results[i][0].transcript;
-	                    }
-	                }
-
-	                // Update the global store with confirmed text
-	                // We use += only for things marked as Final by the engine
-	                const updatedText = finalTranscriptStored + currentSessionFinal;
-	                
-	                // Display: Persistent Base + New Final + Thinking (interim)
-	                chatIn.value = updatedText + interimTranscript;
-	            };
-
-	            recognition.onend = () => {
-	                // When mic stops, save the final state into our global store 
-	                // so the next time you click mic, it starts from here.
-	                finalTranscriptStored = chatIn.value; 
-	                
-	                chatIn.focus();
-	                const len = chatIn.value.length;
-	                chatIn.setSelectionRange(len, len);
-	            };
-
-	            recognition.start();
-	        }
-											
             state.mediaRecorder.start();
             state.isRecording = true;
             document.getElementById('pwo-mic').classList.add('rec-active');
             document.getElementById('pwo-rec-panel').classList.remove('hidden');
             
-        } catch (e) { alert("Mic error."); }
+        } catch (e) { console.error(e); alert("Mic access denied."); }
     } else {
         stopRecording(state);
     }
 }
 
-// Internal Stop Function
 function stopRecording(state) {
+    if (recognition) recognition.stop();
     if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
         state.mediaRecorder.stop();
-        if (recognition) recognition.stop();
-        if (animationId) cancelAnimationFrame(animationId);
-        if (audioCtx) audioCtx.close();
-        clearInterval(timerInterval);
-        state.isRecording = false;
-        document.getElementById('pwo-mic').classList.remove('rec-active');
-        document.getElementById('pwo-rec-panel').classList.add('hidden');
     }
+    if (animationId) cancelAnimationFrame(animationId);
+    if (audioCtx) audioCtx.close();
+    clearInterval(timerInterval);
+    
+    state.isRecording = false;
+    document.getElementById('pwo-mic').classList.remove('rec-active');
+    document.getElementById('pwo-rec-panel').classList.add('hidden');
 }

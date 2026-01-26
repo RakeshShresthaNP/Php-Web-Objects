@@ -6,7 +6,6 @@
  */
 declare(strict_types = 1);
 
-// --- DEFINE CONSISTENT PATHS (UNTOUCHED) ---
 if (! defined('PWO_DIR_ASSETS')) {
     $basePath = APP_DIR . "../";
     define('DIR_TEMP', $basePath . "public" . DIRECTORY_SEPARATOR . "assets" . DIRECTORY_SEPARATOR . "temp" . DIRECTORY_SEPARATOR);
@@ -21,7 +20,6 @@ if (! defined('PWO_DIR_ASSETS')) {
 final class cChat extends cController
 {
 
-    // --- ORIGINAL UPLOADCHUNK (UNTOUCHED) ---
     public function uploadchunk(array $params = [], ?WSSocket $server = null, ?int $senderId = null): void
     {
         $fileId = $params['file_id'] ?? null;
@@ -44,8 +42,6 @@ final class cChat extends cController
         $chunkName = str_pad((string) $index, 6, '0', STR_PAD_LEFT) . '.part';
         file_put_contents($tempDir . $chunkName, $chunk);
 
-        // >>> ADD THESE LINES BELOW <<<
-        // This tells the frontend: "I have safely written this chunk, send the next one."
         if ($server) {
             $server->send($senderId, [
                 'type' => 'chunk_ack',
@@ -57,7 +53,6 @@ final class cChat extends cController
         }
     }
 
-    // --- ORIGINAL SEND (UNTOUCHED FILE LOGIC) ---
     public function send(array $params = [], ?WSSocket $server = null, ?int $senderId = null): array
     {
         if (! $this->user)
@@ -95,7 +90,7 @@ final class cChat extends cController
         $chatLog->message = $message;
         $chatLog->file_path = $finalUrl;
         $chatLog->file_name = $fileName;
-        $chatLog->is_read = 0; // Only addition
+        $chatLog->is_read = 0;
         $chatLog->save();
 
         $data = [
@@ -123,7 +118,6 @@ final class cChat extends cController
         ];
     }
 
-    // --- ORIGINAL HISTORY (UNTOUCHED) ---
     public function history(array $params = []): array
     {
         if (! $this->user)
@@ -143,8 +137,7 @@ final class cChat extends cController
         ];
     }
 
-    // --- NEW ROUTINES ADDED AT THE END ---
-    public function mark_read(array $params = [], ?WSSocket $server = null, ?int $senderId = null): void
+    public function markread(array $params = [], ?WSSocket $server = null, ?int $senderId = null): void
     {
         if (! $this->user || ! $server)
             return;
@@ -177,7 +170,6 @@ final class cChat extends cController
         ], $senderId);
     }
 
-    // --- ORIGINAL DELETE & REMOVE (UNTOUCHED) ---
     public function delete(array $params = [], ?WSSocket $server = null): array
     {
         $messageId = (int) ($params['message_id'] ?? 0);
