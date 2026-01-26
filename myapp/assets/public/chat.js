@@ -5,7 +5,23 @@
     const SOCKET_URL = window.location.protocol === 'https:' 
         ? `wss://${window.location.hostname}/ws` 
         : `ws://localhost:8080`;
-
+	
+	document.head.insertAdjacentHTML('beforeend', `
+	    <style>
+	        /* Force Chrome's audio player to show standard controls */
+	        audio::-webkit-media-controls-enclosure {
+	            background-color: transparent !important;
+	        }
+	        audio::-webkit-media-controls-panel {
+	            background-color: #f1f5f9; /* Slate-100 matches chat theme */
+	        }
+	        /* Fix for Firefox height consistency */
+	        audio {
+	            min-width: 200px;
+	        }
+	    </style>
+	`);
+		
     const loadScript = (src) => new Promise(r => {
         if (document.querySelector(`script[src="${src}"]`)) return r();
         const s = document.createElement('script'); s.src = src; s.onload = r; document.head.appendChild(s);
@@ -88,16 +104,19 @@
             if (path.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
                 media = `<img src="${data.file_path}" class="rounded-lg mb-2 max-w-full h-auto cursor-pointer border" onclick="window.open('${data.file_path}')">`;
 				} else if (path.match(/\.(webm|mp3|wav|ogg|m4a)$/i)) {
-				    // We add type="audio/webm" and a fallback link for older Chrome versions
-				    media = `
-				        <div class="p-2 bg-black/5 rounded-lg border border-black/5">
-				            <audio controls class="w-full h-10">
-				                <source src="${data.file_path}" type="audio/webm">
-				                <source src="${data.file_path}" type="audio/ogg">
-				                Your browser does not support audio.
-				            </audio>
-				            <a href="${data.file_path}" target="_blank" class="text-[9px] text-emerald-700 mt-1 block px-1 underline">Download Voice</a>
-				        </div>`;
+					// Explicitly styled for Chrome/Firefox consistency
+					    media = `
+					        <div class="voice-message-container my-2 p-2 bg-emerald-50/50 rounded-xl border border-emerald-100">
+					            <audio controls class="w-full h-[45px] block">
+					                <source src="${data.file_path}" type="audio/webm">
+					                <source src="${data.file_path}" type="audio/ogg">
+					                Your browser does not support audio.
+					            </audio>
+					            <div class="flex justify-between items-center px-1 mt-1">
+					                <span class="text-[9px] text-emerald-600 font-bold uppercase tracking-wider">Voice Note</span>
+					                <a href="${data.file_path}" download class="text-[9px] text-emerald-500 hover:text-emerald-700 underline">Save File</a>
+					            </div>
+					        </div>`;
 				} else {
                 media = `<a href="${data.file_path}" target="_blank" class="block p-2 bg-black/5 rounded text-[10px] mb-2 font-bold italic truncate border">📄 ${data.file_name}</a>`;
             }
