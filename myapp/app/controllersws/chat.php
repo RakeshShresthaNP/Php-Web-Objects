@@ -1,21 +1,35 @@
 <?php
+declare(strict_types = 1);
 
 /**
- # Copyright Rakesh Shrestha (rakesh.shrestha@gmail.com)
- # All rights reserved.
- #
- # Redistribution and use in source and binary forms, with or without
- # modification, are permitted provided that the following conditions are
- # met:
- #
- # Redistributions must retain the above copyright notice.
+ * # Copyright Rakesh Shrestha (rakesh.shrestha@gmail.com)
  */
-declare(strict_types = 1);
+
+// --- DEFINE CONSISTENT PATHS ---
+if (! defined('PWO_DIR_ASSETS')) {
+    // Exact physical root based on your diagnostics
+    $basePath = "D:\\XAMPP\\www\\pwo\\myapp";
+
+    define('DIR_TEMP', $basePath . "\\public\\assets\\temp\\");
+    define('DIR_UPLOADS', $basePath . "\\public\\assets\\uploads\\chat\\");
+
+    // Web URL Path (includes public because of your webroot setup)
+    define('URL_BASE', 'public/assets/uploads/chat/');
+
+    // Pre-flight check for folders
+    if (! is_dir(DIR_TEMP))
+        @mkdir(DIR_TEMP, 0777, true);
+    if (! is_dir(DIR_UPLOADS))
+        @mkdir(DIR_UPLOADS, 0777, true);
+}
 
 final class cChat extends cController
 {
 
-    public function uploadchunk(array $params = []): void
+    /**
+     * CHUNKING: Writes binary parts to the temp folder
+     */
+    public function uploadchunk(array $params = [], ?WSSocket $server = null, ?int $senderId = null): void
     {
         $fileId = $params['file_id'] ?? null;
         $chunk = $params['chunk'] ?? null;
@@ -24,126 +38,104 @@ final class cChat extends cController
         if (! $fileId || ! $chunk)
             return;
 
-        // Strip metadata ONLY on the first chunk.
+        // Clean Base64 meta
         if ($index === 0 && strpos($chunk, ',') !== false) {
             $chunk = explode(',', $chunk)[1];
         }
 
-        $tempDir = APP_DIR . '../public/assets/temp/' . $fileId . '/';
-        if (! is_dir($tempDir)) {
-            mkdir($tempDir, 0777, true);
+        $tempDir = DIR_TEMP . $fileId . DIRECTORY_SEPARATOR;
+
+        if (! is_dir($tempDir) && ! mkdir($tempDir, 0777, true)) {
+            if ($server)
+                $server->send($senderId, [
+                    'type' => 'error',
+                    'detail' => 'Folder creation failed'
+                ]);
+            return;
         }
 
-        $chunkName = str_pad((string) $index, 5, '0', STR_PAD_LEFT) . '.part';
-
-        // We save the RAW BASE64 STRING. Do NOT decode yet.
+        $chunkName = str_pad((string) $index, 6, '0', STR_PAD_LEFT) . '.part';
         file_put_contents($tempDir . $chunkName, $chunk);
     }
 
     /**
-     * Reassembles chunks into a valid binary file and saves chat record.
+     * SEND: Merges chunks and saves message to DB
      */
     public function send(array $params = [], ?WSSocket $server = null, ?int $senderId = null): array
     {
-        if (! $this->user) {
-            throw new ApiException("Authentication required", 401);
-        }
+        if (! $this->user)
+            throw new ApiException("Auth Required", 401);
 
-        $message = trim($params['message'] ?? '');
+        $message = htmlspecialchars($params['message'] ?? '');
         $fileId = $params['file_id'] ?? null;
         $fileName = $params['file_name'] ?? null;
-        $finalDbPath = null;
+        $finalUrl = null;
 
-        // --- REASSEMBLE CHUNKS ---
         if ($fileId && $fileName) {
-            $tempDir = APP_DIR . '../public/assets/temp/' . $fileId . '/';
-            // Define subfolder for DB storage (relative to public root)
-            $uploadSubDir = 'public/assets/uploads/chat/' . date('Y/m') . '/';
-            $fullDestPath = APP_DIR . '../' . $uploadSubDir;
+            $tempDir = DIR_TEMP . $fileId . DIRECTORY_SEPARATOR;
+            $dateSub = date('Y') . DIRECTORY_SEPARATOR . date('m') . DIRECTORY_SEPARATOR;
+            $fullDest = DIR_UPLOADS . $dateSub;
 
-            // Create the destination folder if it doesn't exist
-            if (! is_dir($fullDestPath)) {
-                mkdir($fullDestPath, 0777, true);
-            }
-
-            $safeName = time() . '_' . preg_replace("/[^a-zA-Z0-9\._-]/", "", $fileName);
-            $targetFile = $fullDestPath . $safeName;
+            if (! is_dir($fullDest))
+                mkdir($fullDest, 0777, true);
 
             $parts = glob($tempDir . "*.part");
-            sort($parts); // Ensure 00000, 00001 order
+            sort($parts);
 
             if (count($parts) > 0) {
-                // 1. Join all chunks into one long Base64 string
-                // This prevents corruption caused by splitting Base64 blocks
-                $fullBase64String = '';
+                $fullData = '';
                 foreach ($parts as $part) {
-                    $fullBase64String .= file_get_contents($part);
-                    @unlink($part); // Delete chunk file immediately after reading
+                    $fullData .= file_get_contents($part);
+                    @unlink($part);
                 }
 
-                // 2. Decode the entire complete string into binary data
-                $binaryData = base64_decode($fullBase64String);
+                $safeName = time() . '_' . preg_replace("/[^a-zA-Z0-9\._-]/", "", $fileName);
+                $binary = base64_decode($fullData);
 
-                if ($binaryData !== false) {
-                    // 3. Save the binary data as a real image file
-                    file_put_contents($targetFile, $binaryData);
-                    $finalDbPath = $uploadSubDir . $safeName;
+                if (file_put_contents($fullDest . $safeName, $binary)) {
+                    // This is the URL stored in Database
+                    $finalUrl = URL_BASE . date('Y/m') . '/' . $safeName;
                 }
-
-                // --- ROBUST CLEANUP ---
-                // Even if unlinks above failed, we scan the folder to ensure it's empty
-                if (is_dir($tempDir)) {
-                    $remainingFiles = array_diff(scandir($tempDir), array(
-                        '.',
-                        '..'
-                    ));
-                    foreach ($remainingFiles as $file) {
-                        @unlink($tempDir . DIRECTORY_SEPARATOR . $file);
-                    }
-                    // Once empty, the folder can be removed
-                    @rmdir($tempDir);
-                }
+                $this->recursiveRemove($tempDir);
             }
         }
 
-        // --- DATABASE LOGIC ---
-        $senderName = $this->user->realname ?? "User";
-        $uid = $this->user->id ?? 0;
-
         $chatLog = new model('chat_logs');
-        $chatLog->sender_id = $uid;
-        $chatLog->message = htmlspecialchars($message);
-        $chatLog->file_path = $finalDbPath; // Path starts with 'assets/...'
+        $chatLog->sender_id = $this->user->id;
+        $chatLog->message = $message;
+        $chatLog->file_path = $finalUrl;
         $chatLog->file_name = $fileName;
         $chatLog->save();
 
-        $chatData = [
+        $data = [
             'id' => $chatLog->id,
-            'sender' => $senderName,
-            'message' => $chatLog->message,
-            'file_path' => $finalDbPath,
+            'message' => $message,
+            'file_path' => $finalUrl,
+            'file_name' => $fileName,
+            'sender' => $this->user->realname ?? 'User',
             'time' => date('H:i')
         ];
 
-        if ($server) {
+        if ($server)
             $server->broadcast([
                 'type' => 'new_message',
-                'data' => $chatData
+                'data' => $data
             ], $senderId);
-        }
 
         return [
             'status' => 'success',
             'type' => 'chat_confirmation',
-            'data' => $chatData
+            'data' => $data
         ];
     }
 
+    /**
+     * HISTORY: Retrieves last 50 messages
+     */
     public function history(array $params = []): array
     {
-        if (! $this->user || ! isset($this->user->id)) {
-            throw new ApiException("Authentication Error: Valid user session required.", 401);
-        }
+        if (! $this->user)
+            throw new ApiException("Auth Error", 401);
 
         $hmodel = new model('chat_logs');
         $history = $hmodel->select('p.id, p.message, p.file_path, p.file_name, p.d_created as time, u.realname as sender')
@@ -160,34 +152,50 @@ final class cChat extends cController
         ];
     }
 
+    /**
+     * DELETE: Removes message and file
+     */
     public function delete(array $params = [], ?WSSocket $server = null): array
     {
         $messageId = (int) ($params['message_id'] ?? 0);
         $hmodel = new model('chat_logs');
         $message = $hmodel->find($messageId);
 
-        if ($message) {
+        if ($message && $message->sender_id == $this->user->id) {
             if (! empty($message->file_path)) {
-                $physicalPath = APP_DIR . '../public/' . $message->file_path;
-                if (file_exists($physicalPath)) {
-                    @unlink($physicalPath);
-                }
+                // Construct physical path from DB path
+                $base = "D:\\XAMPP\\www\\pwo\\myapp\\";
+                $physical = $base . str_replace('/', DIRECTORY_SEPARATOR, $message->file_path);
+                if (file_exists($physical))
+                    @unlink($physical);
             }
             $message->delete();
-
-            if ($server) {
+            if ($server)
                 $server->broadcast([
                     'type' => 'message_deleted',
                     'data' => [
                         'id' => $messageId
                     ]
                 ]);
-            }
         }
 
         return [
             'status' => 'success',
-            'message' => 'Message removed'
+            'message' => 'Removed'
         ];
+    }
+
+    private function recursiveRemove($dir): void
+    {
+        if (! is_dir($dir))
+            return;
+        $files = array_diff(scandir($dir), [
+            '.',
+            '..'
+        ]);
+        foreach ($files as $file) {
+            (is_dir("$dir/$file")) ? $this->recursiveRemove("$dir/$file") : @unlink("$dir/$file");
+        }
+        @rmdir($dir);
     }
 }
