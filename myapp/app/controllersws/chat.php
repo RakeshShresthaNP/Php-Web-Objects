@@ -1,26 +1,19 @@
 <?php
-
 /**
- # Copyright Rakesh Shrestha (rakesh.shrestha@gmail.com)
- # All rights reserved.
- #
- # Redistribution and use in source and binary forms, with or without
- # modification, are permitted provided that the following conditions are
- # met:
- #
- # Redistributions must retain the above copyright notice.
+ # PWO Support - SERVER MASTER 2026
+ # High-performance WebSocket Chat Controller
+ # Logic: Handles chunked uploads, database persistence, and cross-browser synchronization.
  */
 declare(strict_types = 1);
 
 // --- DEFINE CONSISTENT PATHS ---
 if (! defined('PWO_DIR_ASSETS')) {
-    // Exact physical root based on your diagnostics
     $basePath = APP_DIR . "../";
 
-    define('DIR_TEMP', $basePath . "\\public\\assets\\temp\\");
-    define('DIR_UPLOADS', $basePath . "\\public\\assets\\uploads\\chat\\");
+    define('DIR_TEMP', $basePath . "public" . DIRECTORY_SEPARATOR . "assets" . DIRECTORY_SEPARATOR . "temp" . DIRECTORY_SEPARATOR);
+    define('DIR_UPLOADS', $basePath . "public" . DIRECTORY_SEPARATOR . "assets" . DIRECTORY_SEPARATOR . "uploads" . DIRECTORY_SEPARATOR . "chat" . DIRECTORY_SEPARATOR);
 
-    // Web URL Path (includes public because of your webroot setup)
+    // Web URL Path
     define('URL_BASE', 'public/assets/uploads/chat/');
 
     // Pre-flight check for folders
@@ -35,6 +28,7 @@ final class cChat extends cController
 
     /**
      * CHUNKING: Writes binary parts to the temp folder
+     * Works for both Chrome (webm) and Firefox (ogg/webm)
      */
     public function uploadchunk(array $params = [], ?WSSocket $server = null, ?int $senderId = null): void
     {
@@ -45,7 +39,7 @@ final class cChat extends cController
         if (! $fileId || ! $chunk)
             return;
 
-        // Clean Base64 meta
+        // Chrome/Firefox Base64 Compatibility: Strip header if present
         if ($index === 0 && strpos($chunk, ',') !== false) {
             $chunk = explode(',', $chunk)[1];
         }
@@ -66,7 +60,7 @@ final class cChat extends cController
     }
 
     /**
-     * SEND: Merges chunks and saves message to DB
+     * SEND: Merges chunks, saves to DB, and broadcasts to ALL user tabs
      */
     public function send(array $params = [], ?WSSocket $server = null, ?int $senderId = null): array
     {
@@ -78,6 +72,7 @@ final class cChat extends cController
         $fileName = $params['file_name'] ?? null;
         $finalUrl = null;
 
+        // Handle File Assembly if a file_id exists
         if ($fileId && $fileName) {
             $tempDir = DIR_TEMP . $fileId . DIRECTORY_SEPARATOR;
             $dateSub = date('Y') . DIRECTORY_SEPARATOR . date('m') . DIRECTORY_SEPARATOR;
@@ -100,13 +95,13 @@ final class cChat extends cController
                 $binary = base64_decode($fullData);
 
                 if (file_put_contents($fullDest . $safeName, $binary)) {
-                    // This is the URL stored in Database
                     $finalUrl = URL_BASE . date('Y/m') . '/' . $safeName;
                 }
                 $this->recursiveRemove($tempDir);
             }
         }
 
+        // Save to Database
         $chatLog = new model('chat_logs');
         $chatLog->sender_id = $this->user->id;
         $chatLog->message = $message;
@@ -114,20 +109,26 @@ final class cChat extends cController
         $chatLog->file_name = $fileName;
         $chatLog->save();
 
+        // Data packet for Javascript
         $data = [
             'id' => $chatLog->id,
             'message' => $message,
             'file_path' => $finalUrl,
             'file_name' => $fileName,
             'sender' => $this->user->realname ?? 'User',
+            'sender_id' => (int) $this->user->id,
             'time' => date('H:i')
         ];
 
-        if ($server)
+        if ($server) {
+            // THE SYNC FIX:
+            // We broadcast to EVERYONE. We do NOT exclude the $senderId.
+            // This ensures Chrome hears what Firefox said instantly.
             $server->broadcast([
                 'type' => 'new_message',
                 'data' => $data
-            ], $senderId);
+            ]);
+        }
 
         return [
             'status' => 'success',
@@ -137,7 +138,7 @@ final class cChat extends cController
     }
 
     /**
-     * HISTORY: Retrieves last 50 messages
+     * HISTORY: Retrieves history including sender_id for UI positioning
      */
     public function history(array $params = []): array
     {
@@ -145,7 +146,8 @@ final class cChat extends cController
             throw new ApiException("Auth Error", 401);
 
         $hmodel = new model('chat_logs');
-        $history = $hmodel->select('p.id, p.message, p.file_path, p.file_name, p.d_created as time, u.realname as sender')
+        // Ensure p.sender_id is selected so Javascript knows if the message is "mine"
+        $history = $hmodel->select('p.id, p.message, p.file_path, p.file_name, p.d_created as time, u.realname as sender, p.sender_id')
             ->join('mst_users u', 'u.id', '=', 'p.sender_id', 'LEFT')
             ->where('p.sender_id', '=', (int) $this->user->id)
             ->orderBy('p.id', 'DESC')
@@ -160,7 +162,7 @@ final class cChat extends cController
     }
 
     /**
-     * DELETE: Removes message and file
+     * DELETE: Removes from DB and broadcasts deletion to all tabs
      */
     public function delete(array $params = [], ?WSSocket $server = null): array
     {
@@ -170,20 +172,23 @@ final class cChat extends cController
 
         if ($message && $message->sender_id == $this->user->id) {
             if (! empty($message->file_path)) {
-                // Construct physical path from DB path
-                $base = "D:\\XAMPP\\www\\pwo\\myapp\\";
+                $base = APP_DIR . "../";
                 $physical = $base . str_replace('/', DIRECTORY_SEPARATOR, $message->file_path);
                 if (file_exists($physical))
                     @unlink($physical);
             }
+
             $message->delete();
-            if ($server)
+
+            if ($server) {
+                // Tells all browsers (Chrome/Firefox) to remove this bubble
                 $server->broadcast([
                     'type' => 'message_deleted',
                     'data' => [
                         'id' => $messageId
                     ]
                 ]);
+            }
         }
 
         return [
