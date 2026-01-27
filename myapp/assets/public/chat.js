@@ -93,6 +93,24 @@ function startLogic() {
 	    document.getElementById('pwo-lightbox').classList.add('hidden');
 	    document.getElementById('pwo-lightbox').style.display = 'none';
 	};
+	
+	const lightbox = document.getElementById('pwo-lightbox');
+	const downloadBtn = document.getElementById('pwo-lightbox-download');
+
+	if (lightbox && downloadBtn) {
+	    lightbox.addEventListener('click', (e) => {
+	        // Only close if clicking the dark background or the close 'X' button
+	        if (e.target === lightbox || e.target.closest('#pwo-lightbox-close')) {
+	            lightbox.classList.add('hidden');
+	            lightbox.style.display = 'none';
+	        }
+	    });
+
+	    downloadBtn.addEventListener('click', (e) => {
+	        // This stops the click from "bubbling" up to the lightbox background
+	        e.stopPropagation(); 
+	    });
+	}	
 }
 
 // UI References

@@ -96,5 +96,14 @@ export function render(data, isNew = true, isTemp = false) {
     }
 
     chatBox.appendChild(div);
-    if (isNew) chatBox.scrollTop = chatBox.scrollHeight;
+	const isAtBottom = chatBox.scrollHeight - chatBox.scrollTop <= chatBox.clientHeight + 100;
+
+    chatBox.appendChild(div);
+    
+    if (isNew && isAtBottom) {
+        chatBox.scrollTo({
+            top: chatBox.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
 }
