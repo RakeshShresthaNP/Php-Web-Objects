@@ -7,7 +7,34 @@ export const PWO_STYLES = `
 <style>
     #pwo-window { z-index: 9999; display: none; }
     #pwo-bubble { z-index: 9999; }
-    
+	
+	.search-mark {
+	    background-color: #fde047 !important; /* Bright Yellow */
+	    color: #000000 !important;           /* Force Black Text */
+	    font-weight: bold !important;
+	    display: inline !important;
+	    visibility: visible !important;
+	}
+	#search-count {
+	    display: inline-flex;
+	    align-items: center;
+	    justify-content: center;
+	    background-color: #1e293b !important; /* Dark slate */
+	    color: #ffffff !important;           /* Pure white */
+	    font-weight: 700 !important;
+	    padding: 2px 10px !important;
+	    border-radius: 6px !important;
+	    min-width: 50px;
+	    letter-spacing: 0.5px;
+	    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+	}
+
+	/* Ensure the arrows are also darker and more clickable */
+	#btn-prev, #btn-next {
+	    color: #475569 !important;
+	    font-weight: bold;
+	    font-size: 18px;
+	}	
     /* --- SCROLLBAR OVERLAP FIX --- */
     #chat-box {
         overflow-y: auto !important;

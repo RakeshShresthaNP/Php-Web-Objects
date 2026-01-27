@@ -10,44 +10,41 @@ export class ChatSearch {
 
 	perform(query) {
 	    this.query = query.trim().toLowerCase();
-	    
-	    // If query is too short, show everything as normal
+	    const paragraphs = this.chatBox.querySelectorAll('.message-text');
+	    this.matches = [];
+
 	    if (this.query.length < 2) {
 	        this.reset();
 	        this.updateUI();
 	        return;
 	    }
 
-	    // IMPORTANT: Don't call this.reset() at the start of every keystroke 
-	    // if it clears the DOM. Instead, just clean the highlights.
-	    const paragraphs = this.chatBox.querySelectorAll('.message-text');
-	    this.matches = [];
-
 	    paragraphs.forEach(p => {
-	        const text = p.getAttribute('data-original-text') || p.textContent;
-	        
-	        // Save the original text so we don't lose it during multiple highlights
-	        if (!p.hasAttribute('data-original-text')) {
-	            p.setAttribute('data-original-text', text);
-	        }
+	        const originalText = p.textContent; 
 
-	        if (text.toLowerCase().includes(this.query)) {
-	            const regex = new RegExp(`(${this.query})`, 'gi');
-	            p.innerHTML = text.replace(regex, '<mark class="bg-yellow-300 rounded-sm search-mark">$1</mark>');
+	        if (originalText.toLowerCase().includes(this.query)) {
+	            const safeQuery = this.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	            const regex = new RegExp(`(${safeQuery})`, 'gi');
+	            
+	            p.innerHTML = originalText.replace(regex, '<mark class="bg-yellow-300 rounded-sm search-mark">$1</mark>');
 	            this.matches.push(p);
-	            p.closest('.mb-4').style.display = ''; // Ensure the parent bubble is visible
+
+	            // FIX: Ensure the message bubble is not hidden by any parent styles
+	            let bubble = p.closest('.mb-4'); 
+	            if (bubble) bubble.style.display = 'flex'; 
 	        } else {
-	            p.innerHTML = text;
-	            // OPTIONAL: If you DO want to filter out non-matches, uncomment below:
-	            // p.closest('.mb-4').style.display = 'none'; 
+	            p.textContent = originalText;
+	            // OPTIONAL: If you want to hide non-matching messages, uncomment below:
+	            // let bubble = p.closest('.mb-4');
+	            // if (bubble) bubble.style.display = 'none';
 	        }
 	    });
 
 	    this.currentIndex = this.matches.length > 0 ? 0 : -1;
-	    if (this.currentIndex !== -1) this.jumpToMatch();
 	    this.updateUI();
+	    if (this.currentIndex !== -1) this.jumpToMatch();
 	}
-	
+				
     navigate(direction) {
         if (this.matches.length === 0) return;
 

@@ -2,6 +2,7 @@
  * pwo-ui.js
  * Extended to support database file_path and PDF/WebP display
  */
+const tempP = document.createElement('p');
 
 export function parseMarkdown(t) {
     if (!t) return '';
@@ -59,10 +60,13 @@ export function render(data, isNew = true, isTemp = false) {
             }
         }
 		if (data.message) {
-		    // Add the 'message-text' class here so the Search Manager can find it
-			contentHTML += `<p class="message-text leading-relaxed whitespace-pre-wrap text-sm">${data.message}</p>`;
-		}		
-    }
+		    // Create a temporary element to safely escape the string
+		    tempP.textContent = data.message; 
+		    const safeMessage = tempP.innerHTML; // Browser handles the escaping perfectly
+
+		    contentHTML += `<p class="message-text leading-relaxed whitespace-pre-wrap text-sm">${safeMessage}</p>`;
+		}
+	}
 
     // UI ASSEMBLY
     const div = document.createElement('div');
