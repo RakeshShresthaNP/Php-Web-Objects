@@ -154,15 +154,13 @@ window.addEventListener('ws_new_message', e => {
 });
 
 window.addEventListener('ws_chat_history', e => {
-    const chatBox = document.getElementById('chat-box');
-    chatBox.innerHTML = ''; // Clear for history load
-    
-    // Re-render Welcome Message first so it stays at the top of the history
-    render(WELCOME_DATA, false);
-    
     const history = e.detail.data || e.detail || [];
-    history.forEach(m => render(m, false));
+    console.log("Chat History Sample:", history[0]); // <--- Check the keys here!
     
+    const chatBox = document.getElementById('chat-box');
+    chatBox.innerHTML = ''; 
+    render(WELCOME_DATA, false);
+    history.forEach(m => render(m, false));
     chatBox.scrollTop = chatBox.scrollHeight;
 });
 

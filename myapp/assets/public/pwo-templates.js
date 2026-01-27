@@ -14,21 +14,31 @@ export const PWO_STYLES = `
 	#pwo-search-input:not(.hidden) {
 	    width: 100px; /* Expands slightly when shown */
 	}
-	.pwo-delete-btn { 
-	    z-index: 99; 
-	    cursor: pointer !important; 
-	    opacity: 0; 
-	    transition: opacity 0.2s ease;
-	    background: white; /* Adds a small background so it's easy to click */
-	    border-radius: 50%;
+
+	.relative.group {
+	    overflow: visible !important;
+	}	
+	
+	#chat-box {
+	    padding-left: 2rem !important; /* Creates room for the delete icon on the left */
+	}
+	.pwo-delete-btn {
+	    opacity: 0;
+	    transition: all 0.2s ease;
+	    z-index: 50;
+	    background: white;
+	    border-radius: 99px;
 	    padding: 2px;
 	    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	    display: flex;
+	    align-items: center;
+	    justify-content: center;
 	}
-
-	/* This is the magic trigger: when you hover over the message wrapper */
-	.group:hover .pwo-delete-btn { 
-	    opacity: 1 !important; 
+	.group:hover .pwo-delete-btn {
+	    opacity: 1 !important;
+	    transform: translateX(-4px); /* Subtle slide-in effect */
 	}
+	
 	/* FIX: Vertical Scrollbar for long messages */
     .msg-body { 
         max-height: 300px; 

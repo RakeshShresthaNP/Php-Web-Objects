@@ -17,12 +17,28 @@ export function render(data, isNew = true, isTemp = false) {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
 
-    // 1. Create message container
-    const div = document.createElement('div');
-    div.className = `flex mb-4 ${data.is_me ? 'justify-end' : 'justify-start'}`;
-    if (isTemp) div.id = `temp-${data.temp_id}`;
+    // --- 1. SENDER LOGIC ---
+    // Extract current user ID from localStorage (set this during login)
+    const myId = parseInt(localStorage.getItem('pwoUserId')); 
+    // If data.is_me isn't explicitly passed, calculate it from sender_id
+    const isMe = data.is_me || (data.sender_id === myId);
 
-    // 2. Handle File/Voice Content
+    // --- 2. DATA KEYS (From your Console Log) ---
+    const msgId = data.id;
+    // Format "2026-01-27 04:19:18" -> "04:19"
+    const msgTime = data.time ? data.time.split(' ')[1].substring(0, 5) : 
+                   new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+    // --- 3. DELETE BUTTON (Internal Placement) ---
+    const deleteBtn = (isMe && msgId) ? `
+        <button class="pwo-delete-btn opacity-0 absolute -top-2 -right-2 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow-md text-gray-400 hover:text-red-500 z-50 border border-gray-100 transition-all hover:scale-110" data-id="${msgId}" title="Delete Message">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+        </button>
+    ` : '';
+
+    // --- 4. CONTENT LOGIC (Files/Voice/Text) ---
     let contentHTML = '';
     if (data.file_path || data.localUrl) {
         const fileUrl = data.localUrl || data.file_path;
@@ -41,7 +57,7 @@ export function render(data, isNew = true, isTemp = false) {
                     </audio>
                 </div>`;
         } else if (isImage) {
-            contentHTML = `<div class="mb-2"><img src="${fileUrl}" class="rounded-lg max-w-full h-auto border border-white/20 shadow-sm" /></div>`;
+            contentHTML = `<div class="mb-2"><img src="${fileUrl}" class="rounded-lg max-w-full h-auto border border-white/10 shadow-sm" /></div>`;
         } else {
             contentHTML = `
                 <a href="${fileUrl}" target="_blank" class="flex items-center gap-2 p-2 bg-black/5 rounded-lg hover:bg-black/10 transition-colors mb-2">
@@ -51,43 +67,29 @@ export function render(data, isNew = true, isTemp = false) {
         }
     }
 
-    // 3. Handle Text Content
     if (data.message) {
-        contentHTML += `<p class="leading-relaxed">${data.message}</p>`;
+        contentHTML += `<p class="leading-relaxed whitespace-pre-wrap">${data.message}</p>`;
     }
 
-    // 4. Status Icon (Pending vs Read)
-    let statusIcon = '🕒'; 
-    let statusColor = 'text-gray-400';
-    if (!isTemp) {
-        statusIcon = data.is_read ? '✓✓' : '✓';
-        statusColor = data.is_read ? 'text-sky-400' : 'text-gray-400';
-    }
+    // --- 5. ASSEMBLE ROW ---
+    const div = document.createElement('div');
+    div.className = `flex mb-4 ${isMe ? 'justify-end' : 'justify-start'}`;
+    if (isTemp) div.id = `temp-${data.temp_id}`;
 
-    // 5. Trash Icon for Deletion (only for own messages)
-	const deleteBtn = (data.is_me && data.id) ? `
-	    <button class="pwo-delete-btn absolute -left-8 top-2 text-gray-400 hover:text-red-500 shadow-sm" data-id="${data.id}" title="Delete Message">
-	        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-	            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-	        </svg>
-	    </button>
-	` : '';
-	
-    // 6. Assemble HTML
     div.innerHTML = `
-        <div class="relative group max-w-[85%] ${data.is_me ? 'msg-me' : ''}">
+        <div class="relative group max-w-[85%] ${isMe ? 'msg-me' : ''}" style="overflow: visible;">
             ${deleteBtn}
-            <div class="msg-body ${data.is_me ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} p-3 shadow-sm text-sm">
+            <div class="msg-body ${isMe ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} p-3 shadow-sm text-sm">
                 ${contentHTML}
             </div>
-            <div class="flex items-center justify-end gap-1 mt-1 text-[10px] ${statusColor}">
-                <span>${data.d_created ? data.d_created.split(' ')[1].substring(0,5) : new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:false})}</span>
-                ${data.is_me ? '<span class="msg-status font-bold">' + statusIcon + '</span>' : ''}
+            <div class="flex items-center justify-end gap-1 mt-1 text-[10px] ${data.is_read ? 'text-sky-400' : 'text-gray-400'}">
+                <span>${msgTime}</span>
+                ${isMe ? '<span class="msg-status font-bold">' + (data.is_read ? '✓✓' : '✓') + '</span>' : ''}
             </div>
         </div>
     `;
 
-    // 7. Append and Scroll
+    // --- 6. APPEND & SCROLL ---
     chatBox.appendChild(div);
     if (isNew) chatBox.scrollTop = chatBox.scrollHeight;
 }
