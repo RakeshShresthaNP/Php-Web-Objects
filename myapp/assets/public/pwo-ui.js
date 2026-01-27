@@ -46,7 +46,11 @@ export function render(data, isNew = true, isTemp = false) {
             if (isVoice) {
                 contentHTML = `<div class="w-[220px] mb-1"><audio controls class="w-full h-8"><source src="${fileUrl}" type="audio/webm"></audio></div>`;
             } else if (isImage) {
-                contentHTML = `<div class="mb-2"><img src="${fileUrl}" class="rounded-lg max-w-full h-auto border border-white/10 shadow-sm" /></div>`;
+				contentHTML = `<div class="mb-2">
+				        <img src="${fileUrl}" 
+				             class="pwo-chat-image rounded-lg max-w-full h-auto cursor-zoom-in border border-white/10 shadow-sm transition-opacity hover:opacity-90" 
+				             onclick="window.dispatchEvent(new CustomEvent('pwo_open_image', {detail: '${fileUrl}'}))" />
+				    </div>`;
             } else {
                 contentHTML = `<a href="${fileUrl}" target="_blank" class="flex items-center gap-2 p-2 bg-black/5 rounded-lg mb-2"><span class="text-xs truncate max-w-[150px]">${data.file_name || 'File'}</span></a>`;
             }

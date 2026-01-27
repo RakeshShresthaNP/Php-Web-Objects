@@ -142,9 +142,20 @@ export const PWO_HTML = `
         </div>
     </div>
 
-    <div id="chat-box"></div>
+    <div id="chat-box" class="flex-1 overflow-y-auto"></div>
 
-    <div id="pwo-typing" class="hidden px-4 py-1 text-[10px] text-gray-400 italic">Agent is typing...</div>
+    <div id="pwo-typing" class="hidden px-4 py-2 flex items-center gap-2 text-gray-400 text-xs bg-white">
+        <div class="flex gap-1">
+            <span class="w-1 h-1 bg-gray-400 rounded-full animate-bounce"></span>
+            <span class="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+            <span class="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+        </div>
+        <span class="italic font-medium text-[10px]">Agent is typing...</span>
+    </div>
+
+    <div id="pwo-progress-container" class="hidden w-full h-1 bg-gray-100">
+        <div id="pwo-progress-bar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 0%"></div>
+    </div>
     
     <div id="pwo-rec-panel" class="hidden bg-emerald-50 p-3 border-t border-emerald-100 flex flex-col items-center">
         <canvas id="pwo-waveform" width="300" height="40" class="w-full h-10 mb-1"></canvas>
@@ -159,10 +170,6 @@ export const PWO_HTML = `
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
     </div>
-    
-    <div id="pwo-progress-container" class="hidden w-full h-1 bg-gray-200">
-        <div id="pwo-progress-bar" class="h-full bg-emerald-500 transition-all duration-150" style="width: 0%"></div>
-    </div>
 
     <div class="p-3 bg-white border-t relative">
         <div id="pwo-emoji-picker" class="hidden absolute bottom-full left-4 mb-2 bg-white border rounded-lg shadow-xl p-2 grid grid-cols-6 gap-2 z-[10000] w-48">
@@ -175,13 +182,6 @@ export const PWO_HTML = `
             <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">❤️</span>
             <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">✨</span>
         </div>
-		
-		<div id="pwo-typing" class="hidden px-4 py-2 flex items-center gap-1 text-gray-400 text-xs">
-		    <span class="font-semibold">Agent is typing</span>
-		    <span class="animate-bounce">.</span>
-		    <span class="animate-bounce [animation-delay:0.2s]">.</span>
-		    <span class="animate-bounce [animation-delay:0.4s]">.</span>
-		</div>
 
         <div class="flex items-end gap-2 bg-gray-100 rounded-2xl px-3 py-2">
             <button id="pwo-emoji-btn" type="button" class="text-gray-500 hover:text-emerald-600 pb-1">😀</button>
@@ -214,5 +214,17 @@ export const PWO_HTML = `
         <input type="password" id="pwo-pass" placeholder="Password" class="w-full p-2 mb-4 border rounded-lg text-sm">
         <button id="pwo-do-login" class="w-full py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700">Continue</button>
     </div>
+
+    <div id="pwo-lightbox" class="fixed inset-0 bg-black/95 z-[10000] hidden flex flex-col items-center justify-center p-4">
+        <div class="absolute top-5 right-5 flex gap-4">
+            <a id="pwo-lightbox-download" href="" download class="text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors" title="Download">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-width="2"></path></svg>
+            </a>
+            <button id="pwo-lightbox-close" class="text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2"></path></svg>
+            </button>
+        </div>
+        <img id="pwo-lightbox-img" src="" class="max-w-full max-h-[85vh] rounded-lg shadow-2xl object-contain cursor-zoom-out">
+    </div>	
 </div>
 `;

@@ -72,6 +72,27 @@ function startLogic() {
     } else {
         setTimeout(startLogic, 100);
     }
+	
+	window.addEventListener('pwo_open_image', (e) => {
+	    const lightbox = document.getElementById('pwo-lightbox');
+	    const lightboxImg = document.getElementById('pwo-lightbox-img');
+	    const downloadLink = document.getElementById('pwo-lightbox-download');
+	    
+	    if (lightbox && lightboxImg && downloadLink) {
+	        const imageUrl = e.detail;
+	        lightboxImg.src = imageUrl;
+	        downloadLink.href = imageUrl; // Set the download URL
+	        
+	        lightbox.classList.remove('hidden');
+	        lightbox.style.display = 'flex';
+	    }
+	});
+
+	// Close button logic specifically
+	document.getElementById('pwo-lightbox-close').onclick = () => {
+	    document.getElementById('pwo-lightbox').classList.add('hidden');
+	    document.getElementById('pwo-lightbox').style.display = 'none';
+	};
 }
 
 // UI References
