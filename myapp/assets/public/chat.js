@@ -70,9 +70,21 @@ document.getElementById('pwo-do-login').onclick = async () => {
     const u = document.getElementById('pwo-user').value;
     const p = document.getElementById('pwo-pass').value;
     const result = await Auth.login(u, p);
+
     if (result.success) {
-        // SAVE THE ID HERE
-        localStorage.setItem('pwoUserId', result.data.id || result.id); 
+        // Try every possible path to find the User ID in your backend response
+        const id = result.id || 
+                   result.user_id || 
+                   (result.user && result.user.id) || 
+                   (result.data && result.data.id);
+        
+        if (id) {
+            localStorage.setItem('pwoUserId', id.toString());
+            console.log("Success! Saved User ID:", id);
+        } else {
+            console.warn("Login successful but no ID found in response:", result);
+        }
+        
         location.reload(); 
     } else {
         alert(result.error || "Login Failed");

@@ -20,8 +20,11 @@ export const PWO_STYLES = `
 	}	
 	
 	#chat-box {
-	    padding-left: 2rem !important; /* Creates room for the delete icon on the left */
+	    overflow-y: auto !important;
+	    overflow-x: visible !important; /* This allows icons to "pop out" of the side */
+	    padding: 15px !important;      /* Gives the icons room to breathe */
 	}
+	
 	.pwo-delete-btn {
 	    opacity: 0 !important;
 		visibility: hidden;

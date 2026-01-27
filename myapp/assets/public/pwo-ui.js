@@ -14,30 +14,39 @@ export function parseMarkdown(t) {
 }
 
 export function render(data, isNew = true, isTemp = false) {
-    const chatBox = document.getElementById('chat-box');
+	const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
 
-    // --- 1. SENDER LOGIC ---
-	const myId = parseInt(localStorage.getItem('pwoUserId'));
-	// If we have a myId, compare it. If not, fallback to data.is_me
-	const isMe = (myId && data.sender_id === myId) || data.is_me;
-	
-    // --- 2. DATA KEYS (From your Console Log) ---
+    // 1. Get Me (from storage) and Sender (from message)
+    const myId = localStorage.getItem('pwoUserId');
+    const senderId = data.sender_id ? data.sender_id.toString() : null;
+    
+    // 2. FORCE a boolean true/false for isMe
+    // We check if data.is_me is true OR if the IDs match
+    const isMe = data.is_me === true || (myId && senderId && myId == senderId) ? true : false;
+
+    // 3. Get the database ID
     const msgId = data.id;
-    // Format "2026-01-27 04:19:18" -> "04:19"
+
+    // DEBUG: Look for this in the console for your REAL messages
+    console.log(`Msg: ${data.message} | ID: ${msgId} | isMe: ${isMe}`)
+		
+    // --- 2. DELETE BUTTON (Internal Placement - Cannot be clipped) ---
+	const deleteBtn = (isMe && msgId) ? `
+	    <button class="pwo-delete-btn absolute top-[-10px] right-[-10px] bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-lg z-[9999] hover:bg-red-600 transition-all border-2 border-white" 
+	            data-id="${msgId}" 
+	            title="Delete Message">
+	        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+	            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path>
+	        </svg>
+	    </button>
+	` : '';
+	
+    // --- 3. TIME FORMATTING ---
     const msgTime = data.time ? data.time.split(' ')[1].substring(0, 5) : 
                    new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
-    // --- 3. DELETE BUTTON (Internal Placement) ---
-    const deleteBtn = (isMe && msgId) ? `
-        <button class="pwo-delete-btn opacity-0 absolute -top-2 -right-2 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow-md text-gray-400 hover:text-red-500 z-50 border border-gray-100 transition-all hover:scale-110" data-id="${msgId}" title="Delete Message">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-            </svg>
-        </button>
-    ` : '';
-
-    // --- 4. CONTENT LOGIC (Files/Voice/Text) ---
+    // --- 4. CONTENT LOGIC (Files, Voice, Text) ---
     let contentHTML = '';
     if (data.file_path || data.localUrl) {
         const fileUrl = data.localUrl || data.file_path;
@@ -70,25 +79,27 @@ export function render(data, isNew = true, isTemp = false) {
         contentHTML += `<p class="leading-relaxed whitespace-pre-wrap">${data.message}</p>`;
     }
 
-    // --- 5. ASSEMBLE ROW ---
+    // --- 5. ASSEMBLE HTML ROW ---
     const div = document.createElement('div');
     div.className = `flex mb-4 ${isMe ? 'justify-end' : 'justify-start'}`;
     if (isTemp) div.id = `temp-${data.temp_id}`;
-
-    div.innerHTML = `
-        <div class="relative group max-w-[85%] ${isMe ? 'msg-me' : ''}" style="overflow: visible;">
+	
+	div.innerHTML = `
+        <div class="relative group max-w-[85%] ${isMe ? 'msg-me' : ''}" style="overflow: visible !important;">
             ${deleteBtn}
-            <div class="msg-body ${isMe ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} p-3 shadow-sm text-sm">
+            
+            <div class="msg-body ${isMe ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} p-3 shadow-sm text-sm relative z-10">
                 ${contentHTML}
             </div>
+
             <div class="flex items-center justify-end gap-1 mt-1 text-[10px] ${data.is_read ? 'text-sky-400' : 'text-gray-400'}">
                 <span>${msgTime}</span>
                 ${isMe ? '<span class="msg-status font-bold">' + (data.is_read ? '✓✓' : '✓') + '</span>' : ''}
             </div>
         </div>
     `;
-
-    // --- 6. APPEND & SCROLL ---
+		
+    // --- 6. APPEND AND SCROLL ---
     chatBox.appendChild(div);
     if (isNew) chatBox.scrollTop = chatBox.scrollHeight;
 }
