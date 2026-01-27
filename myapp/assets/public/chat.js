@@ -211,3 +211,46 @@ window.addEventListener('ws_typing', () => {
     clearTimeout(window.typingTimer);
     window.typingTimer = setTimeout(() => t.classList.add('hidden'), 3000);
 });
+
+// --- TASK 2: RICH INPUT LOGIC ---
+
+// 1. Setup References
+const textarea = document.getElementById('chat-in');
+const emojiBtn = document.getElementById('pwo-emoji-btn');
+const emojiPicker = document.getElementById('pwo-emoji-picker');
+
+// 2. Auto-Expand Textarea (Grows as you type)
+textarea?.addEventListener('input', function() {
+    // Reset height to calculate correctly
+    this.style.height = '36px'; 
+    // Set new height based on scroll content (max 120px)
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+
+// 3. Toggle Emoji Picker
+emojiBtn?.addEventListener('click', (e) => {
+    e.stopPropagation(); // Prevents the 'document click' from immediately closing it
+    emojiPicker?.classList.toggle('hidden');
+});
+
+// 4. Close Picker when clicking anywhere else on the screen
+document.addEventListener('click', (e) => {
+    if (!emojiPicker?.contains(e.target) && e.target !== emojiBtn) {
+        emojiPicker?.classList.add('hidden');
+    }
+});
+
+// 5. Insert Emoji into Textarea
+emojiPicker?.querySelectorAll('span').forEach(span => {
+    span.onclick = () => {
+        if (textarea) {
+            // Add emoji at the end of text
+            textarea.value += span.innerText;
+            // Focus back on textarea so user can keep typing
+            textarea.focus();
+            // Trigger the 'input' event so the textarea expands if needed
+            textarea.dispatchEvent(new Event('input'));
+        }
+    };
+});
+

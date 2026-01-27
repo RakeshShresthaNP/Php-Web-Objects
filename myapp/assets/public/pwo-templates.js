@@ -158,23 +158,38 @@ export const PWO_HTML = `
         <div id="pwo-progress-bar" class="h-full bg-emerald-500 transition-all duration-150" style="width: 0%"></div>
     </div>
 
-    <div class="p-3 bg-white border-t flex items-end gap-2">
-        <button id="pwo-attach" class="p-2 text-gray-400 hover:text-emerald-600 transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
-        </button>
-        <input type="file" id="pwo-file-input" class="hidden">
-        
-        <div class="flex-1 relative">
-            <textarea id="chat-in" rows="1" placeholder="Type a message..." class="w-full p-2 max-h-32 bg-gray-100 border-none rounded-2xl text-sm focus:ring-2 focus:ring-emerald-500 resize-none outline-none"></textarea>
+    <div class="p-3 bg-white border-t relative">
+        <div id="pwo-emoji-picker" class="hidden absolute bottom-full left-4 mb-2 bg-white border rounded-lg shadow-xl p-2 grid grid-cols-6 gap-2 z-[10000] w-48">
+            <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">😀</span>
+            <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">😂</span>
+            <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">😍</span>
+            <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">👍</span>
+            <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">🔥</span>
+            <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">🙌</span>
+            <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">❤️</span>
+            <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">✨</span>
         </div>
 
-        <button id="pwo-mic" class="p-2 text-gray-400 hover:text-emerald-600 transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-        </button>
-        
-        <button id="chat-send" class="p-2 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 shadow-md">
-            <svg class="w-5 h-5 rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
-        </button>
+        <div class="flex items-end gap-2 bg-gray-100 rounded-2xl px-3 py-2">
+            <button id="pwo-emoji-btn" type="button" class="text-gray-500 hover:text-emerald-600 pb-1">😀</button>
+            
+            <button id="pwo-attach" class="text-gray-400 hover:text-emerald-600 pb-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+            </button>
+            <input type="file" id="pwo-file-input" class="hidden">
+
+            <textarea id="chat-in" rows="1" placeholder="Type a message..." 
+                class="flex-1 bg-transparent border-none focus:ring-0 text-sm resize-none py-1"
+                style="height: 36px; line-height: 20px; outline: none; border: none;"></textarea>
+
+            <button id="pwo-mic" class="text-gray-400 hover:text-emerald-600 pb-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+            </button>
+            
+            <button id="chat-send" class="text-emerald-600 hover:text-emerald-700 pb-1">
+                <svg class="w-5 h-5 rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+            </button>
+        </div>
     </div>
 
     <div id="pwo-auth-overlay" class="absolute inset-0 bg-white/95 z-[100] hidden flex flex-col items-center justify-center p-8 text-center">
