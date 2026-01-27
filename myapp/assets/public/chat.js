@@ -25,7 +25,19 @@ await loadTailwind();
 document.head.insertAdjacentHTML('beforeend', PWO_STYLES);
 document.body.insertAdjacentHTML('beforeend', PWO_HTML);
 
-const WELCOME_DATA = { message: "Hello! How can we help you today?", is_me: false, system: true };
+const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+};
+
+const WELCOME_DATA = { 
+    message: `${getGreeting()}! How can we help you today?`, 
+    is_me: false, 
+    system: true 
+};
+
 render(WELCOME_DATA, false);
 
 // --- 3. STATE & SOCKET SETUP ---
@@ -66,8 +78,6 @@ function startLogic() {
 const win = document.getElementById('pwo-window');
 const bubble = document.getElementById('pwo-bubble');
 const textarea = document.getElementById('chat-in');
-const emojiBtn = document.getElementById('pwo-emoji-btn');
-const emojiPicker = document.getElementById('pwo-emoji-picker');
 const sendBtn = document.getElementById('chat-send');
 
 // --- 4. AUTHENTICATION ---
@@ -153,6 +163,7 @@ window.addEventListener('ws_connected', () => {
 
 window.addEventListener('ws_new_message', e => {
     const data = e.detail.data || e.detail;
+	document.getElementById('pwo-typing')?.classList.add('hidden');
     render(data, true);
     if (win.style.display === 'flex' && !data.is_me) {
         ws.call('chat', 'markread', { target_user_id: 0, token: Auth.getToken() }, getAuthHeaders());
@@ -183,9 +194,16 @@ window.addEventListener('ws_message_deleted', (e) => {
     if (btn) btn.closest('.mb-4')?.remove();
 });
 
-window.addEventListener('ws_typing', () => {
-    const t = document.getElementById('pwo-typing');
-    t.classList.remove('hidden');
+window.addEventListener('ws_typing', (e) => {
+    const typingIndicator = document.getElementById('pwo-typing');
+    if (!typingIndicator) return;
+
+    // Show the indicator
+    typingIndicator.classList.remove('hidden');
+
+    // Auto-hide after 3 seconds of no typing activity
     clearTimeout(window.typingTimer);
-    window.typingTimer = setTimeout(() => t.classList.add('hidden'), 3000);
+    window.typingTimer = setTimeout(() => {
+        typingIndicator.classList.add('hidden');
+    }, 3000);
 });

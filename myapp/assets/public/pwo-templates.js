@@ -8,94 +8,99 @@ export const PWO_STYLES = `
     #pwo-window { z-index: 9999; display: none; }
     #pwo-bubble { z-index: 9999; }
     
-    /* --- CHROME/SAFARI CLIPPING FIXES --- */
+    /* --- SCROLLBAR OVERLAP FIX --- */
     #chat-box {
         overflow-y: auto !important;
         overflow-x: hidden !important; 
-        padding: 20px 10px !important; /* Controlled padding for scrollbar room */
+        scrollbar-gutter: stable; /* Reserves space so scrollbar doesn't overlap content */
+        padding: 20px 15px !important;
         flex: 1;
         display: flex;
         flex-direction: column;
         background: #f9fafb;
-        /* FIX: This prevents children from stretching to 100% width */
-        align-items: flex-start; 
+        gap: 8px; /* Adds consistent spacing between bubbles */
     }
-
-    /* Force your messages to the right side */
-    .msg-me-container { 
-        align-self: flex-end !important; 
+	
+	.system-msg-container {
+	    display: flex;
+	    align-items: center;
+	    text-align: center;
+	    margin: 20px 0;
+	}
+    /* Message Row Base */
+    .pwo-msg-row {
         display: flex;
-        flex-direction: column;
-        align-items: flex-end;
         width: 100%;
+        margin-bottom: 12px;
     }
 
+    /* Right Aligned Messages (User) */
+    .justify-end {
+        justify-content: flex-end !important;
+        padding-right: 5px; /* Tiny buffer so emerald box doesn't touch the scrollbar track */
+    }
+
+    /* Left Aligned Messages (AI) */
+    .justify-start {
+        justify-content: flex-start !important;
+    }
+
+    /* Bubble Container */
     .relative.group {
-        overflow: visible !important;
-		padding: 20px 10px !important;
-        position: relative;
-        width: fit-content; /* Shrinks the hit-box to the bubble size */
+        position: relative !important;
+        overflow: visible !important; /* Critical for delete button visibility */
+        max-width: 85%;
+        min-width: 100px;
     }
 
-    /* --- DELETE BUTTON LOGIC --- */
+    /* --- DELETE BUTTON: ALWAYS VISIBLE FIX --- */
     .pwo-delete-btn {
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        width: 22px;
-        height: 22px;
-        background: #ff4444;
-        color: white;
-        border-radius: 50%;
-        border: 2px solid white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        z-index: 9999 !important;
-        cursor: pointer;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.2s ease-in-out;
+        position: absolute !important;
+        top: -10px !important;
+        right: -10px !important;
+        width: 24px !important;
+        height: 24px !important;
+        background: #ef4444 !important; /* Tailwind red-500 */
+        color: white !important;
+        border-radius: 9999px !important;
+        border: 2px solid white !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        z-index: 50 !important;
+        cursor: pointer !important;
+        opacity: 1 !important;        /* Force visibility */
+        visibility: visible !important; /* Force visibility */
         pointer-events: auto !important;
     }
 
-    .group:hover .pwo-delete-btn {
-        opacity: 1 !important;
-        visibility: visible !important;
-        transform: scale(1.1);
-    }
-
-    /* --- MESSAGE BODY --- */
+    /* --- MESSAGE CONTENT --- */
     .msg-body { 
-        position: relative !important;
-        overflow: visible !important; 
-        width: fit-content !important; /* Force shrink wrap */
-        max-width: 260px; /* Limits width on larger screens */
         word-break: break-word;
         white-space: pre-wrap; 
-        z-index: 10;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
     }
     
-    /* Main Chat Scrollbar - Visible in Chrome */
+    /* Custom Scrollbar Styling */
     #chat-box::-webkit-scrollbar { 
-        width: 5px !important; 
-        display: block !important; 
+        width: 6px !important; 
     }
     #chat-box::-webkit-scrollbar-thumb { 
-        background: #d1d5db !important; 
+        background: #cbd5e1 !important; 
         border-radius: 10px; 
     }
     #chat-box::-webkit-scrollbar-track {
-        background: transparent;
+        background: #f1f5f9;
     }
 
     /* Recording Animation */
     .rec-active { color: #ef4444 !important; animation: pulse 1.5s infinite; }
     @keyframes pulse {
-        0% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.1); opacity: 0.8; }
-        100% { transform: scale(1); opacity: 1; }
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
     }
 </style>
 `;
@@ -170,6 +175,13 @@ export const PWO_HTML = `
             <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">❤️</span>
             <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">✨</span>
         </div>
+		
+		<div id="pwo-typing" class="hidden px-4 py-2 flex items-center gap-1 text-gray-400 text-xs">
+		    <span class="font-semibold">Agent is typing</span>
+		    <span class="animate-bounce">.</span>
+		    <span class="animate-bounce [animation-delay:0.2s]">.</span>
+		    <span class="animate-bounce [animation-delay:0.4s]">.</span>
+		</div>
 
         <div class="flex items-end gap-2 bg-gray-100 rounded-2xl px-3 py-2">
             <button id="pwo-emoji-btn" type="button" class="text-gray-500 hover:text-emerald-600 pb-1">😀</button>
