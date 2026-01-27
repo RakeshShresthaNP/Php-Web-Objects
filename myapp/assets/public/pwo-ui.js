@@ -33,29 +33,16 @@ export function render(data, isNew = true, isTemp = false) {
 		
     // --- 2. DELETE BUTTON (Internal Placement - Cannot be clipped) ---
 	const deleteBtn = (isMe && msgId) ? `
-	    <button class="pwo-delete-btn" data-id="${msgId}" 
-	            style="position: absolute !important; 
-	                   top: -10px !important; 
-	                   right: -10px !important; 
-	                   width: 24px !important; 
-	                   height: 24px !important; 
-	                   background: #ef4444 !important; 
-	                   color: white !important; 
-	                   border-radius: 999px !important; 
-	                   border: 2px solid white !important; 
-	                   display: flex !important; 
-	                   align-items: center !important; 
-	                   justify-content: center !important; 
-	                   z-index: 9999 !important; 
-	                   box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
-	                   cursor: pointer !important;
-	                   padding: 0 !important;">
-	        <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+	    <button class="pwo-delete-btn absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md z-50 border border-white transition-transform hover:scale-110" 
+	            data-id="${msgId}" 
+	            title="Delete Message"
+	            style="display: flex !important; opacity: 1 !important; visibility: visible !important;">
+	        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 	            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path>
 	        </svg>
 	    </button>
 	` : '';
-		
+				
     // --- 3. TIME FORMATTING ---
     const msgTime = data.time ? data.time.split(' ')[1].substring(0, 5) : 
                    new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -99,20 +86,19 @@ export function render(data, isNew = true, isTemp = false) {
     if (isTemp) div.id = `temp-${data.temp_id}`;
 	
 	div.innerHTML = `
-        <div class="relative group max-w-[85%] ${isMe ? 'msg-me' : ''}" style="overflow: visible !important;">
-            ${deleteBtn}
-            
-            <div class="msg-body ${isMe ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} p-3 shadow-sm text-sm relative z-10">
-                ${contentHTML}
-            </div>
-
-            <div class="flex items-center justify-end gap-1 mt-1 text-[10px] ${data.is_read ? 'text-sky-400' : 'text-gray-400'}">
-                <span>${msgTime}</span>
-                ${isMe ? '<span class="msg-status font-bold">' + (data.is_read ? '✓✓' : '✓') + '</span>' : ''}
-            </div>
-        </div>
-    `;
-		
+	        <div class="relative group max-w-[85%] ${isMe ? 'msg-me' : ''}" style="position: relative !important;">
+	            <div class="msg-body ${isMe ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} p-3 shadow-sm text-sm" 
+	                 style="position: relative !important; overflow: visible !important;">
+	                ${deleteBtn}
+	                ${contentHTML}
+	            </div>
+	            <div class="flex items-center justify-end gap-1 mt-1 text-[10px] ${data.is_read ? 'text-sky-400' : 'text-gray-400'}">
+	                <span>${msgTime}</span>
+	                ${isMe ? '<span class="msg-status font-bold">' + (data.is_read ? '✓✓' : '✓') + '</span>' : ''}
+	            </div>
+	        </div>
+	    `;
+				
     // --- 6. APPEND AND SCROLL ---
     chatBox.appendChild(div);
     if (isNew) chatBox.scrollTop = chatBox.scrollHeight;

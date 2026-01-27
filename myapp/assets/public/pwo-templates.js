@@ -8,64 +8,78 @@ export const PWO_STYLES = `
     #pwo-window { z-index: 9999; display: none; }
     #pwo-bubble { z-index: 9999; }
     .msg-me { align-self: flex-end; }
-	#pwo-search-input {
-	    transition: width 0.3s ease;
-	}
-	#pwo-search-input:not(.hidden) {
-	    width: 100px; /* Expands slightly when shown */
-	}
-s
-	/* Force the group to show its children */
-	.relative.group {
-	    overflow: visible !important;
-	}
-		
-	#chat-box {
-	    overflow-y: auto !important;
-	    overflow-x: visible !important; /* This allows icons to "pop out" of the side */
-	    padding: 15px !important;      /* Gives the icons room to breathe */
-	}
-	
-	.pwo-delete-btn {
-	    opacity: 0 !important;
-		visibility: hidden;
-	    transition: all 0.2s ease;
-	    z-index: 9999 !important;
-		pointer-events: auto !important;
-	    background: white;
-	    border-radius: 99px;
-	    padding: 2px;
-	    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-	    display: flex;
-	    align-items: center;
-	    justify-content: center;
-	}
-	.group:hover .pwo-delete-btn {
-	    opacity: 1 !important;
-		visibility: visible !important;
-	    transform: translateX(-4px); /* Subtle slide-in effect */
-	}
-	
-	/* FIX: Vertical Scrollbar for long messages */
+    
+    #pwo-search-input {
+        transition: width 0.3s ease;
+    }
+    #pwo-search-input:not(.hidden) {
+        width: 100px; 
+    }
+
+    /* --- CHROME/SAFARI CLIPPING FIXES --- */
+    #chat-box {
+        overflow-y: auto !important;
+        overflow-x: visible !important; /* Allows button to pop out */
+        padding: 20px 15px !important; /* Extra space for icons */
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: #f9fafb;
+    }
+
+    .relative.group {
+        overflow: visible !important;
+        position: relative;
+    }
+
+    /* --- DELETE BUTTON LOGIC --- */
+    .pwo-delete-btn {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 22px;
+        height: 22px;
+        background: #ff4444;
+        color: white;
+        border-radius: 50%;
+        border: 2px solid white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        z-index: 9999 !important;
+        cursor: pointer;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease-in-out;
+        pointer-events: auto !important;
+    }
+
+    /* Show on Hover */
+    .group:hover .pwo-delete-btn {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: scale(1.1);
+    }
+
+    /* --- MESSAGE BODY --- */
     .msg-body { 
-        max-height: 300px; 
-        overflow-y: auto; 
-        overflow-x: hidden;
+        position: relative !important;
+        overflow: visible !important; /* Do not hide the button */
+        max-height: 400px; 
         word-break: break-word;
         white-space: pre-wrap; 
+        z-index: 10;
     }
     
-    /* NEW: Delete Button Hover Logic */
-    .pwo-delete-btn { transition: all 0.2s; opacity: 0; }
-    .group:hover .pwo-delete-btn { opacity: 1; }
-
-    /* Scrollbar Styling */
+    /* Scrollbar for long text messages */
     .msg-body::-webkit-scrollbar { width: 3px; }
     .msg-body::-webkit-scrollbar-thumb { 
         background: rgba(0,0,0,0.1); 
         border-radius: 10px; 
     }
 
+    /* Recording Animation */
     .rec-active { color: #ef4444 !important; animation: pulse 1.5s infinite; }
     @keyframes pulse {
         0% { transform: scale(1); opacity: 1; }
@@ -73,6 +87,7 @@ s
         100% { transform: scale(1); opacity: 1; }
     }
 
+    /* Main Chat Scrollbar */
     #chat-box::-webkit-scrollbar { width: 4px; }
     #chat-box::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
 </style>
@@ -115,8 +130,7 @@ export const PWO_HTML = `
         </div>
     </div>
 
-    <div id="chat-box" class="flex-1 p-4 overflow-y-auto bg-gray-50 flex flex-col">
-        </div>
+    <div id="chat-box"></div>
 
     <div id="pwo-typing" class="hidden px-4 py-1 text-[10px] text-gray-400 italic">Agent is typing...</div>
     
