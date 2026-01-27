@@ -262,17 +262,24 @@ export function initSearchHandler() {
 
 	function filterMessages(term) {
 	    const chatBox = document.getElementById('chat-box');
-	    // We target EVERY direct child of chat-box (the message rows)
 	    const messageRows = chatBox.querySelectorAll(':scope > div');
 	    
 	    messageRows.forEach(row => {
-	        // Find the body inside this row
+	        // 1. Get the text content
 	        const body = row.querySelector('.msg-body');
-	        if (!body) return; // Skip if it's not a message bubble
-
-	        const text = body.textContent.toLowerCase();
+	        const text = body ? body.textContent.toLowerCase() : "";
 	        
-	        if (text.includes(term)) {
+	        // 2. Check for media (images, files, or audio)
+	        const hasMedia = row.querySelector('img') || row.querySelector('audio') || row.querySelector('a[download]');
+
+	        // LOGIC: 
+	        // If the search term is empty, show everything.
+	        // If there is a term, only show rows where the text matches.
+	        // If a row ONLY has an image and no text, it will be hidden during search.
+	        
+	        if (term === "") {
+	            row.style.setProperty('display', 'flex', 'important');
+	        } else if (text.includes(term) && term.length > 0) {
 	            row.style.setProperty('display', 'flex', 'important');
 	        } else {
 	            row.style.setProperty('display', 'none', 'important');

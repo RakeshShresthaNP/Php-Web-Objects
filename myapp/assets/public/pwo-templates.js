@@ -32,6 +32,7 @@ export const PWO_STYLES = `
 
     .relative.group {
         overflow: visible !important;
+		padding: 20px 10px !important;
         position: relative;
         width: fit-content; /* Shrinks the hit-box to the bubble size */
     }
