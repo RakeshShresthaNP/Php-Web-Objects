@@ -2,6 +2,7 @@ import WSClient from './wsclient.js';
 import { PWO_STYLES, PWO_HTML } from './pwo-templates.js';
 import { render } from './pwo-ui.js';
 import { handleSend, handleFile, handleMic } from './pwo-logic.js';
+import { initDeleteHandler, initSearchHandler, processOfflineQueue } from './pwo-logic.js';
 import { Auth } from './pwo-auth.js';
 
 // --- 1. ASYNC DEPENDENCY LOADING ---
@@ -47,6 +48,19 @@ const SOCKET_URL = window.location.protocol === 'https:' ?
 const ws = new WSClient(SOCKET_URL, Auth.getToken() || "");
 const getAuthHeaders = () => ({ 'X-Forwarded-Host': window.location.hostname });
 
+const win = document.getElementById('pwo-window');
+const bubble = document.getElementById('pwo-bubble');
+const chatIn = document.getElementById('chat-in');
+
+initDeleteHandler(ws);
+initSearchHandler();
+
+// --- ADD: Auto-Expanding Textarea ---
+chatIn.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = (Math.min(this.scrollHeight, 128)) + 'px'; 
+});
+
 // --- 4. AUTHENTICATION LOGIC ---
 if (!Auth.isAuthenticated()) {
     document.getElementById('pwo-auth-overlay').classList.remove('hidden');
@@ -69,10 +83,6 @@ document.getElementById('pwo-logout').onclick = () => {
 };
 
 // --- 5. UI BINDINGS ---
-const win = document.getElementById('pwo-window');
-const bubble = document.getElementById('pwo-bubble');
-const chatIn = document.getElementById('chat-in');
-
 bubble.onclick = () => {
     const opening = win.style.display === 'none' || win.style.display === '';
     win.style.display = opening ? 'flex' : 'none';
@@ -128,6 +138,10 @@ chatIn.onkeypress = (e) => {
 window.addEventListener('ws_connected', () => {
     document.getElementById('pwo-dot').style.backgroundColor = '#22c55e';
     document.getElementById('pwo-status').innerText = 'Connected';
+    
+    // Auto-sync messages sent while the user was offline
+    processOfflineQueue(ws);
+    
     ws.call('chat', 'history', { token: Auth.getToken() }, getAuthHeaders());
 });
 

@@ -8,17 +8,26 @@ export const PWO_STYLES = `
     #pwo-window { z-index: 9999; display: none; }
     #pwo-bubble { z-index: 9999; }
     .msg-me { align-self: flex-end; }
-    
+	#pwo-search-input {
+	    transition: width 0.3s ease;
+	}
+	#pwo-search-input:not(.hidden) {
+	    width: 100px; /* Expands slightly when shown */
+	}    
     /* FIX: Vertical Scrollbar for long messages */
     .msg-body { 
         max-height: 300px; 
         overflow-y: auto; 
         overflow-x: hidden;
         word-break: break-word;
-        white-space: pre-wrap; /* CRITICAL: Preserves line breaks */
+        white-space: pre-wrap; 
     }
     
-    /* Optional: Style the scrollbar to be thin and clean */
+    /* NEW: Delete Button Hover Logic */
+    .pwo-delete-btn { transition: all 0.2s; opacity: 0; }
+    .group:hover .pwo-delete-btn { opacity: 1; }
+
+    /* Scrollbar Styling */
     .msg-body::-webkit-scrollbar { width: 3px; }
     .msg-body::-webkit-scrollbar-thumb { 
         background: rgba(0,0,0,0.1); 
@@ -55,29 +64,30 @@ export const PWO_HTML = `
                 <p id="pwo-status" class="text-[10px] opacity-80">Connecting...</p>
             </div>
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-1 items-center">
+            <input id="pwo-search-input" type="text" placeholder="Search..." class="hidden w-20 bg-white/20 text-[10px] rounded px-2 py-1 outline-none border-none placeholder-white/70 text-white transition-all">
+            
+            <button id="pwo-search-toggle" title="Search Messages" class="hover:bg-white/10 p-1 rounded">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </button>
+
             <button id="pwo-export" title="Export Chat" class="hover:bg-white/10 p-1 rounded">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
             </button>
             <button id="pwo-logout" title="Logout" class="hover:bg-white/10 p-1 rounded">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
             </button>
             <button id="pwo-close" class="hover:bg-white/10 p-1 rounded">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
     </div>
 
     <div id="chat-box" class="flex-1 p-4 overflow-y-auto bg-gray-50 flex flex-col">
-        <div class="flex justify-start mb-4">
-            <div class="bg-gray-200 text-gray-800 p-3 rounded-2xl rounded-bl-none max-w-[80%] text-sm">
-                Hello! How can we help you today?
-            </div>
         </div>
-    </div>
 
     <div id="pwo-typing" class="hidden px-4 py-1 text-[10px] text-gray-400 italic">Agent is typing...</div>
-
+    
     <div id="pwo-rec-panel" class="hidden bg-emerald-50 p-3 border-t border-emerald-100 flex flex-col items-center">
         <canvas id="pwo-waveform" width="300" height="40" class="w-full h-10 mb-1"></canvas>
         <span id="pwo-timer" class="text-[10px] font-mono text-emerald-600 font-bold">● 0:00</span>
@@ -91,6 +101,7 @@ export const PWO_HTML = `
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
     </div>
+    
     <div id="pwo-progress-container" class="hidden w-full h-1 bg-gray-200">
         <div id="pwo-progress-bar" class="h-full bg-emerald-500 transition-all duration-150" style="width: 0%"></div>
     </div>

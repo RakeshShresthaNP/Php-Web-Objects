@@ -203,3 +203,91 @@ function stopRecording(state) {
     document.getElementById('pwo-mic').classList.remove('rec-active');
     document.getElementById('pwo-rec-panel').classList.add('hidden');
 }
+
+// --- Handle Message Deletion (Route #31) ---
+export function initDeleteHandler(ws) {
+    const chatBox = document.getElementById('chat-box');
+    
+    chatBox.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.pwo-delete-btn');
+        if (!btn) return;
+        
+        const msgId = btn.dataset.id;
+        if (!msgId) return;
+
+        if (confirm("Permanently delete this message for everyone?")) {
+            // Call your backend delete route
+            ws.call('chat', 'delete', { 
+                id: msgId, 
+                token: localStorage.getItem('pwoToken') 
+            }, getAuthHeaders());
+
+            // Optimistic UI: Remove it immediately
+            btn.closest('.flex.mb-4').remove();
+        }
+    });
+}
+
+// --- Handle Local Search (Local Filter) ---
+export function initSearchHandler() {
+    const toggle = document.getElementById('pwo-search-toggle');
+    const input = document.getElementById('pwo-search-input');
+    const chatBox = document.getElementById('chat-box');
+    
+    if (!toggle || !input || !chatBox) return;
+
+    toggle.onclick = () => {
+        input.classList.toggle('hidden');
+        if (!input.classList.contains('hidden')) {
+            input.focus();
+        } else {
+            input.value = '';
+            filterMessages('');
+        }
+    };
+
+    input.oninput = (e) => {
+        const term = e.target.value.toLowerCase().trim();
+        filterMessages(term);
+    };
+
+    function filterMessages(term) {
+        // Target every top-level message container in the chat box
+        const messages = chatBox.querySelectorAll(':scope > div');
+        
+        messages.forEach(msgContainer => {
+            // Find the body that actually contains the text or file info
+            const body = msgContainer.querySelector('.msg-body');
+            if (!body) return;
+
+            // Get all text content (including file names if present)
+            const text = body.textContent.toLowerCase();
+
+            if (term === "" || text.includes(term)) {
+                // Restore original flex layout
+                msgContainer.style.display = 'flex';
+            } else {
+                // Hide non-matching messages
+                msgContainer.style.display = 'none';
+            }
+        });
+    }
+}
+
+// --- Offline Queue Support ---
+export function processOfflineQueue(ws) {
+    const queue = JSON.parse(localStorage.getItem('pwo_offline_queue') || '[]');
+    if (queue.length === 0) return;
+
+    console.log(`Connection restored. Syncing ${queue.length} messages...`);
+    
+    queue.forEach(msg => {
+        ws.call('chat', 'send', { 
+            message: msg.message, 
+            token: localStorage.getItem('pwoToken') 
+        }, getAuthHeaders());
+    });
+
+    localStorage.removeItem('pwo_offline_queue');
+}
+
