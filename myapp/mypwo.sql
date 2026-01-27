@@ -21,18 +21,17 @@ CREATE TABLE IF NOT EXISTS `chat_logs` (
   `message` text DEFAULT NULL,
   `file_path` varchar(512) DEFAULT NULL COMMENT 'Path to the reassembled file',
   `file_name` varchar(255) DEFAULT NULL COMMENT 'Original name of the uploaded file',
+  `is_read` tinyint(1) DEFAULT 0,
   `status` tinyint(1) DEFAULT 1 COMMENT '1: active, 0: deleted',
   `d_created` datetime DEFAULT current_timestamp(),
   `d_updated` datetime DEFAULT NULL ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `idx_sender` (`sender_id`),
   KEY `idx_created` (`d_created`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table pwo.chat_logs: 0 rows
+-- Dumping data for table pwo.chat_logs: ~0 rows (approximately)
 DELETE FROM `chat_logs`;
-/*!40000 ALTER TABLE `chat_logs` DISABLE KEYS */;
-/*!40000 ALTER TABLE `chat_logs` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.documentextractions
 CREATE TABLE IF NOT EXISTS `documentextractions` (
@@ -253,7 +252,7 @@ CREATE TABLE IF NOT EXISTS `mst_users` (
   UNIQUE KEY `key_usersemail` (`email`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
--- Dumping data for table pwo.mst_users: 4 rows
+-- Dumping data for table pwo.mst_users: 3 rows
 DELETE FROM `mst_users`;
 /*!40000 ALTER TABLE `mst_users` DISABLE KEYS */;
 INSERT INTO `mst_users` (`id`, `partner_id`, `c_name`, `email`, `phone`, `homepath`, `realname`, `password`, `perms`, `status`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
@@ -307,7 +306,7 @@ DELETE FROM `sys_blocked_ips`;
 CREATE TABLE IF NOT EXISTS `sys_job_queues` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `task_name` varchar(100) NOT NULL,
-  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`payload`)),
+  `payload` json NOT NULL CHECK (json_valid(`payload`)),
   `status` enum('pending','processing','completed','failed') DEFAULT 'pending',
   `attempts` int(11) DEFAULT 0,
   `available_at` timestamp NOT NULL DEFAULT utc_timestamp(),
@@ -356,7 +355,7 @@ CREATE TABLE IF NOT EXISTS `sys_methods` (
   KEY `key_methods` (`c_name`,`module_id`,`status`,`perms`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
--- Dumping data for table pwo.sys_methods: 31 rows
+-- Dumping data for table pwo.sys_methods: 34 rows
 DELETE FROM `sys_methods`;
 /*!40000 ALTER TABLE `sys_methods` DISABLE KEYS */;
 INSERT INTO `sys_methods` (`id`, `c_name`, `module_id`, `controllername`, `controllermethod`, `description`, `perms`, `status`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
@@ -390,7 +389,10 @@ INSERT INTO `sys_methods` (`id`, `c_name`, `module_id`, `controllername`, `contr
 	(28, 'planimport_api_importhr', 13, 'planimport', 'api_importhr', '', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
 	(29, 'chat_send', 14, 'chat', 'send', NULL, 'none', 1, '2026-01-24 09:46:56', 1, NULL, NULL),
 	(30, 'chat_history', 14, 'chat', 'history', NULL, 'admin,superadmin,user', 1, '2026-01-24 09:46:56', 1, NULL, NULL),
-	(31, 'chat_delete', 14, 'chat', 'delete', NULL, 'admin,superadmin', 1, '2026-01-24 09:48:48', 1, NULL, NULL);
+	(31, 'chat_delete', 14, 'chat', 'delete', NULL, 'admin,superadmin,user', 1, '2026-01-24 09:48:48', 1, NULL, NULL),
+	(33, 'chat_uploadchunk', 14, 'chat', 'uploadchunk', NULL, 'user,admin,superadmin', 1, '2026-01-25 01:23:06', NULL, NULL, NULL),
+	(34, 'chat_markread', 14, 'chat', 'markread', 'Updates is_read status for message marks', 'user,admin,superadmin', 1, '2026-01-26 09:45:00', 1, NULL, NULL),
+	(35, 'chat_typing', 14, 'chat', 'typing', 'Broadcasts typing status to partners', 'user,admin,superadmin', 1, '2026-01-26 09:45:00', 1, NULL, NULL);
 /*!40000 ALTER TABLE `sys_methods` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.sys_modules
