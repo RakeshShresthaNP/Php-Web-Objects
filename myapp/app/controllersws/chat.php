@@ -170,12 +170,12 @@ final class cChat extends cController
                 return;
             $userRole = $this->user->perms ?? 'user';
             $partnerId = ($userRole === 'admin' || $userRole === 'superadmin') ? (int) ($params['target_user_id'] ?? 0) : 0;
+            
             $hmodel = new model('chat_logs');
             $hmodel->where('sender_id', '=', $partnerId)
-                ->where('is_read', '=', 0)
-                ->update([
-                'is_read' => 1
-            ]);
+            ->where('is_read', '=', 0)
+            ->updateWhere(['is_read' => 1]);
+            
             $server->broadcast([
                 'type' => 'message_read',
                 'data' => [
@@ -209,24 +209,36 @@ final class cChat extends cController
         try {
             $messageId = (int) ($params['message_id'] ?? 0);
             $hmodel = new model('chat_logs');
-            $message = $hmodel->find($messageId);
-            if ($message && $message->sender_id == $this->user->id) {
-                if (! empty($message->file_path)) {
-                    $base = APP_DIR . "../";
+            
+            // 1. Find the message data first so we can get the file path
+            $message = $hmodel->where('id', '=', $messageId)->first();
+            
+            // 2. Check ownership before doing anything
+            if ($message && (int)$message->sender_id === (int)$this->user->id) {
+                
+                // 3. Handle Physical File Deletion
+                if (!empty($message->file_path)) {
+                    // Adjust base path to your 'public' folder
+                    $base = APP_DIR . "../public/";
                     $physical = $base . str_replace('/', DIRECTORY_SEPARATOR, $message->file_path);
-                    if (file_exists($physical))
+                    
+                    if (file_exists($physical)) {
                         @unlink($physical);
+                    }
                 }
-                $message->delete();
+                
+                // 4. Delete the Database Record using deleteWhere
+                // This is safer because it doesn't rely on the object's internal state
+                $hmodel->where('id', '=', $messageId)->deleteWhere();
+                
                 if ($server) {
                     $server->broadcast([
                         'type' => 'message_deleted',
-                        'data' => [
-                            'id' => $messageId
-                        ]
+                        'data' => ['id' => $messageId]
                     ]);
                 }
             }
+            
             return [
                 'status' => 'success',
                 'message' => 'Removed'
@@ -235,11 +247,11 @@ final class cChat extends cController
             writeLog('chat_delete_error_' . date('Y_m_d'), $t->getMessage());
             return [
                 'status' => 'error',
-                'message' => 'Delete failed'
+                'message' => 'Delete failed: ' . $t->getMessage()
             ];
         }
     }
-
+    
     private function recursiveRemove($dir): void
     {
         if (! is_dir($dir))

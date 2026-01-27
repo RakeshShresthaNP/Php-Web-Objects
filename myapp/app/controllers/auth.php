@@ -126,6 +126,7 @@ final class cAuth extends cController
 
                 $this->dispatcher->dispatch(new EventLogin($username, $ip, true));
 
+                $tdata['user_id'] = $user->id;
                 $tdata['accessToken'] = $this->_generateToken($udata);
 
                 $data['data'] = $tdata;
