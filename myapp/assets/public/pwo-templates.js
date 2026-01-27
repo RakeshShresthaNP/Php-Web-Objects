@@ -14,11 +14,12 @@ export const PWO_STYLES = `
 	#pwo-search-input:not(.hidden) {
 	    width: 100px; /* Expands slightly when shown */
 	}
-	
+s
+	/* Force the group to show its children */
 	.relative.group {
 	    overflow: visible !important;
-	}	
-	
+	}
+		
 	#chat-box {
 	    overflow-y: auto !important;
 	    overflow-x: visible !important; /* This allows icons to "pop out" of the side */
