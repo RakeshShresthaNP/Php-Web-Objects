@@ -264,3 +264,31 @@ export function processOfflineQueue(ws) {
     });
     localStorage.removeItem('pwo_offline_queue');
 }
+
+export function initAutoExpand() {
+    const chatIn = document.getElementById('chat-in');
+    if (!chatIn) return;
+
+    chatIn.addEventListener('input', function() {
+        this.style.height = '36px'; // Reset to calculate height correctly
+        // Grow up to 150px
+        const newHeight = Math.min(this.scrollHeight, 150); 
+        this.style.height = newHeight + 'px';
+    });
+}
+
+// --- New Task 2: Drag & Drop Logic ---
+export function initDragAndDrop(state) {
+    // Listen to the whole window so users can drop anywhere
+    window.addEventListener('dragover', (e) => e.preventDefault());
+    window.addEventListener('dragenter', (e) => e.preventDefault());
+
+    window.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            // Re-uses your existing, working handleFile logic
+            handleFile(files[0], state);
+        }
+    });
+}

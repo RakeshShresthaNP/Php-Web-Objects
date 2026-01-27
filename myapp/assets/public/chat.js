@@ -1,7 +1,10 @@
 import WSClient from './wsclient.js';
 import { PWO_STYLES, PWO_HTML } from './pwo-templates.js';
 import { render } from './pwo-ui.js';
-import { handleSend, handleFile, handleMic, initDeleteHandler, initSearchHandler, processOfflineQueue } from './pwo-logic.js';
+import { 
+    handleSend, handleFile, handleMic, initDeleteHandler, initSearchHandler, 
+    processOfflineQueue, initAutoExpand, initDragAndDrop // Add these two
+} from './pwo-logic.js';
 import { Auth } from './pwo-auth.js';
 
 // --- 1. ASYNC DEPENDENCY LOADING ---
@@ -14,6 +17,7 @@ async function loadTailwind() {
         document.head.appendChild(script);
     });
 }
+
 await loadTailwind();
 
 // --- 2. UI INITIALIZATION ---
@@ -49,6 +53,8 @@ const sendBtn = document.getElementById('chat-send');
 
 initDeleteHandler(ws);
 initSearchHandler();
+initAutoExpand();           // Enables textarea growth
+initDragAndDrop(state);     // Enables file dropping (passes the shared state)
 
 // --- 4. AUTHENTICATION ---
 if (!Auth.isAuthenticated()) {
