@@ -56,13 +56,14 @@ export function render(data, isNew = true, isTemp = false) {
 
 	    if (isVoice) {
 	        contentHTML = `
-	            <div class="flex flex-col gap-1 min-w-[160px]"> <div class="flex items-center gap-1 text-[9px] opacity-75">
-	                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a2 2 0 012-2h6a2 2 0 012 2v12a2 2 0 01-2 2H9a2 2 0 01-2-2V4z"></path></svg>
-	                    Voice Message
-	                </div>
-	                <audio controls class="w-full h-7 accent-emerald-600"> <source src="${fileUrl}" type="audio/webm">
-	                </audio>
-	            </div>`;
+			<div class="flex flex-col gap-1 min-w-[140px]"> <div class="flex items-center gap-1 text-[9px] opacity-75">
+			            <svg class="w-3 h-3" ...></svg>
+			            Voice Message
+			        </div>
+			        <audio controls class="w-full h-7 accent-emerald-600">
+			            <source src="${fileUrl}" type="audio/webm">
+			        </audio>
+			    </div>`;
 		} else if (isImage) {
             contentHTML = `<div class="mb-2"><img src="${fileUrl}" class="rounded-lg max-w-full h-auto border border-white/10 shadow-sm" /></div>`;
         } else {
@@ -79,25 +80,26 @@ export function render(data, isNew = true, isTemp = false) {
     }
 
     // --- 5. ASSEMBLE HTML ROW ---
+	// --- 5. ASSEMBLE HTML ROW ---
 	const div = document.createElement('div');
-	div.className = `flex mb-2 ${isMe ? 'justify-end' : 'justify-start'}`; 
+	// Removed 'justify-end/start' from here to let the inner container handle alignment
+	div.className = `flex mb-2 w-full`; 
 	if (isTemp) div.id = `temp-${data.temp_id}`;
 
 	div.innerHTML = `
-	    <div class="relative group max-w-[75%] ${isMe ? 'msg-me' : ''}"> 
-	        <div class="msg-body ${isMe ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} px-3 py-1.5 shadow-sm text-sm" 
-	             style="position: relative !important; overflow: visible !important; width: fit-content; min-width: 80px;">
+	    <div class="relative group ${isMe ? 'ml-auto' : 'mr-auto'}" style="width: fit-content; max-width: 80%;"> 
+	        <div class="msg-body ${isMe ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} px-3 py-1.5 shadow-sm text-sm">
 	            ${deleteBtn}
 	            ${contentHTML}
-
-	            <div class="flex items-center justify-end gap-1 mt-1 text-[9px] ${isMe ? 'text-emerald-100' : 'text-gray-400'}">
+	            
+	            <div class="flex items-center justify-end gap-1 mt-1 text-[10px] ${isMe ? 'text-emerald-100' : 'text-gray-400'}">
 	                <span>${msgTime}</span>
 	                ${isMe ? '<span class="msg-status font-bold">' + (data.is_read ? '✓✓' : '✓') + '</span>' : ''}
 	            </div>
 	        </div>
 	    </div>
 	`;
-					
+								
     // --- 6. APPEND AND SCROLL ---
     chatBox.appendChild(div);
     if (isNew) chatBox.scrollTop = chatBox.scrollHeight;
