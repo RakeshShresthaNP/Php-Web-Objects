@@ -25,5 +25,4 @@ try {
 } catch (Throwable $e) {
     writeLog('ws_fatal_' . date('Y_m_d'), "Startup Crash: " . $e->getMessage());
     echo "Fatal Error: " . $e->getMessage() . PHP_EOL;
-    exit(1);
 }
