@@ -304,46 +304,24 @@ export function initEmojiPicker() {
 
     if (!btn || !picker || !chatIn) return;
 
-    // Toggle logic
     btn.onclick = (e) => {
-        e.preventDefault();
         e.stopPropagation();
         picker.classList.toggle('hidden');
     };
 
-    // Emoji selection logic
     picker.onclick = (e) => {
         e.stopPropagation();
-        // Look for the span even if the user clicks slightly off-center
-        const targetSpan = e.target.closest('span');
-        
-        if (targetSpan) {
-            const emoji = targetSpan.innerText;
+        const span = e.target.closest('span');
+        if (span) {
+            const emoji = span.innerText;
+            chatIn.value += emoji;
             
-            // Insert at cursor position or at the end
-            const start = chatIn.selectionStart;
-            const end = chatIn.selectionEnd;
-            const text = chatIn.value;
-            chatIn.value = text.slice(0, start) + emoji + text.slice(end);
-            
-            // Move cursor after the inserted emoji
-            chatIn.selectionStart = chatIn.selectionEnd = start + emoji.length;
-
-            // Trigger the auto-expand logic we wrote
+            // This is critical: it tells the auto-expand logic the text changed
             chatIn.dispatchEvent(new Event('input')); 
             chatIn.focus();
-            
-            // Optional: hide after selection
             picker.classList.add('hidden');
         }
     };
-
-    // Close picker when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!btn.contains(e.target) && !picker.contains(e.target)) {
-            picker.classList.add('hidden');
-        }
-    });
 }
 
 export function initExportHandler() {

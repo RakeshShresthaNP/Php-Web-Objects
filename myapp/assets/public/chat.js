@@ -44,6 +44,24 @@ const SOCKET_URL = window.location.protocol === 'https:' ?
 const ws = new WSClient(SOCKET_URL, Auth.getToken() || "");
 const getAuthHeaders = () => ({ 'X-Forwarded-Host': window.location.hostname });
 
+function startLogic() {
+    const emojiBtn = document.getElementById('pwo-emoji-btn');
+    
+    if (emojiBtn) {
+        console.log("UI Ready. Wiring logic...");
+        
+        initEmojiPicker();
+        initExportHandler();
+        initAutoExpand();
+        initDragAndDrop(state); // Now 'state' is safe to use
+        
+        initDeleteHandler(ws);  // Now 'ws' is safe to use
+        initSearchHandler();
+    } else {
+        setTimeout(startLogic, 100);
+    }
+}
+
 // UI References
 const win = document.getElementById('pwo-window');
 const bubble = document.getElementById('pwo-bubble');
@@ -87,24 +105,25 @@ document.getElementById('pwo-logout').addEventListener('click', () => {
 
 // Toggle Window
 bubble.addEventListener('click', () => {
-    const opening = win.style.display === 'none' || win.style.display === '';
-    win.style.display = opening ? 'flex' : 'none';
-    
-    if (opening && Auth.isAuthenticated()) {
-        if (!state.isSocketStarted) { 
-            ws.connect(); 
-            state.isSocketStarted = true; 
+    // Check if currently hidden
+    const isHidden = win.style.display === 'none' || win.style.display === '';
+    win.style.display = isHidden ? 'flex' : 'none';
+
+    if (isHidden) {
+        // This starts all your Task 2 & 3 logic once correctly
+        startLogic();
+        
+        if (Auth.isAuthenticated()) {
+            if (!state.isSocketStarted) { 
+                ws.connect(); 
+                state.isSocketStarted = true; 
+            }
+            ws.call('chat', 'markread', { target_user_id: 0, token: Auth.getToken() }, getAuthHeaders());
         }
-        ws.call('chat', 'markread', { target_user_id: 0, token: Auth.getToken() }, getAuthHeaders());
     }
 });
 
 // Message Input Logic (Merged)
-textarea.addEventListener('input', function() {
-    this.style.height = '36px'; 
-    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-});
-
 textarea.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -112,26 +131,6 @@ textarea.addEventListener('keydown', (e) => {
     } else if (Auth.isAuthenticated()) {
         ws.call('chat', 'typing', { token: Auth.getToken() }, getAuthHeaders());
     }
-});
-
-// Emoji Logic
-emojiBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    emojiPicker.classList.toggle('hidden');
-});
-
-document.addEventListener('click', (e) => {
-    if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
-        emojiPicker.classList.add('hidden');
-    }
-});
-
-emojiPicker.querySelectorAll('span').forEach(span => {
-    span.addEventListener('click', () => {
-        textarea.value += span.innerText;
-        textarea.focus();
-        textarea.dispatchEvent(new Event('input'));
-    });
 });
 
 // Send Actions

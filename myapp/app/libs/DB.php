@@ -58,7 +58,7 @@ final class DB
             PDO::ATTR_EMULATE_PREPARES => true,
 
             // This forces the connection session to UTC
-            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8, time_zone = '+00:00'"
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4, time_zone = '+00:00'"
         ];
 
         try {
@@ -66,7 +66,7 @@ final class DB
             self::$_context = new PDO($dsn, $user, $pass, $options);
 
             // Re-applying your original initialization commands just to be safe
-            self::$_context->exec('SET NAMES utf8');
+            self::$_context->exec('SET NAMES utf8mb4');
             self::$_context->exec("SET time_zone = '+00:00'");
         } catch (PDOException $ex) {
             // Rethrow as standard Exception to match your original error handling
