@@ -17,14 +17,18 @@ export function render(data, isNew = true, isTemp = false) {
     const chatBox = document.getElementById('chat-box');
     if (!chatBox) return;
 
-    // 1. Identification
+    // 1. IDENTIFICATION & CONSISTENCY
+    // Map IDs: Server uses 'id', IndexedDB uses 'server_id'
+    const msgId = data.id || data.server_id; 
     const myId = localStorage.getItem('pwoUserId');
     const senderId = data.sender_id?.toString() || null;
+    
+    // Check if message belongs to current user
     const isMe = data.is_me === true || (myId && senderId && myId == senderId);
-    const isSystem = data.system === true;
-    const msgId = data.id;
+    const isSystem = data.system == 1 || data.system === true;
 
-    // 2. Delete Button
+    // 2. DELETE BUTTON LOGIC
+    // Button only appears for 'isMe' and requires a valid msgId (id or server_id)
     const deleteBtn = (isMe && msgId) ? `
         <button class="pwo-delete-btn absolute bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md z-50 border border-white transition-transform hover:scale-110" 
                 data-id="${msgId}" 
@@ -35,7 +39,7 @@ export function render(data, isNew = true, isTemp = false) {
         </button>
     ` : '';
 
-    // 3. Content Builder (Skip for System Messages)
+    // 3. CONTENT BUILDER (Files & Text)
     let contentHTML = '';
     if (!isSystem) {
         const fileUrl = data.localUrl || data.file_path;
@@ -46,32 +50,36 @@ export function render(data, isNew = true, isTemp = false) {
             if (isVoice) {
                 contentHTML = `<div class="w-[220px] mb-1"><audio controls class="w-full h-8"><source src="${fileUrl}" type="audio/webm"></audio></div>`;
             } else if (isImage) {
-				contentHTML = `<div class="mb-2">
-				        <img src="${fileUrl}" 
-				             class="pwo-chat-image rounded-lg max-w-full h-auto cursor-zoom-in border border-white/10 shadow-sm transition-opacity hover:opacity-90" 
-				             onclick="window.dispatchEvent(new CustomEvent('pwo_open_image', {detail: '${fileUrl}'}))" />
-				    </div>`;
+                contentHTML = `<div class="mb-2">
+                        <img src="${fileUrl}" 
+                             class="pwo-chat-image rounded-lg max-w-full h-auto cursor-zoom-in border border-white/10 shadow-sm transition-opacity hover:opacity-90" 
+                             onclick="window.dispatchEvent(new CustomEvent('pwo_open_image', {detail: '${fileUrl}'}))" />
+                    </div>`;
             } else {
-                contentHTML = `<a href="${fileUrl}" target="_blank" class="flex items-center gap-2 p-2 bg-black/5 rounded-lg mb-2"><span class="text-xs truncate max-w-[150px]">${data.file_name || 'File'}</span></a>`;
+                contentHTML = `<a href="${fileUrl}" target="_blank" class="flex items-center gap-2 p-2 bg-black/5 rounded-lg mb-2 text-blue-600 underline"><span class="text-xs truncate max-w-[150px]">${data.file_name || 'View Attachment'}</span></a>`;
             }
         }
         if (data.message) contentHTML += `<p class="leading-relaxed whitespace-pre-wrap text-sm">${data.message}</p>`;
     }
 
-    // 4. Assemble Row
+    // 4. UI ASSEMBLY
     const div = document.createElement('div');
+    const isAtBottom = chatBox.scrollHeight - chatBox.scrollTop <= chatBox.clientHeight + 100;
     
     if (isSystem) {
-        // --- PROFESSIONAL CENTERED SYSTEM STYLE ---
         div.className = "flex justify-center my-6 px-4 w-full";
         div.innerHTML = `
             <div class="bg-gray-100 text-gray-500 text-[11px] font-semibold uppercase tracking-widest py-1.5 px-4 rounded-full border border-gray-200 shadow-sm">
                 ${data.message}
-            </div>
-        `;
+            </div>`;
     } else {
-        // --- STANDARD BUBBLE STYLE ---
-        const msgTime = data.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        // Handle time (Format: HH:mm)
+        let msgTime = data.time;
+        if (!msgTime) {
+            const dateObj = data.d_created ? new Date(data.d_created) : new Date();
+            msgTime = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        }
+
         div.className = `mb-4 flex ${isMe ? 'justify-end pr-4' : 'justify-start items-end'}`; 
         if (isTemp) div.id = `temp-${data.temp_id}`;
 
@@ -95,15 +103,26 @@ export function render(data, isNew = true, isTemp = false) {
             </div>`;
     }
 
+    // Append to Chat Box
     chatBox.appendChild(div);
-	const isAtBottom = chatBox.scrollHeight - chatBox.scrollTop <= chatBox.clientHeight + 100;
-
-    chatBox.appendChild(div);
-    
+	
+    // 5. DATABASE PERSISTENCE (Matches v5 Schema)
+    // Only save if it's a "New" real message, not from history loader and not a temporary sending state
+    if (isNew && window.db && !isTemp) {
+        window.db.messages.add({
+            server_id: msgId,             
+            sender_id: senderId,            
+            message: data.message || '',          
+            d_created: data.d_created || new Date().toISOString(), 
+            status: data.status ?? 1,
+            file_path: data.file_path || null,
+            file_name: data.file_name || null,
+            system: isSystem ? 1 : 0        
+        }).catch(e => console.error("IndexedDB Save Error:", e));
+    }
+				    
+    // Auto-scroll logic
     if (isNew && isAtBottom) {
-        chatBox.scrollTo({
-            top: chatBox.scrollHeight,
-            behavior: 'smooth'
-        });
+        chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
     }
 }

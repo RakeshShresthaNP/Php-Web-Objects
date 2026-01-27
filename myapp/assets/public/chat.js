@@ -9,17 +9,51 @@ import {
 import { Auth } from './pwo-auth.js';
 
 // --- 1. ASYNC DEPENDENCY LOADING ---
-async function loadTailwind() {
-    if (window.tailwind) return;
-    return new Promise((resolve) => {
+async function loadDependencies() {
+    const scripts = [
+        { id: 'tw-script', src: 'assets/public/tailwind.js' },
+        { id: 'dexie-script', src: 'assets/public/dexie.js' }
+    ];
+
+    const load = (s) => new Promise((resolve) => {
+        if (document.getElementById(s.id)) return resolve();
         const script = document.createElement('script');
-        script.src = 'assets/public/tailwind.js';
+        script.id = s.id;
+        script.src = s.src;
         script.onload = resolve;
         document.head.appendChild(script);
     });
+
+    await Promise.all(scripts.map(load));
 }
 
-await loadTailwind();
+await loadDependencies();
+
+// 1. Initialize Global Database
+window.db = new Dexie("PWOChatDB");
+window.db.version(5).stores({
+    messages: '++id, server_id, sender_id, message, d_created, status'
+});
+
+window.db.open().then(() => {
+    console.log("PWOChatDB (v5) is active and consistent.");
+}).catch(err => {
+    console.error("DB failed to open:", err);
+});
+
+const db = window.db;
+
+// Function to load local history immediately
+async function loadLocalHistory() {
+    // Consistency check: use 'd_created' NOT 'timestamp'
+    const localMsgs = await window.db.messages.orderBy('d_created').toArray();
+    
+    if (localMsgs.length > 0) {
+        const chatBox = document.getElementById('chat-box');
+        chatBox.innerHTML = ''; 
+        localMsgs.forEach(m => render(m, false));
+    }
+}
 
 // --- 2. UI INITIALIZATION ---
 document.head.insertAdjacentHTML('beforeend', PWO_STYLES);
@@ -50,8 +84,8 @@ const state = {
     audioChunks: []
 };
 
-const soundIn = new Audio("https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3");
-const soundOut = new Audio("https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3");
+const soundIn = new Audio("assets/public/2354-preview.mp3");
+const soundOut = new Audio("assets/public//2358-preview.mp3");
 
 const SOCKET_URL = window.location.protocol === 'https:' ? 
     `wss://${window.location.hostname}/pwo/wss` : `ws://${window.location.hostname}:8080`;
@@ -179,7 +213,8 @@ bubble.addEventListener('click', () => {
     if (isHidden) {
         // This starts all your Task 2 & 3 logic once correctly
         startLogic();
-        
+		loadLocalHistory(); 
+		       
         if (Auth.isAuthenticated()) {
             if (!state.isSocketStarted) { 
                 ws.connect(); 
@@ -260,8 +295,24 @@ window.addEventListener('ws_new_message', e => {
     textarea.style.height = '36px';
 });
 
-window.addEventListener('ws_chat_history', e => {
+window.addEventListener('ws_chat_history', async (e) => {
     const history = e.detail.data || e.detail || [];
+    
+	await db.messages.clear();
+
+	if (history.length > 0) {
+	    await db.messages.bulkAdd(history.map(m => ({
+	        server_id: m.id,            // Map MySQL Primary Key
+	        sender_id: m.sender_id,     // Map sender
+	        message: m.message,         // Map the text content
+	        d_created: m.d_created || new Date().toISOString(), // Use DB timestamp
+	        status: m.status ?? 1,      // Map active/deleted status
+	        file_path: m.file_path || null,
+	        file_name: m.file_name || null
+	    })));
+	}
+	
+    // 3. Re-render UI
     const chatBox = document.getElementById('chat-box');
     chatBox.innerHTML = ''; 
     render(WELCOME_DATA, false);
