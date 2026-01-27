@@ -208,24 +208,28 @@ function stopRecording(state) {
 export function initDeleteHandler(ws) {
     const chatBox = document.getElementById('chat-box');
     
-    chatBox.addEventListener('click', async (e) => {
+    // Remove any old listener and add a fresh one to the PARENT
+    chatBox.onclick = (e) => {
         const btn = e.target.closest('.pwo-delete-btn');
         if (!btn) return;
-        
-        const msgId = btn.dataset.id;
-        if (!msgId) return;
 
-        if (confirm("Permanently delete this message for everyone?")) {
-            // Call your backend delete route
+        const msgId = btn.getAttribute('data-id');
+        if (!msgId) {
+            console.error("No ID found on delete button");
+            return;
+        }
+
+        if (confirm("Delete this message?")) {
+            // Call the WS route
             ws.call('chat', 'delete', { 
                 id: msgId, 
                 token: localStorage.getItem('pwoToken') 
-            }, getAuthHeaders());
+            }, { 'X-Forwarded-Host': window.location.hostname });
 
-            // Optimistic UI: Remove it immediately
+            // Remove it from UI immediately
             btn.closest('.flex.mb-4').remove();
         }
-    });
+    };
 }
 
 // --- Handle Local Search (Local Filter) ---
@@ -251,27 +255,25 @@ export function initSearchHandler() {
         filterMessages(term);
     };
 
-    function filterMessages(term) {
-        // Target every top-level message container in the chat box
-        const messages = chatBox.querySelectorAll(':scope > div');
-        
-        messages.forEach(msgContainer => {
-            // Find the body that actually contains the text or file info
-            const body = msgContainer.querySelector('.msg-body');
-            if (!body) return;
+	function filterMessages(term) {
+	    const chatBox = document.getElementById('chat-box');
+	    // We target EVERY direct child of chat-box (the message rows)
+	    const messageRows = chatBox.querySelectorAll(':scope > div');
+	    
+	    messageRows.forEach(row => {
+	        // Find the body inside this row
+	        const body = row.querySelector('.msg-body');
+	        if (!body) return; // Skip if it's not a message bubble
 
-            // Get all text content (including file names if present)
-            const text = body.textContent.toLowerCase();
-
-            if (term === "" || text.includes(term)) {
-                // Restore original flex layout
-                msgContainer.style.display = 'flex';
-            } else {
-                // Hide non-matching messages
-                msgContainer.style.display = 'none';
-            }
-        });
-    }
+	        const text = body.textContent.toLowerCase();
+	        
+	        if (text.includes(term)) {
+	            row.style.setProperty('display', 'flex', 'important');
+	        } else {
+	            row.style.setProperty('display', 'none', 'important');
+	        }
+	    });
+	}
 }
 
 // --- Offline Queue Support ---

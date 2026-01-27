@@ -13,8 +13,23 @@ export const PWO_STYLES = `
 	}
 	#pwo-search-input:not(.hidden) {
 	    width: 100px; /* Expands slightly when shown */
-	}    
-    /* FIX: Vertical Scrollbar for long messages */
+	}
+	.pwo-delete-btn { 
+	    z-index: 99; 
+	    cursor: pointer !important; 
+	    opacity: 0; 
+	    transition: opacity 0.2s ease;
+	    background: white; /* Adds a small background so it's easy to click */
+	    border-radius: 50%;
+	    padding: 2px;
+	    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	}
+
+	/* This is the magic trigger: when you hover over the message wrapper */
+	.group:hover .pwo-delete-btn { 
+	    opacity: 1 !important; 
+	}
+	/* FIX: Vertical Scrollbar for long messages */
     .msg-body { 
         max-height: 300px; 
         overflow-y: auto; 
