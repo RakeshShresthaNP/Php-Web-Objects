@@ -70,13 +70,6 @@ const emojiBtn = document.getElementById('pwo-emoji-btn');
 const emojiPicker = document.getElementById('pwo-emoji-picker');
 const sendBtn = document.getElementById('chat-send');
 
-initDeleteHandler(ws);
-initSearchHandler();
-initAutoExpand();        // Enables textarea growth
-initDragAndDrop(state);  // Enables file drops (pass your state object)
-initEmojiPicker();       // Enables emoji grid
-initExportHandler();
-
 // --- 4. AUTHENTICATION ---
 if (!Auth.isAuthenticated()) {
     document.getElementById('pwo-auth-overlay').classList.remove('hidden');
