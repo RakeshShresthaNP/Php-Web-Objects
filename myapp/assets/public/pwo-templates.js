@@ -7,29 +7,33 @@ export const PWO_STYLES = `
 <style>
     #pwo-window { z-index: 9999; display: none; }
     #pwo-bubble { z-index: 9999; }
-    .msg-me { align-self: flex-end; }
     
-    #pwo-search-input {
-        transition: width 0.3s ease;
-    }
-    #pwo-search-input:not(.hidden) {
-        width: 100px; 
-    }
-
     /* --- CHROME/SAFARI CLIPPING FIXES --- */
     #chat-box {
         overflow-y: auto !important;
-        overflow-x: visible !important; /* Allows button to pop out */
-        padding: 20px 15px !important; /* Extra space for icons */
+        overflow-x: hidden !important; 
+        padding: 20px 10px !important; /* Controlled padding for scrollbar room */
         flex: 1;
         display: flex;
         flex-direction: column;
         background: #f9fafb;
+        /* FIX: This prevents children from stretching to 100% width */
+        align-items: flex-start; 
+    }
+
+    /* Force your messages to the right side */
+    .msg-me-container { 
+        align-self: flex-end !important; 
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        width: 100%;
     }
 
     .relative.group {
         overflow: visible !important;
         position: relative;
+        width: fit-content; /* Shrinks the hit-box to the bubble size */
     }
 
     /* --- DELETE BUTTON LOGIC --- */
@@ -55,7 +59,6 @@ export const PWO_STYLES = `
         pointer-events: auto !important;
     }
 
-    /* Show on Hover */
     .group:hover .pwo-delete-btn {
         opacity: 1 !important;
         visibility: visible !important;
@@ -65,18 +68,25 @@ export const PWO_STYLES = `
     /* --- MESSAGE BODY --- */
     .msg-body { 
         position: relative !important;
-        overflow: visible !important; /* Do not hide the button */
-        max-height: 400px; 
+        overflow: visible !important; 
+        width: fit-content !important; /* Force shrink wrap */
+        max-width: 260px; /* Limits width on larger screens */
         word-break: break-word;
         white-space: pre-wrap; 
         z-index: 10;
     }
     
-    /* Scrollbar for long text messages */
-    .msg-body::-webkit-scrollbar { width: 3px; }
-    .msg-body::-webkit-scrollbar-thumb { 
-        background: rgba(0,0,0,0.1); 
+    /* Main Chat Scrollbar - Visible in Chrome */
+    #chat-box::-webkit-scrollbar { 
+        width: 5px !important; 
+        display: block !important; 
+    }
+    #chat-box::-webkit-scrollbar-thumb { 
+        background: #d1d5db !important; 
         border-radius: 10px; 
+    }
+    #chat-box::-webkit-scrollbar-track {
+        background: transparent;
     }
 
     /* Recording Animation */
@@ -86,10 +96,6 @@ export const PWO_STYLES = `
         50% { transform: scale(1.1); opacity: 0.8; }
         100% { transform: scale(1); opacity: 1; }
     }
-
-    /* Main Chat Scrollbar */
-    #chat-box::-webkit-scrollbar { width: 4px; }
-    #chat-box::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
 </style>
 `;
 

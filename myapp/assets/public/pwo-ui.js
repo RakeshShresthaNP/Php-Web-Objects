@@ -56,7 +56,7 @@ export function render(data, isNew = true, isTemp = false) {
 
 	    if (isVoice) {
 			contentHTML = `
-			    <div class="flex flex-col gap-1 min-w-[120px]"> <div class="flex items-center gap-1 text-[9px] opacity-75">
+			    <div class="flex flex-col gap-1 min-w-[150px]"> <div class="flex items-center gap-1 text-[9px] opacity-75">
 			            <svg class="w-3 h-3" ...></svg>
 			            Voice Message
 			        </div>
@@ -81,24 +81,26 @@ export function render(data, isNew = true, isTemp = false) {
 
     // --- 5. ASSEMBLE HTML ROW ---
 	const div = document.createElement('div');
-	// CHANGE: Added items-end/items-start to prevent the child from stretching
-	div.className = `flex flex-col mb-3 w-full ${isMe ? 'items-end' : 'items-start'}`; 
-	if (isTemp) div.id = `temp-${data.temp_id}`;
-
-	div.innerHTML = `
-	    <div class="relative group" style="width: fit-content; max-width: 75%;"> 
-	        <div class="msg-body ${isMe ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} px-3 py-1.5 shadow-sm text-sm">
-	            ${deleteBtn}
-	            ${contentHTML}
-	            
-	            <div class="flex items-center justify-end gap-1 mt-1 text-[10px] ${isMe ? 'text-emerald-100' : 'text-gray-400'}">
-	                <span>${msgTime}</span>
-	                ${isMe ? '<span class="msg-status font-bold">' + (data.is_read ? '✓✓' : '✓') + '</span>' : ''}
-	            </div>
-	        </div>
-	    </div>
-	`;
-									
+    // Added pr-4 to ensure space even when scrollbars appear
+    // Added items-end to force the bubble to stick to the right without stretching
+    div.className = `flex flex-col mb-4 w-full pr-4 ${isMe ? 'items-end' : 'items-start'}`; 
+    if (isTemp) div.id = `temp-${data.temp_id}`;
+	
+    div.innerHTML = `
+        <div class="relative group" style="width: fit-content; max-width: 85%;">
+            <div class="${isMe ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} p-3 shadow-sm text-sm" 
+                 style="width: fit-content; min-width: 80px; display: inline-block;">
+                ${deleteBtn}
+                ${contentHTML}
+                
+                <div class="flex items-center justify-end gap-1 mt-1 text-[10px] ${isMe ? 'text-emerald-100' : 'text-gray-400'}">
+                    <span>${msgTime}</span>
+                    ${isMe ? '<span class="msg-status font-bold">' + (data.is_read ? '✓✓' : '✓') + '</span>' : ''}
+                </div>
+            </div>
+        </div>
+    `;
+														
     // --- 6. APPEND AND SCROLL ---
     chatBox.appendChild(div);
     if (isNew) chatBox.scrollTop = chatBox.scrollHeight;
