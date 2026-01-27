@@ -71,6 +71,8 @@ document.getElementById('pwo-do-login').onclick = async () => {
     const p = document.getElementById('pwo-pass').value;
     const result = await Auth.login(u, p);
     if (result.success) {
+        // SAVE THE ID HERE
+        localStorage.setItem('pwoUserId', result.data.id || result.id); 
         location.reload(); 
     } else {
         alert(result.error || "Login Failed");

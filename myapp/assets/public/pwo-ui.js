@@ -18,11 +18,10 @@ export function render(data, isNew = true, isTemp = false) {
     if (!chatBox) return;
 
     // --- 1. SENDER LOGIC ---
-    // Extract current user ID from localStorage (set this during login)
-    const myId = parseInt(localStorage.getItem('pwoUserId')); 
-    // If data.is_me isn't explicitly passed, calculate it from sender_id
-    const isMe = data.is_me || (data.sender_id === myId);
-
+	const myId = parseInt(localStorage.getItem('pwoUserId'));
+	// If we have a myId, compare it. If not, fallback to data.is_me
+	const isMe = (myId && data.sender_id === myId) || data.is_me;
+	
     // --- 2. DATA KEYS (From your Console Log) ---
     const msgId = data.id;
     // Format "2026-01-27 04:19:18" -> "04:19"

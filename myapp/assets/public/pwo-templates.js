@@ -14,7 +14,7 @@ export const PWO_STYLES = `
 	#pwo-search-input:not(.hidden) {
 	    width: 100px; /* Expands slightly when shown */
 	}
-
+	
 	.relative.group {
 	    overflow: visible !important;
 	}	
@@ -23,9 +23,11 @@ export const PWO_STYLES = `
 	    padding-left: 2rem !important; /* Creates room for the delete icon on the left */
 	}
 	.pwo-delete-btn {
-	    opacity: 0;
+	    opacity: 0 !important;
+		visibility: hidden;
 	    transition: all 0.2s ease;
-	    z-index: 50;
+	    z-index: 9999 !important;
+		pointer-events: auto !important;
 	    background: white;
 	    border-radius: 99px;
 	    padding: 2px;
@@ -36,6 +38,7 @@ export const PWO_STYLES = `
 	}
 	.group:hover .pwo-delete-btn {
 	    opacity: 1 !important;
+		visibility: visible !important;
 	    transform: translateX(-4px); /* Subtle slide-in effect */
 	}
 	
