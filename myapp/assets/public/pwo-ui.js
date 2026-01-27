@@ -55,12 +55,12 @@ export function render(data, isNew = true, isTemp = false) {
 	    const isImage = data.file_name && /\.(jpg|jpeg|png|gif|webp)$/i.test(data.file_name);
 
 	    if (isVoice) {
-	        contentHTML = `
-			<div class="flex flex-col gap-1 min-w-[140px]"> <div class="flex items-center gap-1 text-[9px] opacity-75">
+			contentHTML = `
+			    <div class="flex flex-col gap-1 min-w-[120px]"> <div class="flex items-center gap-1 text-[9px] opacity-75">
 			            <svg class="w-3 h-3" ...></svg>
 			            Voice Message
 			        </div>
-			        <audio controls class="w-full h-7 accent-emerald-600">
+			        <audio controls class="w-full h-7">
 			            <source src="${fileUrl}" type="audio/webm">
 			        </audio>
 			    </div>`;
@@ -80,14 +80,13 @@ export function render(data, isNew = true, isTemp = false) {
     }
 
     // --- 5. ASSEMBLE HTML ROW ---
-	// --- 5. ASSEMBLE HTML ROW ---
 	const div = document.createElement('div');
-	// Removed 'justify-end/start' from here to let the inner container handle alignment
-	div.className = `flex mb-2 w-full`; 
+	// CHANGE: Added items-end/items-start to prevent the child from stretching
+	div.className = `flex flex-col mb-3 w-full ${isMe ? 'items-end' : 'items-start'}`; 
 	if (isTemp) div.id = `temp-${data.temp_id}`;
 
 	div.innerHTML = `
-	    <div class="relative group ${isMe ? 'ml-auto' : 'mr-auto'}" style="width: fit-content; max-width: 80%;"> 
+	    <div class="relative group" style="width: fit-content; max-width: 75%;"> 
 	        <div class="msg-body ${isMe ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} px-3 py-1.5 shadow-sm text-sm">
 	            ${deleteBtn}
 	            ${contentHTML}
@@ -99,7 +98,7 @@ export function render(data, isNew = true, isTemp = false) {
 	        </div>
 	    </div>
 	`;
-								
+									
     // --- 6. APPEND AND SCROLL ---
     chatBox.appendChild(div);
     if (isNew) chatBox.scrollTop = chatBox.scrollHeight;
