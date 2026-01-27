@@ -19,5 +19,11 @@ require_once APP_DIR . 'bootstrap/WSSocket.php';
 
 define('PWO_START', microtime(true));
 
-$server = new WSSocket('127.0.0.1', 8080);
-$server->listen();
+try {
+    $server = new WSSocket('127.0.0.1', 8080);
+    $server->listen();
+} catch (Throwable $e) {
+    writeLog('ws_fatal_' . date('Y_m_d'), "Startup Crash: " . $e->getMessage());
+    echo "Fatal Error: " . $e->getMessage() . PHP_EOL;
+    exit(1);
+}

@@ -26,11 +26,16 @@ interface JobHandlerInterface
 
 echo "Worker started. Press Ctrl+C to stop.\n";
 
-$worker = new QueueWorker();
-$worker->process();
+try {
+    $worker = new QueueWorker();
+    $worker->process();
+} catch (Throwable $e) {
+    writeLog('queue_start_fatal_' . date('Y_m_d'), "Startup Error: " . $e->getMessage());
+    echo "Fatal Startup Error: " . $e->getMessage() . "\n";
+}
 
+// Memory check for long-running process safety
 if (memory_get_usage() > 64 * 1024 * 1024) { // 64MB limit
     echo "Memory limit reached. Exiting for restart...\n";
     exit();
 }
-
