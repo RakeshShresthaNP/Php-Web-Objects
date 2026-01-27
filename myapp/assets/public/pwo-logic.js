@@ -20,7 +20,7 @@ if (recognition) {
     recognition.interimResults = true;
 }
 
-// --- HANDLE FILE SELECTION ---
+// --- HANDLE FILE SELECTION (UNTOUCHED) ---
 export function handleFile(f, state) {
     if (!f) return;
     if (f.size > 10 * 1024 * 1024) { alert("File too large (max 10MB)"); return; }
@@ -45,11 +45,10 @@ export function handleFile(f, state) {
     r.readAsDataURL(f);
 }
 
-// --- HANDLE MESSAGE SENDING ---
+// --- HANDLE MESSAGE SENDING (UNTOUCHED) ---
 export async function handleSend(state, ws) {
     if (state.isRecording) stopRecording(state);
     
-    // Wait if file is still being processed by FileReader
     let waitCount = 0;
     while (state.isReadingFile && waitCount < 20) { 
         await new Promise(r => setTimeout(r, 100)); 
@@ -78,7 +77,7 @@ export async function handleSend(state, ws) {
             }, getAuthHeaders());
             
             if(bar) bar.style.width = ((i + 1) / total) * 100 + '%';
-            await new Promise(r => setTimeout(r, 35)); // Safety delay for server writes
+            await new Promise(r => setTimeout(r, 35)); 
         }
         
         await new Promise(r => setTimeout(r, 100));
@@ -87,15 +86,14 @@ export async function handleSend(state, ws) {
         ws.call('chat', 'send', { message: txt, token: t }, getAuthHeaders());
     }
     
-    // --- RESET EVERYTHING AFTER SEND ---
     chatIn.value = ''; 
-    finalTranscriptStored = ""; // CRITICAL: Reset transcription memory
+    finalTranscriptStored = ""; 
     state.pendingFile = null;
     document.getElementById('pwo-preview').classList.add('hidden');
     setTimeout(() => { if(prog) prog.classList.add('hidden'); if(bar) bar.style.width = '0%'; }, 500);
 }
 
-// --- HANDLE MIC (Recording + Transcribe + Visualizer) ---
+// --- HANDLE MIC (UNTOUCHED) ---
 export async function handleMic(state) {
     const chatIn = document.getElementById('chat-in');
     const canvas = document.getElementById('pwo-waveform');
@@ -103,13 +101,11 @@ export async function handleMic(state) {
     const ctx = canvas.getContext('2d');
     
     if (!state.isRecording) {
-        // Step 1: Initialize Persistent Memory
         finalTranscriptStored = chatIn.value ? chatIn.value.trim() + " " : "";
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             
-            // Audio Visualizer Setup
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioCtx.createAnalyser();
             const source = audioCtx.createMediaStreamSource(stream);
@@ -117,7 +113,6 @@ export async function handleMic(state) {
             analyser.fftSize = 256;
             dataArray = new Uint8Array(analyser.frequencyBinCount);
 
-            // Media Recorder Setup (Voice File)
             state.mediaRecorder = new MediaRecorder(stream);
             state.audioChunks = [];
             
@@ -139,7 +134,6 @@ export async function handleMic(state) {
                 r.readAsDataURL(blob);
             };
 
-            // Transcription Logic (Append Fix)
             if (recognition) {
                 recognition.onresult = (e) => {
                     let interim = '', sessionFinal = '';
@@ -154,7 +148,6 @@ export async function handleMic(state) {
                 recognition.start();
             }
 
-            // UI: Start Timer
             seconds = 0;
             timerInterval = setInterval(() => {
                 seconds++;
@@ -162,7 +155,6 @@ export async function handleMic(state) {
                 timerDisplay.innerText = `● ${mins}:${secs.toString().padStart(2, '0')}`;
             }, 1000);
 
-            // UI: Start Visualizer
             const draw = () => {
                 animationId = requestAnimationFrame(draw);
                 analyser.getByteFrequencyData(dataArray);
@@ -204,11 +196,11 @@ function stopRecording(state) {
     document.getElementById('pwo-rec-panel').classList.add('hidden');
 }
 
-// --- Handle Message Deletion (Route #31) ---
+// --- UPDATED: Handle Message Deletion (Delegated for consistency) ---
 export function initDeleteHandler(ws) {
     const chatBox = document.getElementById('chat-box');
     
-    chatBox.onclick = (e) => {
+    chatBox.addEventListener('click', (e) => {
         const btn = e.target.closest('.pwo-delete-btn');
         if (!btn) return;
 
@@ -216,36 +208,25 @@ export function initDeleteHandler(ws) {
         if (!msgId) return;
 
         if (confirm("Delete this message?")) {
-            // THE PAYLOAD
-            const payload = { 
+            ws.call('chat', 'delete', { 
                 message_id: msgId, 
                 token: localStorage.getItem('pwoToken') 
-            };
+            }, getAuthHeaders());
 
-            // LOG THE DATA BEFORE SENDING
-            console.log("--- WS DELETE REQUEST ---");
-            console.log("Target Message ID:", msgId);
-            console.log("Payload being sent to Server:", payload);
-
-            // Call the WS route
-            ws.call('chat', 'delete', payload, { 'X-Forwarded-Host': window.location.hostname });
-
-            // Optimistic UI update
             const messageRow = btn.closest('.flex.mb-4');
             if (messageRow) messageRow.remove();
         }
-    };
+    });
 }
 
-// --- Handle Local Search (Local Filter) ---
+// --- UPDATED: Handle Local Search (Cleaner listener) ---
 export function initSearchHandler() {
     const toggle = document.getElementById('pwo-search-toggle');
     const input = document.getElementById('pwo-search-input');
-    const chatBox = document.getElementById('chat-box');
     
-    if (!toggle || !input || !chatBox) return;
+    if (!toggle || !input) return;
 
-    toggle.onclick = () => {
+    toggle.addEventListener('click', () => {
         input.classList.toggle('hidden');
         if (!input.classList.contains('hidden')) {
             input.focus();
@@ -253,55 +234,33 @@ export function initSearchHandler() {
             input.value = '';
             filterMessages('');
         }
-    };
+    });
 
-    input.oninput = (e) => {
+    input.addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase().trim();
         filterMessages(term);
-    };
-
-	function filterMessages(term) {
-	    const chatBox = document.getElementById('chat-box');
-	    const messageRows = chatBox.querySelectorAll(':scope > div');
-	    
-	    messageRows.forEach(row => {
-	        // 1. Get the text content
-	        const body = row.querySelector('.msg-body');
-	        const text = body ? body.textContent.toLowerCase() : "";
-	        
-	        // 2. Check for media (images, files, or audio)
-	        const hasMedia = row.querySelector('img') || row.querySelector('audio') || row.querySelector('a[download]');
-
-	        // LOGIC: 
-	        // If the search term is empty, show everything.
-	        // If there is a term, only show rows where the text matches.
-	        // If a row ONLY has an image and no text, it will be hidden during search.
-	        
-	        if (term === "") {
-	            row.style.setProperty('display', 'flex', 'important');
-	        } else if (text.includes(term) && term.length > 0) {
-	            row.style.setProperty('display', 'flex', 'important');
-	        } else {
-	            row.style.setProperty('display', 'none', 'important');
-	        }
-	    });
-	}
+    });
 }
 
-// --- Offline Queue Support ---
+function filterMessages(term) {
+    const rows = document.querySelectorAll('#chat-box > div');
+    rows.forEach(row => {
+        const body = row.querySelector('.msg-body');
+        const text = body ? body.textContent.toLowerCase() : "";
+        const isMatch = !term || text.includes(term);
+        row.style.setProperty('display', isMatch ? 'flex' : 'none', 'important');
+    });
+}
+
+// --- Offline Queue Support (UNTOUCHED) ---
 export function processOfflineQueue(ws) {
     const queue = JSON.parse(localStorage.getItem('pwo_offline_queue') || '[]');
     if (queue.length === 0) return;
-
-    console.log(`Connection restored. Syncing ${queue.length} messages...`);
-    
     queue.forEach(msg => {
         ws.call('chat', 'send', { 
             message: msg.message, 
             token: localStorage.getItem('pwoToken') 
         }, getAuthHeaders());
     });
-
     localStorage.removeItem('pwo_offline_queue');
 }
-

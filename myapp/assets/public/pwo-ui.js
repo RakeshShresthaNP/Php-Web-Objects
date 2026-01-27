@@ -24,13 +24,17 @@ export function render(data, isNew = true, isTemp = false) {
     const msgId = data.id;
 
     // 2. Delete Button (Preserving your exact styles and behavior)
-    const deleteBtn = (isMe && msgId) ? `
-        <button class="pwo-delete-btn absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md z-50 border border-white transition-transform hover:scale-110" 
-                data-id="${msgId}" title="Delete Message"
-                style="display: flex !important; opacity: 1 !important; visibility: visible !important;">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>` : '';
-
+	const deleteBtn = (isMe && msgId) ? `
+	    <button class="pwo-delete-btn absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md z-50 border border-white transition-transform hover:scale-110" 
+	            data-id="${msgId}" 
+	            title="Delete Message"
+	            style="display: flex !important; opacity: 1 !important; visibility: visible !important;">
+	        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+	            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path>
+	        </svg>
+	    </button>
+	` : '';
+	
     // 3. Content Builder (Simplified syntax, same HTML output)
     let contentHTML = '';
     const fileUrl = data.localUrl || data.file_path;
