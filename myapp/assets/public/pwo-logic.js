@@ -23,7 +23,23 @@ if (recognition) {
 // --- HANDLE FILE SELECTION (UNTOUCHED) ---
 export function handleFile(f, state) {
     if (!f) return;
-    if (f.size > 10 * 1024 * 1024) { alert("File too large (max 10MB)"); return; }
+
+    // 1. DEFINE ALLOWED TYPES & LIMITS
+    const ALLOWED_EXT = /\.(png|jpg|jpeg|webp|pdf|mp4|webm|ogg)$/i;
+    const MAX_SIZE_MB = 15; 
+    const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
+    // 2. CHECK FILE TYPE
+    if (!ALLOWED_EXT.test(f.name)) {
+        alert("Invalid file type! Only Images (png, jpg, webp), PDFs, and Videos (mp4, webm) are allowed.");
+        return;
+    }
+
+    // 3. CHECK FILE SIZE
+    if (f.size > MAX_SIZE_BYTES) {
+        alert(`File too large! Maximum size is ${MAX_SIZE_MB}MB.`);
+        return;
+    }
     
     state.isReadingFile = true;
     const preview = document.getElementById('pwo-preview');
@@ -39,7 +55,13 @@ export function handleFile(f, state) {
             name: f.name,
             localUrl: URL.createObjectURL(f) 
         }; 
-        filename.innerText = "✓ " + f.name; 
+        
+        // Visual indicator for the user
+        let icon = "✓ ";
+        if (f.name.toLowerCase().endsWith('.pdf')) icon = "📄 ";
+        if (/\.(mp4|webm|ogg)$/i.test(f.name)) icon = "🎥 ";
+        
+        filename.innerText = icon + f.name; 
         state.isReadingFile = false; 
     };
     r.readAsDataURL(f);

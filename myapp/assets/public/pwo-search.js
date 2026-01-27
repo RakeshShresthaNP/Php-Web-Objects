@@ -78,14 +78,20 @@ export class ChatSearch {
         });
     }
 
-    updateUI() {
-        if (this.query.length >= 2 && this.matches.length > 0) {
-            this.searchNav.classList.remove('hidden');
-            this.searchNav.classList.add('flex');
-            this.countDisplay.innerText = `${this.currentIndex + 1}/${this.matches.length}`;
-        } else {
-            this.searchNav.classList.add('hidden');
-            this.searchNav.classList.remove('flex');
-        }
-    }
+	updateUI() {
+	    if (this.query.length >= 2 && this.matches.length > 0) {
+	        this.searchNav.classList.remove('hidden');
+	        this.searchNav.classList.add('flex');
+	        
+	        // Add specific styling for readability here
+	        this.countDisplay.innerHTML = `
+	            <span class="bg-slate-800 text-white px-3 py-1 rounded-md text-[12px] font-bold shadow-sm">
+	                ${this.currentIndex + 1} / ${this.matches.length}
+	            </span>
+	        `;
+	    } else {
+	        this.searchNav.classList.add('hidden');
+	        this.searchNav.classList.remove('flex');
+	    }
+	}
 }

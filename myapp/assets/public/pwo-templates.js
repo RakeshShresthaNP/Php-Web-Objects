@@ -7,7 +7,116 @@ export const PWO_STYLES = `
 <style>
     #pwo-window { z-index: 9999; display: none; }
     #pwo-bubble { z-index: 9999; }
-	
+	/* Add this to PWO_STYLES in pwo-templates.js */
+
+	/* Add this to PWO_STYLES in pwo-templates.js */
+
+	/* 1. Target the button by its existing ID */
+	#pwo-clear {
+	    display: flex !important;
+	    align-items: center;
+	    justify-content: center;
+	    width: 30px !important;
+	    height: 30px !important;
+	    
+	    /* The Vibrant Look */
+	    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%) !important;
+	    color: white !important;
+	    border-radius: 50% !important;
+	    border: none !important;
+	    cursor: pointer;
+	    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4) !important;
+	    transition: transform 0.2s ease-in-out;
+	    padding: 0 !important; /* Reset padding to center the SVG */
+	}
+	#pwo-clear:hover {
+	    transform: scale(1.1);
+	    filter: brightness(1.1);
+	}
+	#pwo-clear svg {
+	    width: 16px !important;
+	    height: 16px !important;
+	    stroke: white !important; /* Force the X to be white */
+	    stroke-width: 3px !important; /* Make the X thicker */
+	}
+	#pwo-preview {
+	    padding: 8px 12px !important;
+	    align-items: center !important;
+	}
+	#pwo-scroll-bottom {
+	    display: none;
+	    position: absolute;
+	    bottom: 80px;
+	    right: 20px;
+	    background: #059669;
+	    color: white;
+	    padding: 5px 12px;
+	    border-radius: 20px;
+	    font-size: 11px;
+	    font-weight: bold;
+	    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+	    cursor: pointer;
+	    z-index: 60;
+	    animation: bounce 2s infinite;
+	}	
+	.pwo-video-overlay-circle {
+	    background: rgba(0, 0, 0, 0.4);
+	    backdrop-filter: blur(4px);
+	    width: 44px; height: 44px;
+	    border-radius: 50%;
+	    display: flex; align-items: center; justify-content: center;
+	}
+	.pwo-play-triangle {
+	    width: 0; height: 0;
+	    border-top: 8px solid transparent;
+	    border-bottom: 8px solid transparent;
+	    border-left: 12px solid white;
+	    margin-left: 4px;
+	}
+	button[onclick="window.pwoCancelAttachment()"]:active {
+	    transform: scale(0.95);
+	    background-color: #000;
+	}
+	.pwo-video-duration {
+	    position: absolute;
+	    bottom: 6px;
+	    right: 6px;
+	    background: rgba(0, 0, 0, 0.7);
+	    color: white;
+	    font-size: 10px;
+	    padding: 1px 5px;
+	    border-radius: 4px;
+	    font-family: monospace;
+	}
+	.pwo-video-progress {
+	    position: absolute;
+	    bottom: 0;
+	    left: 0;
+	    height: 3px;
+	    background: #10b981; /* Emerald 500 */
+	    transition: width 0.1s linear;
+	    border-radius: 0 0 0 8px;
+	}
+	.msg-status {
+	    display: inline-block;
+	    transition: all 0.3s ease;
+	    transform: translateX(5px);
+	    opacity: 0;
+	}
+	.msg-status.visible {
+	    transform: translateX(0);
+	    opacity: 1;
+	}	
+	.pwo-upload-pulse {
+	    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+	}
+	@keyframes pulse {
+	    0%, 100% { opacity: 1; }
+	    50% { opacity: .5; }
+	}	
+	.group.playing .pwo-video-overlay-circle {
+	    opacity: 0;
+	}
 	.search-mark {
 	    background-color: #fde047 !important; /* Bright Yellow */
 	    color: #000000 !important;           /* Force Black Text */
@@ -97,11 +206,17 @@ export const PWO_STYLES = `
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
         z-index: 50 !important;
         cursor: pointer !important;
-        opacity: 1 !important;        /* Force visibility */
-        visibility: visible !important; /* Force visibility */
+        opacity: 0 !important;        /* Force visibility */
+        visibility: hidden; /* Force visibility */
         pointer-events: auto !important;
+		transition: all 0.2s ease-in-out;
     }
 
+	.mb-4:hover .pwo-delete-btn {
+	    opacity: 1 !important;
+	    visibility: visible !important;
+	}
+	
     /* --- MESSAGE CONTENT --- */
     .msg-body { 
         word-break: break-word;
@@ -198,15 +313,15 @@ export const PWO_HTML = `
         <span id="pwo-timer" class="text-[10px] font-mono text-emerald-600 font-bold">● 0:00</span>
     </div>
 
-    <div id="pwo-preview" class="hidden bg-white p-2 border-t flex items-center justify-between">
-        <div class="flex items-center gap-2 overflow-hidden">
-            <span class="text-xs text-emerald-600 font-medium truncate" id="pwo-filename">file.jpg</span>
-        </div>
-        <button id="pwo-clear" class="text-gray-400 hover:text-red-500">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-    </div>
-
+	<div id="pwo-preview" class="hidden bg-white p-2 border-t flex items-center justify-between">
+	    <div class="flex items-center gap-2 overflow-hidden">
+	        <span class="text-xs text-emerald-600 font-medium truncate" id="pwo-filename">file.jpg</span>
+	    </div>
+	    <button id="pwo-clear" class="text-gray-400 hover:text-red-500">
+	        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+	    </button>
+	</div>
+	
     <div class="p-3 bg-white border-t relative">
         <div id="pwo-emoji-picker" class="hidden absolute bottom-full left-4 mb-2 bg-white border rounded-lg shadow-xl p-2 grid grid-cols-6 gap-2 z-[10000] w-48">
             <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">😀</span>
@@ -225,7 +340,7 @@ export const PWO_HTML = `
             <button id="pwo-attach" class="text-gray-400 hover:text-emerald-600 pb-1">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
             </button>
-            <input type="file" id="pwo-file-input" class="hidden">
+            <input type="file" id="pwo-file-input" class="hidden" accept="image/*,video/*,.pdf">
 
             <textarea id="chat-in" rows="1" placeholder="Type a message..." 
                 class="flex-1 bg-transparent border-none focus:ring-0 text-sm resize-none py-1"
@@ -262,5 +377,28 @@ export const PWO_HTML = `
         </div>
         <img id="pwo-lightbox-img" src="" class="max-w-full max-h-[85vh] rounded-lg shadow-2xl object-contain cursor-zoom-out">
     </div>	
+</div>
+<div id="pdf-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex flex-col items-center justify-center p-4">
+    <div class="w-full max-w-5xl h-[90vh] bg-white rounded-2xl overflow-hidden flex flex-col">
+        <div class="flex justify-between items-center p-4 border-b">
+            <h3 class="font-bold text-gray-700">PDF Viewer</h3>
+            <button onclick="document.getElementById('pdf-modal').classList.add('hidden')" class="text-gray-500 hover:text-red-500 text-2xl font-bold">&times;</button>
+        </div>
+        <div class="flex-1 w-full h-full">
+            <iframe id="pdf-frame" src="" class="w-full h-full border-none"></iframe>
+        </div>
+    </div>
+</div>
+<div id="video-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-[10000] flex items-center justify-center p-4">
+    <button onclick="window.closeVideoModal()" class="absolute top-6 right-6 text-white/70 hover:text-white text-4xl">&times;</button>
+    
+    <div class="w-full max-w-5xl h-auto max-h-[85vh] flex items-center justify-center">
+        <video id="modal-video-player" controls class="w-full h-full rounded-xl shadow-2xl">
+            <source src="" type="video/mp4">
+        </video>
+    </div>
+</div>
+<div id="pwo-scroll-bottom" class="hidden absolute bottom-20 right-6 bg-emerald-600 text-white text-[10px] font-bold py-1.5 px-3 rounded-full shadow-lg cursor-pointer z-50 animate-bounce">
+    New Message ↓
 </div>
 `;
