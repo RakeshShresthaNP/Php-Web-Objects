@@ -208,26 +208,31 @@ function stopRecording(state) {
 export function initDeleteHandler(ws) {
     const chatBox = document.getElementById('chat-box');
     
-    // Remove any old listener and add a fresh one to the PARENT
     chatBox.onclick = (e) => {
         const btn = e.target.closest('.pwo-delete-btn');
         if (!btn) return;
 
         const msgId = btn.getAttribute('data-id');
-        if (!msgId) {
-            console.error("No ID found on delete button");
-            return;
-        }
+        if (!msgId) return;
 
         if (confirm("Delete this message?")) {
-            // Call the WS route
-            ws.call('chat', 'delete', { 
-                id: msgId, 
+            // THE PAYLOAD
+            const payload = { 
+                message_id: msgId, 
                 token: localStorage.getItem('pwoToken') 
-            }, { 'X-Forwarded-Host': window.location.hostname });
+            };
 
-            // Remove it from UI immediately
-            btn.closest('.flex.mb-4').remove();
+            // LOG THE DATA BEFORE SENDING
+            console.log("--- WS DELETE REQUEST ---");
+            console.log("Target Message ID:", msgId);
+            console.log("Payload being sent to Server:", payload);
+
+            // Call the WS route
+            ws.call('chat', 'delete', payload, { 'X-Forwarded-Host': window.location.hostname });
+
+            // Optimistic UI update
+            const messageRow = btn.closest('.flex.mb-4');
+            if (messageRow) messageRow.remove();
         }
     };
 }

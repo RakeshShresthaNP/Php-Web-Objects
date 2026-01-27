@@ -125,9 +125,13 @@ class WSClient {
 
         // 2. Handle PHP Framework Errors
         if (res.status === 'error') {
-            console.error(`WSClient: Server Error [${res.code}] - ${res.message}`);
-            this.dispatchGlobalEvent('ws_error', res);
-            return;
+			// ADD THIS LINE TO SEE EVERYTHING IN THE CONSOLE
+		    console.log("DEBUG: Full Error Object from Server:", res); 
+
+		    // Your existing line (changed res.code to res.status to avoid undefined)
+		    console.error(`WSClient: Server Error [${res.status}] - ${res.message}`);
+		    this.dispatchGlobalEvent('ws_error', res);
+		    return;
         }
 
         // 3. Dispatch Controller Events

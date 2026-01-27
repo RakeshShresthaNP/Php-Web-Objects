@@ -185,6 +185,26 @@ window.addEventListener('ws_message_read', () => {
     });
 });
 
+// chat.js - around line 189
+window.addEventListener('ws_message_deleted', (e) => {
+    // Check if ID is directly in detail, or nested in data
+    const deletedId = e.detail.id || (e.detail.data && e.detail.data.id);
+    
+    if (!deletedId) {
+        console.warn("Delete event received but no ID found", e.detail);
+        return;
+    }
+
+    console.log("Removing message from UI, ID:", deletedId);
+    
+    // Find the message bubble and remove it
+    const btn = document.querySelector(`.pwo-delete-btn[data-id="${deletedId}"]`);
+    if (btn) {
+        const messageRow = btn.closest('.flex.mb-4');
+        if (messageRow) messageRow.remove();
+    }
+});
+
 window.addEventListener('ws_typing', () => {
     const t = document.getElementById('pwo-typing');
     t.classList.remove('hidden');

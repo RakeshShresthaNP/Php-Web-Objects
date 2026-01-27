@@ -44,28 +44,26 @@ export function render(data, isNew = true, isTemp = false) {
 	` : '';
 				
     // --- 3. TIME FORMATTING ---
-    const msgTime = data.time ? data.time.split(' ')[1].substring(0, 5) : 
-                   new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-
+	const msgTime = data.time ? data.time : 
+	                   new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+					   
     // --- 4. CONTENT LOGIC (Files, Voice, Text) ---
-    let contentHTML = '';
-    if (data.file_path || data.localUrl) {
-        const fileUrl = data.localUrl || data.file_path;
-        const isVoice = data.file_name && data.file_name.endsWith('.webm');
-        const isImage = data.file_name && /\.(jpg|jpeg|png|gif|webp)$/i.test(data.file_name);
+	let contentHTML = '';
+	if (data.file_path || data.localUrl) {
+	    const fileUrl = data.localUrl || data.file_path;
+	    const isVoice = data.file_name && data.file_name.endsWith('.webm');
+	    const isImage = data.file_name && /\.(jpg|jpeg|png|gif|webp)$/i.test(data.file_name);
 
-        if (isVoice) {
-            contentHTML = `
-                <div class="flex flex-col gap-2 min-w-[200px]">
-                    <div class="flex items-center gap-2 text-[10px] opacity-70">
-                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a2 2 0 012-2h6a2 2 0 012 2v12a2 2 0 01-2 2H9a2 2 0 01-2-2V4z"></path></svg>
-                        Voice Message
-                    </div>
-                    <audio controls class="w-full h-8 accent-emerald-600">
-                        <source src="${fileUrl}" type="audio/webm">
-                    </audio>
-                </div>`;
-        } else if (isImage) {
+	    if (isVoice) {
+	        contentHTML = `
+	            <div class="flex flex-col gap-1 min-w-[160px]"> <div class="flex items-center gap-1 text-[9px] opacity-75">
+	                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M7 4a2 2 0 012-2h6a2 2 0 012 2v12a2 2 0 01-2 2H9a2 2 0 01-2-2V4z"></path></svg>
+	                    Voice Message
+	                </div>
+	                <audio controls class="w-full h-7 accent-emerald-600"> <source src="${fileUrl}" type="audio/webm">
+	                </audio>
+	            </div>`;
+		} else if (isImage) {
             contentHTML = `<div class="mb-2"><img src="${fileUrl}" class="rounded-lg max-w-full h-auto border border-white/10 shadow-sm" /></div>`;
         } else {
             contentHTML = `
@@ -81,24 +79,25 @@ export function render(data, isNew = true, isTemp = false) {
     }
 
     // --- 5. ASSEMBLE HTML ROW ---
-    const div = document.createElement('div');
-    div.className = `flex mb-4 ${isMe ? 'justify-end' : 'justify-start'}`;
-    if (isTemp) div.id = `temp-${data.temp_id}`;
-	
+	const div = document.createElement('div');
+	div.className = `flex mb-2 ${isMe ? 'justify-end' : 'justify-start'}`; 
+	if (isTemp) div.id = `temp-${data.temp_id}`;
+
 	div.innerHTML = `
-	        <div class="relative group max-w-[85%] ${isMe ? 'msg-me' : ''}" style="position: relative !important;">
-	            <div class="msg-body ${isMe ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} p-3 shadow-sm text-sm" 
-	                 style="position: relative !important; overflow: visible !important;">
-	                ${deleteBtn}
-	                ${contentHTML}
-	            </div>
-	            <div class="flex items-center justify-end gap-1 mt-1 text-[10px] ${data.is_read ? 'text-sky-400' : 'text-gray-400'}">
+	    <div class="relative group max-w-[75%] ${isMe ? 'msg-me' : ''}"> 
+	        <div class="msg-body ${isMe ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} px-3 py-1.5 shadow-sm text-sm" 
+	             style="position: relative !important; overflow: visible !important; width: fit-content; min-width: 80px;">
+	            ${deleteBtn}
+	            ${contentHTML}
+
+	            <div class="flex items-center justify-end gap-1 mt-1 text-[9px] ${isMe ? 'text-emerald-100' : 'text-gray-400'}">
 	                <span>${msgTime}</span>
 	                ${isMe ? '<span class="msg-status font-bold">' + (data.is_read ? '✓✓' : '✓') + '</span>' : ''}
 	            </div>
 	        </div>
-	    `;
-				
+	    </div>
+	`;
+					
     // --- 6. APPEND AND SCROLL ---
     chatBox.appendChild(div);
     if (isNew) chatBox.scrollTop = chatBox.scrollHeight;
