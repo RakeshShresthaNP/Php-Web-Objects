@@ -2,8 +2,9 @@ import WSClient from './wsclient.js';
 import { PWO_STYLES, PWO_HTML } from './pwo-templates.js';
 import { render } from './pwo-ui.js';
 import { 
-    handleSend, handleFile, handleMic, initDeleteHandler, initSearchHandler, 
-    processOfflineQueue, initAutoExpand, initDragAndDrop // Add these two
+    handleSend, handleFile, handleMic, 
+    initDeleteHandler, initSearchHandler, processOfflineQueue,
+    initAutoExpand, initDragAndDrop, initEmojiPicker, initExportHandler // Add these 4
 } from './pwo-logic.js';
 import { Auth } from './pwo-auth.js';
 
@@ -53,8 +54,10 @@ const sendBtn = document.getElementById('chat-send');
 
 initDeleteHandler(ws);
 initSearchHandler();
-initAutoExpand();           // Enables textarea growth
-initDragAndDrop(state);     // Enables file dropping (passes the shared state)
+initAutoExpand();        // Enables textarea growth
+initDragAndDrop(state);  // Enables file drops (pass your state object)
+initEmojiPicker();       // Enables emoji grid
+initExportHandler();
 
 // --- 4. AUTHENTICATION ---
 if (!Auth.isAuthenticated()) {
@@ -146,21 +149,6 @@ document.getElementById('pwo-file-input').addEventListener('change', (e) => hand
 document.getElementById('pwo-clear').addEventListener('click', () => { 
     state.pendingFile = null; 
     document.getElementById('pwo-preview').classList.add('hidden'); 
-});
-
-// Export Log
-document.getElementById('pwo-export').addEventListener('click', () => {
-    let content = "--- PWO CHAT LOG ---\n\n";
-    document.querySelectorAll('#chat-box > div').forEach(div => {
-        const isMe = div.classList.contains('justify-end'); 
-        const txt = div.innerText.replace(/✓|🕒|✓✓/g, '').trim();
-        content += `[${isMe ? 'USER' : 'SUPPORT'}] ${txt}\n`;
-    });
-    const blob = new Blob([content], { type: 'text/plain' });
-    const a = document.createElement('a'); 
-    a.href = URL.createObjectURL(blob); 
-    a.download = `Chat_Log_${new Date().toISOString().split('T')[0]}.txt`; 
-    a.click();
 });
 
 // --- 6. WEBSOCKET EVENT LISTENERS ---

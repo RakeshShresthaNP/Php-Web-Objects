@@ -270,16 +270,20 @@ export function initAutoExpand() {
     if (!chatIn) return;
 
     chatIn.addEventListener('input', function() {
-        this.style.height = '36px'; // Reset to calculate height correctly
-        // Grow up to 150px
+        // Reset height to calculate scrollHeight correctly
+        this.style.height = '36px'; 
+        // Expand up to 150px
         const newHeight = Math.min(this.scrollHeight, 150); 
         this.style.height = newHeight + 'px';
+        
+        // Ensure chat-box stays scrolled to bottom as input grows
+        const chatBox = document.getElementById('chat-box');
+        if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
     });
 }
 
-// --- New Task 2: Drag & Drop Logic ---
 export function initDragAndDrop(state) {
-    // Listen to the whole window so users can drop anywhere
+    // We listen to the window to allow dropping anywhere on the chat UI
     window.addEventListener('dragover', (e) => e.preventDefault());
     window.addEventListener('dragenter', (e) => e.preventDefault());
 
@@ -291,4 +295,89 @@ export function initDragAndDrop(state) {
             handleFile(files[0], state);
         }
     });
+}
+
+export function initEmojiPicker() {
+    const btn = document.getElementById('pwo-emoji-btn');
+    const picker = document.getElementById('pwo-emoji-picker');
+    const chatIn = document.getElementById('chat-in');
+
+    if (!btn || !picker || !chatIn) return;
+
+    // Toggle logic
+    btn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        picker.classList.toggle('hidden');
+    };
+
+    // Emoji selection logic
+    picker.onclick = (e) => {
+        e.stopPropagation();
+        // Look for the span even if the user clicks slightly off-center
+        const targetSpan = e.target.closest('span');
+        
+        if (targetSpan) {
+            const emoji = targetSpan.innerText;
+            
+            // Insert at cursor position or at the end
+            const start = chatIn.selectionStart;
+            const end = chatIn.selectionEnd;
+            const text = chatIn.value;
+            chatIn.value = text.slice(0, start) + emoji + text.slice(end);
+            
+            // Move cursor after the inserted emoji
+            chatIn.selectionStart = chatIn.selectionEnd = start + emoji.length;
+
+            // Trigger the auto-expand logic we wrote
+            chatIn.dispatchEvent(new Event('input')); 
+            chatIn.focus();
+            
+            // Optional: hide after selection
+            picker.classList.add('hidden');
+        }
+    };
+
+    // Close picker when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!btn.contains(e.target) && !picker.contains(e.target)) {
+            picker.classList.add('hidden');
+        }
+    });
+}
+
+export function initExportHandler() {
+    const btn = document.getElementById('pwo-export');
+    if (!btn) return;
+
+    btn.onclick = (e) => {
+        e.preventDefault();
+        const chatBox = document.getElementById('chat-box');
+        // Select all message wrappers
+        const messages = chatBox.querySelectorAll('.flex.mb-4'); 
+        
+        let log = "--- CHAT EXPORT ---\n";
+
+        messages.forEach(msg => {
+            const isMe = msg.classList.contains('justify-end');
+            const user = isMe ? "Me" : "Assistant";
+            const text = msg.querySelector('.msg-body')?.innerText || "";
+            const time = msg.querySelector('.text-\\[10px\\]')?.innerText || "";
+            
+            if(text) log += `[${time}] ${user}: ${text}\n`;
+        });
+
+        if (log === "--- CHAT EXPORT ---\n") {
+            alert("No messages to export!");
+            return;
+        }
+
+        const blob = new Blob([log], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `chat_${new Date().getTime()}.txt`;
+        link.click();
+        URL.revokeObjectURL(url);
+    };
 }
