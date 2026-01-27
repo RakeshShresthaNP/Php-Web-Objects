@@ -254,3 +254,20 @@ emojiPicker?.querySelectorAll('span').forEach(span => {
     };
 });
 
+textarea?.addEventListener('keydown', (e) => {
+    // If user presses 'Enter' WITHOUT 'Shift'
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault(); // Prevent adding a new line
+        
+        // Trigger the existing click event on your send button
+        document.getElementById('chat-send')?.click();
+    }
+});
+
+// Reset height after sending (Add this inside your existing send logic if possible)
+window.addEventListener('ws_message', () => {
+    if (textarea) {
+        textarea.style.height = '36px'; 
+    }
+});
+
