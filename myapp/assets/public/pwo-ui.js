@@ -80,16 +80,15 @@ export function render(data, isNew = true, isTemp = false) {
     }
 
     // --- 5. ASSEMBLE HTML ROW ---
-	const div = document.createElement('div');
-    // Added pr-4 to ensure space even when scrollbars appear
-    // Added items-end to force the bubble to stick to the right without stretching
-    div.className = `flex flex-col mb-4 w-full pr-4 ${isMe ? 'items-end' : 'items-start'}`; 
+    const div = document.createElement('div');
+    // Using your msg-me-container for alignment
+    div.className = `mb-4 ${isMe ? 'msg-me-container' : 'flex flex-col items-start'}`; 
     if (isTemp) div.id = `temp-${data.temp_id}`;
 	
     div.innerHTML = `
         <div class="relative group" style="width: fit-content; max-width: 85%;">
-            <div class="${isMe ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} p-3 shadow-sm text-sm" 
-                 style="width: fit-content; min-width: 80px; display: inline-block;">
+            <div class="${isMe ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} p-3 shadow-sm text-sm"
+                 style="position: relative; overflow: visible;">
                 ${deleteBtn}
                 ${contentHTML}
                 
@@ -100,7 +99,7 @@ export function render(data, isNew = true, isTemp = false) {
             </div>
         </div>
     `;
-														
+																		
     // --- 6. APPEND AND SCROLL ---
     chatBox.appendChild(div);
     if (isNew) chatBox.scrollTop = chatBox.scrollHeight;
