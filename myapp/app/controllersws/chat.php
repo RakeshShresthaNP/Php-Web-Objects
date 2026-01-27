@@ -102,10 +102,10 @@ final class cChat extends cController
             $chatLog->file_path = $finalUrl;
             $chatLog->file_name = $fileName;
             $chatLog->is_read = 0;
-            $chatLog->save();
+            $id = $chatLog->save();
 
             $data = [
-                'id' => $chatLog->id,
+                'id' => $id,
                 'message' => $message,
                 'file_path' => $finalUrl,
                 'file_name' => $fileName,

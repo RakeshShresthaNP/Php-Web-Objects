@@ -7,6 +7,7 @@ import {
     initAutoExpand, initDragAndDrop, initEmojiPicker, initExportHandler // Add these 4
 } from './pwo-logic.js';
 import { Auth } from './pwo-auth.js';
+import { ChatSearch } from './pwo-search.js';
 
 // --- 1. ASYNC DEPENDENCY LOADING ---
 async function loadDependencies() {
@@ -128,6 +129,29 @@ function startLogic() {
         setTimeout(startLogic, 100);
     }
 	
+	// 1. Initialize once the DOM is ready
+	const searchMgr = new ChatSearch('chat-box', 'search-nav', 'search-count');
+
+	// 2. Link your Search Input (Trigger search while typing)
+	document.getElementById('pwo-search-input')?.addEventListener('input', (e) => {
+	    searchMgr.perform(e.target.value);
+	});
+
+	// 3. Link Navigation Buttons
+	document.getElementById('btn-prev')?.addEventListener('click', () => {
+	    searchMgr.navigate(-1);
+	});
+
+	document.getElementById('btn-next')?.addEventListener('click', () => {
+	    searchMgr.navigate(1);
+	});
+
+	// 4. Link Close Button
+	document.getElementById('btn-close-search')?.addEventListener('click', () => {
+	    const input = document.getElementById('pwo-search-input');
+	    if (input) input.value = '';
+	    searchMgr.perform(''); // Resets and hides UI
+	});	
 	window.addEventListener('pwo_open_image', (e) => {
 	    const lightbox = document.getElementById('pwo-lightbox');
 	    const lightboxImg = document.getElementById('pwo-lightbox-img');
@@ -260,64 +284,63 @@ window.addEventListener('ws_connected', () => {
     ws.call('chat', 'history', { token: Auth.getToken() }, getAuthHeaders());
 });
 
-window.addEventListener('ws_new_message', e => {
+window.addEventListener('ws_new_message', async (e) => {
+    // 1. Get the raw data
     const data = e.detail.data || e.detail;
+    const myId = localStorage.getItem('pwoUserId');
+
+    // 2. Format it specifically for the Render function
+    // We force 'server_id' and 'is_me' so the UI doesn't have to guess
+    const uiData = {
+        ...data,
+        server_id: data.id || data.server_id, // Ensure the key is correct
+        is_me: data.is_me || (myId && data.sender_id && myId == data.sender_id)
+    };
+
+    // 3. Save to Database in the background
+    await window.db.messages.put({
+        server_id: uiData.server_id,            
+        sender_id: uiData.sender_id,     
+        message: uiData.message,         
+        d_created: uiData.d_created || new Date().toISOString(), 
+        status: uiData.status ?? 1,
+        file_path: uiData.file_path || null,
+        file_name: uiData.file_name || null
+    });
+
+    // 4. CALL RENDER DIRECTLY (Don't use loadLocalHistory here)
+    // This makes the message appear INSTANTLY with the button
+    render(uiData, true, false);
+
+    // 5. Utility
     document.getElementById('pwo-typing')?.classList.add('hidden');
-    
-    const isChatOpen = win.style.display === 'flex';
-    const isTabActive = !document.hidden;
-
-    if (!data.is_me && !data.system) {
-        soundIn.play().catch(() => {}); 
-        
-        // --- TITLE CHANGE LOGIC ---
-        if (!isTabActive) {
-            unreadCount++;
-            document.title = `(${unreadCount}) New Message!`;
-            
-            // Notification logic
-            if (Notification.permission === "granted") {
-                new Notification("Support Assistant", {
-                    body: data.message || "New message received",
-                    icon: "assets/public/logo.png" 
-                });
-            }
-        }
-    } else if (data.is_me) {
+    if (uiData.is_me) {
         soundOut.play().catch(() => {});
+    } else {
+        soundIn.play().catch(() => {});
     }
-            
-    render(data, true);
-
-    if (isChatOpen && !data.is_me) {
-        ws.call('chat', 'markread', { target_user_id: 0, token: Auth.getToken() }, getAuthHeaders());
-    }
-    textarea.style.height = '36px';
 });
 
 window.addEventListener('ws_chat_history', async (e) => {
     const history = e.detail.data || e.detail || [];
     
-	await db.messages.clear();
+    await db.messages.clear();
 
-	if (history.length > 0) {
-	    await db.messages.bulkAdd(history.map(m => ({
-	        server_id: m.id,            // Map MySQL Primary Key
-	        sender_id: m.sender_id,     // Map sender
-	        message: m.message,         // Map the text content
-	        d_created: m.d_created || new Date().toISOString(), // Use DB timestamp
-	        status: m.status ?? 1,      // Map active/deleted status
-	        file_path: m.file_path || null,
-	        file_name: m.file_name || null
-	    })));
-	}
-	
-    // 3. Re-render UI
-    const chatBox = document.getElementById('chat-box');
-    chatBox.innerHTML = ''; 
-    render(WELCOME_DATA, false);
-    history.forEach(m => render(m, false));
-    chatBox.scrollTop = chatBox.scrollHeight;
+    if (history.length > 0) {
+        const dbEntries = history.map(m => ({
+            server_id: m.id,            
+            sender_id: m.sender_id,     
+            message: m.message,         
+            d_created: m.d_created || new Date().toISOString(), 
+            status: m.status ?? 1,      
+            file_path: m.file_path || null,
+            file_name: m.file_name || null
+        }));
+
+        await db.messages.bulkAdd(dbEntries);
+    }
+    
+    loadLocalHistory();
 });
 
 window.addEventListener('ws_message_read', () => {
@@ -327,11 +350,19 @@ window.addEventListener('ws_message_read', () => {
     });
 });
 
-window.addEventListener('ws_message_deleted', (e) => {
-    const deletedId = e.detail.id || e.detail.data?.id;
-    if (!deletedId) return;
-    const btn = document.querySelector(`.pwo-delete-btn[data-id="${deletedId}"]`);
-    if (btn) btn.closest('.mb-4')?.remove();
+window.addEventListener('ws_message_deleted', async (e) => {
+    const data = e.detail.data || e.detail;
+    const msgId = data.id || data.server_id;
+
+    if (msgId) {
+        await window.db.messages.where('server_id').equals(msgId).delete();
+        
+        const element = document.querySelector(`[data-msg-id="${msgId}"]`);
+        if (element) {
+            element.classList.add('opacity-0', 'scale-95'); // Smooth fade out
+            setTimeout(() => element.remove(), 300);
+        }
+    }
 });
 
 window.addEventListener('ws_typing', (e) => {

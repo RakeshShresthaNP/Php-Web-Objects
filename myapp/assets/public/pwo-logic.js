@@ -83,7 +83,7 @@ export async function handleSend(state, ws) {
         await new Promise(r => setTimeout(r, 100));
         ws.call('chat', 'send', { message: txt, file_id: tempId, file_name: state.pendingFile.name, token: t }, getAuthHeaders());
     } else {
-        ws.call('chat', 'send', { message: txt, token: t }, getAuthHeaders());
+        ws.call('chat', 'send', { message: txt, token: t, temp_id: tempId }, getAuthHeaders());
     }
     
     chatIn.value = ''; 

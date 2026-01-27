@@ -124,7 +124,16 @@ export const PWO_HTML = `
             </div>
         </div>
         <div class="flex gap-1 items-center">
-            <input id="pwo-search-input" type="text" placeholder="Search..." class="hidden w-20 bg-white/20 text-[10px] rounded px-2 py-1 outline-none border-none placeholder-white/70 text-white transition-all">
+			<div id="search-nav" class="hidden absolute top-14 left-0 right-0 mx-4 p-2 bg-white/95 backdrop-blur shadow-lg border rounded-xl items-center gap-3 z-50">
+			    <div class="flex-1 px-2 border-r text-sm text-gray-600 truncate">Searching...</div>
+			    <span id="search-count" class="text-xs font-mono bg-gray-100 px-2 py-1 rounded">0/0</span>
+			    <div class="flex gap-1">
+			        <button id="btn-prev" type="button" class="p-1 hover:bg-gray-200 rounded">▲</button>
+			        <button id="btn-next" type="button" class="p-1 hover:bg-gray-200 rounded">▼</button>
+			    </div>
+			    <button id="btn-close-search" type="button" class="text-gray-400 hover:text-red-500">✕</button>
+			</div>
+		    <input id="pwo-search-input" type="text" placeholder="Search..." class="hidden w-20 bg-white/20 text-[10px] rounded px-2 py-1 outline-none border-none placeholder-white/70 text-white transition-all">
             
             <button id="pwo-search-toggle" title="Search Messages" class="hover:bg-white/10 p-1 rounded">
                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
