@@ -50,11 +50,32 @@ const state = {
     audioChunks: []
 };
 
+const soundIn = new Audio("https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3");
+const soundOut = new Audio("https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3");
+
 const SOCKET_URL = window.location.protocol === 'https:' ? 
     `wss://${window.location.hostname}/pwo/wss` : `ws://${window.location.hostname}:8080`;
 
 const ws = new WSClient(SOCKET_URL, Auth.getToken() || "");
 const getAuthHeaders = () => ({ 'X-Forwarded-Host': window.location.hostname });
+
+let unreadCount = 0;
+const originalTitle = document.title;
+
+function updateTabTitle(reset = false) {
+    if (reset) {
+        unreadCount = 0;
+        document.title = originalTitle;
+    } else {
+        unreadCount++;
+        document.title = `(${unreadCount}) New Message! - ${originalTitle}`;
+    }
+}
+
+window.addEventListener('focus', () => updateTabTitle(true));
+window.addEventListener('click', () => {
+    if (win.style.display === 'flex') updateTabTitle(true);
+});
 
 function startLogic() {
     const emojiBtn = document.getElementById('pwo-emoji-btn');
@@ -150,7 +171,11 @@ bubble.addEventListener('click', () => {
     // Check if currently hidden
     const isHidden = win.style.display === 'none' || win.style.display === '';
     win.style.display = isHidden ? 'flex' : 'none';
-
+	
+	if (Notification.permission === "default") {
+		Notification.requestPermission();
+	}
+		
     if (isHidden) {
         // This starts all your Task 2 & 3 logic once correctly
         startLogic();
@@ -202,12 +227,37 @@ window.addEventListener('ws_connected', () => {
 
 window.addEventListener('ws_new_message', e => {
     const data = e.detail.data || e.detail;
-	document.getElementById('pwo-typing')?.classList.add('hidden');
+    document.getElementById('pwo-typing')?.classList.add('hidden');
+    
+    const isChatOpen = win.style.display === 'flex';
+    const isTabActive = !document.hidden;
+
+    if (!data.is_me && !data.system) {
+        soundIn.play().catch(() => {}); 
+        
+        // --- TITLE CHANGE LOGIC ---
+        if (!isTabActive) {
+            unreadCount++;
+            document.title = `(${unreadCount}) New Message!`;
+            
+            // Notification logic
+            if (Notification.permission === "granted") {
+                new Notification("Support Assistant", {
+                    body: data.message || "New message received",
+                    icon: "assets/public/logo.png" 
+                });
+            }
+        }
+    } else if (data.is_me) {
+        soundOut.play().catch(() => {});
+    }
+            
     render(data, true);
-    if (win.style.display === 'flex' && !data.is_me) {
+
+    if (isChatOpen && !data.is_me) {
         ws.call('chat', 'markread', { target_user_id: 0, token: Auth.getToken() }, getAuthHeaders());
     }
-    textarea.style.height = '36px'; // Reset height after message sent/received
+    textarea.style.height = '36px';
 });
 
 window.addEventListener('ws_chat_history', e => {
