@@ -29,14 +29,10 @@ export class ChatSearch {
 	            p.innerHTML = originalText.replace(regex, '<mark class="bg-yellow-300 rounded-sm search-mark">$1</mark>');
 	            this.matches.push(p);
 
-	            // FIX: Ensure the message bubble is not hidden by any parent styles
 	            let bubble = p.closest('.mb-4'); 
 	            if (bubble) bubble.style.display = 'flex'; 
 	        } else {
 	            p.textContent = originalText;
-	            // OPTIONAL: If you want to hide non-matching messages, uncomment below:
-	            // let bubble = p.closest('.mb-4');
-	            // if (bubble) bubble.style.display = 'none';
 	        }
 	    });
 
@@ -72,7 +68,7 @@ export class ChatSearch {
     reset() {
         this.matches = [];
         this.currentIndex = -1;
-        // Clean all existing highlights
+
         this.chatBox.querySelectorAll('.message-text').forEach(p => {
             p.innerHTML = p.textContent;
         });

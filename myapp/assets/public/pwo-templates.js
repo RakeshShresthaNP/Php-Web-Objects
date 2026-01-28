@@ -5,245 +5,73 @@
 
 export const PWO_STYLES = `
 <style>
+    /* --- 1. BASE WINDOW & BUBBLE (STAYS GREEN) --- */
     #pwo-window { z-index: 9999; display: none; }
     #pwo-bubble { z-index: 9999; }
-	/* Add this to PWO_STYLES in pwo-templates.js */
 
-	/* Add this to PWO_STYLES in pwo-templates.js */
-
-	/* 1. Target the button by its existing ID */
-	#pwo-clear {
-	    display: flex !important;
-	    align-items: center;
-	    justify-content: center;
-	    width: 30px !important;
-	    height: 30px !important;
-	    
-	    /* The Vibrant Look */
-	    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%) !important;
-	    color: white !important;
-	    border-radius: 50% !important;
-	    border: none !important;
-	    cursor: pointer;
-	    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4) !important;
-	    transition: transform 0.2s ease-in-out;
-	    padding: 0 !important; /* Reset padding to center the SVG */
-	}
-	#pwo-clear:hover {
-	    transform: scale(1.1);
-	    filter: brightness(1.1);
-	}
-	#pwo-clear svg {
-	    width: 16px !important;
-	    height: 16px !important;
-	    stroke: white !important; /* Force the X to be white */
-	    stroke-width: 3px !important; /* Make the X thicker */
-	}
-	#pwo-preview {
-	    padding: 8px 12px !important;
-	    align-items: center !important;
-	}
-	#pwo-scroll-bottom {
-	    display: none;
-	    position: absolute;
-	    bottom: 80px;
-	    right: 20px;
-	    background: #059669;
-	    color: white;
-	    padding: 5px 12px;
-	    border-radius: 20px;
-	    font-size: 11px;
-	    font-weight: bold;
-	    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-	    cursor: pointer;
-	    z-index: 60;
-	    animation: bounce 2s infinite;
-	}	
-	.pwo-video-overlay-circle {
-	    background: rgba(0, 0, 0, 0.4);
-	    backdrop-filter: blur(4px);
-	    width: 44px; height: 44px;
-	    border-radius: 50%;
-	    display: flex; align-items: center; justify-content: center;
-	}
-	.pwo-play-triangle {
-	    width: 0; height: 0;
-	    border-top: 8px solid transparent;
-	    border-bottom: 8px solid transparent;
-	    border-left: 12px solid white;
-	    margin-left: 4px;
-	}
-	button[onclick="window.pwoCancelAttachment()"]:active {
-	    transform: scale(0.95);
-	    background-color: #000;
-	}
-	.pwo-video-duration {
-	    position: absolute;
-	    bottom: 6px;
-	    right: 6px;
-	    background: rgba(0, 0, 0, 0.7);
-	    color: white;
-	    font-size: 10px;
-	    padding: 1px 5px;
-	    border-radius: 4px;
-	    font-family: monospace;
-	}
-	.pwo-video-progress {
-	    position: absolute;
-	    bottom: 0;
-	    left: 0;
-	    height: 3px;
-	    background: #10b981; /* Emerald 500 */
-	    transition: width 0.1s linear;
-	    border-radius: 0 0 0 8px;
-	}
-	.msg-status {
-	    display: inline-block;
+    /* --- 2. PERMANENTLY COLORFUL BUTTONS --- */
+	#pwo-mic, #pwo-mic svg {
+	    color: #8b5cf6 !important; /* Permanent Violet */
 	    transition: all 0.3s ease;
-	    transform: translateX(5px);
-	    opacity: 0;
-	}
-	.msg-status.visible {
-	    transform: translateX(0);
-	    opacity: 1;
-	}	
-	.pwo-upload-pulse {
-	    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-	}
-	@keyframes pulse {
-	    0%, 100% { opacity: 1; }
-	    50% { opacity: .5; }
-	}	
-	.group.playing .pwo-video-overlay-circle {
-	    opacity: 0;
-	}
-	.search-mark {
-	    background-color: #fde047 !important; /* Bright Yellow */
-	    color: #000000 !important;           /* Force Black Text */
-	    font-weight: bold !important;
-	    display: inline !important;
-	    visibility: visible !important;
-	}
-	#search-count {
-	    display: inline-flex;
-	    align-items: center;
-	    justify-content: center;
-	    background-color: #1e293b !important; /* Dark slate */
-	    color: #ffffff !important;           /* Pure white */
-	    font-weight: 700 !important;
-	    padding: 2px 10px !important;
-	    border-radius: 6px !important;
-	    min-width: 50px;
-	    letter-spacing: 0.5px;
-	    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 	}
 
-	/* Ensure the arrows are also darker and more clickable */
-	#btn-prev, #btn-next {
-	    color: #475569 !important;
-	    font-weight: bold;
-	    font-size: 18px;
-	}	
-    /* --- SCROLLBAR OVERLAP FIX --- */
-    #chat-box {
-        overflow-y: auto !important;
-        overflow-x: hidden !important; 
-        scrollbar-gutter: stable; /* Reserves space so scrollbar doesn't overlap content */
-        padding: 20px 15px !important;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        background: #f9fafb;
-        gap: 8px; /* Adds consistent spacing between bubbles */
-    }
+	#pwo-mic.rec-active { 
+	    color: #ef4444 !important; /* Turns Red when recording */
+	    animation: violetPulse 1.5s infinite; 
+	}
+
+	#pwo-attach, #pwo-attach svg {
+	    color: #6366f1 !important; /* Permanent Indigo */
+	    transition: all 0.2s ease;
+	}
+
+	#pwo-attach.active, #pwo-attach:hover {
+	    color: #4338ca !important;
+	}
 	
-	.system-msg-container {
-	    display: flex;
-	    align-items: center;
-	    text-align: center;
-	    margin: 20px 0;
-	}
-    /* Message Row Base */
-    .pwo-msg-row {
-        display: flex;
-        width: 100%;
-        margin-bottom: 12px;
+    /* --- 3. THE REST OF YOUR CSS --- */
+    @keyframes violetPulse {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
+        70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(139, 92, 246, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
     }
 
-    /* Right Aligned Messages (User) */
-    .justify-end {
-        justify-content: flex-end !important;
-        padding-right: 5px; /* Tiny buffer so emerald box doesn't touch the scrollbar track */
-    }
-
-    /* Left Aligned Messages (AI) */
-    .justify-start {
-        justify-content: flex-start !important;
-    }
-
-    /* Bubble Container */
-    .relative.group {
-        position: relative !important;
-        overflow: visible !important; /* Critical for delete button visibility */
-        max-width: 85%;
-        min-width: 100px;
-    }
-
-    /* --- DELETE BUTTON: ALWAYS VISIBLE FIX --- */
-    .pwo-delete-btn {
-        position: absolute !important;
-        top: -10px !important;
-        right: -10px !important;
-        width: 24px !important;
-        height: 24px !important;
-        background: #ef4444 !important; /* Tailwind red-500 */
-        color: white !important;
-        border-radius: 9999px !important;
-        border: 2px solid white !important;
+    #pwo-clear {
         display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-        z-index: 50 !important;
-        cursor: pointer !important;
-        opacity: 0 !important;        /* Force visibility */
-        visibility: hidden; /* Force visibility */
-        pointer-events: auto !important;
-		transition: all 0.2s ease-in-out;
+        align-items: center; justify-content: center;
+        width: 30px !important; height: 30px !important;
+        background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%) !important;
+        color: white !important; border-radius: 50% !important;
+        box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4) !important;
     }
 
-	.mb-4:hover .pwo-delete-btn {
-	    opacity: 1 !important;
-	    visibility: visible !important;
-	}
-	
-    /* --- MESSAGE CONTENT --- */
-    .msg-body { 
-        word-break: break-word;
-        white-space: pre-wrap; 
-        font-size: 0.875rem;
-        line-height: 1.25rem;
-    }
-    
-    /* Custom Scrollbar Styling */
-    #chat-box::-webkit-scrollbar { 
-        width: 6px !important; 
-    }
-    #chat-box::-webkit-scrollbar-thumb { 
-        background: #cbd5e1 !important; 
-        border-radius: 10px; 
-    }
-    #chat-box::-webkit-scrollbar-track {
-        background: #f1f5f9;
+    #chat-box {
+        overflow-y: auto !important; overflow-x: hidden !important; 
+        scrollbar-gutter: stable; padding: 20px 15px !important;
+        flex: 1; display: flex; flex-direction: column;
+        background: #f9fafb; gap: 8px;
     }
 
-    /* Recording Animation */
-    .rec-active { color: #ef4444 !important; animation: pulse 1.5s infinite; }
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
+    #chat-box::-webkit-scrollbar { width: 6px !important; }
+    #chat-box::-webkit-scrollbar-thumb { background: #cbd5e1 !important; border-radius: 10px; }
+
+    .pwo-msg-row { display: flex; width: 100%; margin-bottom: 12px; }
+    .justify-end { justify-content: flex-end !important; }
+    .justify-start { justify-content: flex-start !important; }
+    .msg-body { word-break: break-word; white-space: pre-wrap; font-size: 0.875rem; }
+
+    .pwo-delete-btn {
+        position: absolute !important; top: -10px !important; right: -10px !important;
+        width: 24px !important; height: 24px !important;
+        background: #ef4444 !important; color: white !important;
+        border-radius: 9999px !important; border: 2px solid white !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        z-index: 50 !important; opacity: 0 !important; visibility: hidden;
+        transition: all 0.2s ease-in-out;
     }
+    .relative.group:hover .pwo-delete-btn { opacity: 1 !important; visibility: visible !important; }
+
+    .search-mark { background-color: #fde047 !important; color: #000000 !important; font-weight: bold !important; }
 </style>
 `;
 
@@ -337,7 +165,7 @@ export const PWO_HTML = `
         <div class="flex items-end gap-2 bg-gray-100 rounded-2xl px-3 py-2">
             <button id="pwo-emoji-btn" type="button" class="text-gray-500 hover:text-emerald-600 pb-1">😀</button>
             
-            <button id="pwo-attach" class="text-gray-400 hover:text-emerald-600 pb-1">
+            <button id="pwo-attach" class="pb-1">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
             </button>
             <input type="file" id="pwo-file-input" class="hidden" accept="image/*,video/*,.pdf">
@@ -346,7 +174,7 @@ export const PWO_HTML = `
                 class="flex-1 bg-transparent border-none focus:ring-0 text-sm resize-none py-1"
                 style="height: 36px; line-height: 20px; outline: none; border: none;"></textarea>
 
-            <button id="pwo-mic" class="text-gray-400 hover:text-emerald-600 pb-1">
+            <button id="pwo-mic"class="pb-1">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
             </button>
             
@@ -366,18 +194,18 @@ export const PWO_HTML = `
         <button id="pwo-do-login" class="w-full py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700">Continue</button>
     </div>
 
-    <div id="pwo-lightbox" class="fixed inset-0 bg-black/95 z-[10000] hidden flex flex-col items-center justify-center p-4">
-        <div class="absolute top-5 right-5 flex gap-4">
-            <a id="pwo-lightbox-download" href="" download class="text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors" title="Download">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-width="2"></path></svg>
-            </a>
-            <button id="pwo-lightbox-close" class="text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2"></path></svg>
-            </button>
-        </div>
-        <img id="pwo-lightbox-img" src="" class="max-w-full max-h-[85vh] rounded-lg shadow-2xl object-contain cursor-zoom-out">
-    </div>	
 </div>
+<div id="pwo-lightbox" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex flex-col items-center justify-center p-4">
+    <div class="absolute top-5 right-5 flex gap-4">
+        <a id="pwo-lightbox-download" href="" download class="text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors" title="Download">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-width="2"></path></svg>
+        </a>
+        <button id="pwo-lightbox-close" class="text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2"></path></svg>
+        </button>
+    </div>
+    <img id="pwo-lightbox-img" src="" class="max-w-full max-h-[85vh] rounded-lg shadow-2xl object-contain cursor-zoom-out">
+</div>	
 <div id="pdf-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex flex-col items-center justify-center p-4">
     <div class="w-full max-w-5xl h-[90vh] bg-white rounded-2xl overflow-hidden flex flex-col">
         <div class="flex justify-between items-center p-4 border-b">

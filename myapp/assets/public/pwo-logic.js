@@ -20,7 +20,7 @@ if (recognition) {
     recognition.interimResults = true;
 }
 
-// --- HANDLE FILE SELECTION (UNTOUCHED) ---
+// --- HANDLE FILE SELECTION ---
 export function handleFile(f, state) {
     if (!f) return;
 
@@ -67,7 +67,7 @@ export function handleFile(f, state) {
     r.readAsDataURL(f);
 }
 
-// --- HANDLE MESSAGE SENDING (UNTOUCHED) ---
+// --- HANDLE MESSAGE SENDING ---
 export async function handleSend(state, ws) {
     if (state.isRecording) stopRecording(state);
     
@@ -115,7 +115,7 @@ export async function handleSend(state, ws) {
     setTimeout(() => { if(prog) prog.classList.add('hidden'); if(bar) bar.style.width = '0%'; }, 500);
 }
 
-// --- HANDLE MIC (UNTOUCHED) ---
+// --- HANDLE MIC ---
 export async function handleMic(state) {
     const chatIn = document.getElementById('chat-in');
     const canvas = document.getElementById('pwo-waveform');
@@ -218,7 +218,7 @@ function stopRecording(state) {
     document.getElementById('pwo-rec-panel').classList.add('hidden');
 }
 
-// --- UPDATED: Handle Message Deletion (Delegated for consistency) ---
+// --- Handle Message Deletion ---
 export function initDeleteHandler(ws) {
     const chatBox = document.getElementById('chat-box');
     
@@ -241,7 +241,7 @@ export function initDeleteHandler(ws) {
     });
 }
 
-// --- UPDATED: Handle Local Search (Cleaner listener) ---
+// --- Handle Local Search ---
 export function initSearchHandler() {
     const toggle = document.getElementById('pwo-search-toggle');
     const input = document.getElementById('pwo-search-input');
@@ -274,7 +274,7 @@ function filterMessages(term) {
     });
 }
 
-// --- Offline Queue Support (UNTOUCHED) ---
+// --- Offline Queue Support ---
 export function processOfflineQueue(ws) {
     const queue = JSON.parse(localStorage.getItem('pwo_offline_queue') || '[]');
     if (queue.length === 0) return;
@@ -346,38 +346,58 @@ export function initEmojiPicker() {
     };
 }
 
-export function initExportHandler() {
+export async function initExportHandler() {
     const btn = document.getElementById('pwo-export');
     if (!btn) return;
 
-    btn.onclick = (e) => {
+    btn.onclick = async (e) => {
         e.preventDefault();
-        const chatBox = document.getElementById('chat-box');
-        // Select all message wrappers
-        const messages = chatBox.querySelectorAll('.flex.mb-4'); 
         
-        let log = "--- CHAT EXPORT ---\n";
-
-        messages.forEach(msg => {
-            const isMe = msg.classList.contains('justify-end');
-            const user = isMe ? "Me" : "Assistant";
-            const text = msg.querySelector('.msg-body')?.innerText || "";
-            const time = msg.querySelector('.text-\\[10px\\]')?.innerText || "";
-            
-            if(text) log += `[${time}] ${user}: ${text}\n`;
-        });
-
-        if (log === "--- CHAT EXPORT ---\n") {
-            alert("No messages to export!");
+        // FETCH FROM DEXIE
+        const allMessages = await window.db.messages.orderBy('d_created').toArray();
+        
+        if (allMessages.length === 0) {
+            alert("No messages in history to export!");
             return;
         }
+
+        let log = "--- CHAT EXPORT (Internal DB) ---\n";
+        allMessages.forEach(m => {
+            const user = m.sender_id == localStorage.getItem('pwoUserId') ? "Me" : "Assistant";
+            const time = new Date(m.d_created).toLocaleString();
+            log += `[${time}] ${user}: ${m.message}\n`;
+        });
 
         const blob = new Blob([log], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `chat_${new Date().getTime()}.txt`;
+        link.download = `chat_history_${Date.now()}.txt`;
         link.click();
-        URL.revokeObjectURL(url);
     };
+}
+
+// Add this to pwo-logic.js
+export function initLightboxHandler() {
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const lightbox = document.getElementById('pwo-lightbox');
+            
+            if (lightbox) {
+                // 1. Force the style to none to override the inline "display: flex"
+                lightbox.style.display = 'none';
+                
+                // 2. Add the hidden class for good measure
+                lightbox.classList.add('hidden');
+                
+                // 3. Clear the image src so it's empty for next time
+                const img = document.getElementById('pwo-lightbox-img');
+                if (img) img.src = "";
+            }
+            
+            // Repeat for PDF and Video if necessary
+            const pdf = document.getElementById('pdf-modal');
+            if (pdf) pdf.classList.add('hidden');
+        }
+    }, true);
 }

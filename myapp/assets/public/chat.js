@@ -4,7 +4,7 @@ import { render } from './pwo-ui.js';
 import { 
     handleSend, handleFile, handleMic, 
     initDeleteHandler, initSearchHandler, processOfflineQueue,
-    initAutoExpand, initDragAndDrop, initEmojiPicker, initExportHandler // Add these 4
+    initAutoExpand, initDragAndDrop, initEmojiPicker, initExportHandler, initLightboxHandler
 } from './pwo-logic.js';
 import { Auth } from './pwo-auth.js';
 import { ChatSearch } from './pwo-search.js';
@@ -43,6 +43,7 @@ window.db.open().then(() => {
 });
 
 const db = window.db;
+
 
 // Function to load local history immediately
 async function loadLocalHistory() {
@@ -122,6 +123,7 @@ function startLogic() {
         initExportHandler();
         initAutoExpand();
         initDragAndDrop(state); // Now 'state' is safe to use
+		initLightboxHandler();
         
         initDeleteHandler(ws);  // Now 'ws' is safe to use
         initSearchHandler();
@@ -285,19 +287,16 @@ window.addEventListener('ws_connected', () => {
 });
 
 window.addEventListener('ws_new_message', async (e) => {
-    // 1. Get the raw data
     const data = e.detail.data || e.detail;
     const myId = localStorage.getItem('pwoUserId');
 
-    // 2. Format it specifically for the Render function
-    // We force 'server_id' and 'is_me' so the UI doesn't have to guess
     const uiData = {
         ...data,
-        server_id: data.id || data.server_id, // Ensure the key is correct
+        server_id: data.id || data.server_id,
         is_me: data.is_me || (myId && data.sender_id && myId == data.sender_id)
     };
 
-    // 3. Save to Database in the background
+    // Commit to Dexie
     await window.db.messages.put({
         server_id: uiData.server_id,            
         sender_id: uiData.sender_id,     
@@ -308,17 +307,11 @@ window.addEventListener('ws_new_message', async (e) => {
         file_name: uiData.file_name || null
     });
 
-    // 4. CALL RENDER DIRECTLY (Don't use loadLocalHistory here)
-    // This makes the message appear INSTANTLY with the button
+    // Render from the validated UI object
     render(uiData, true, false);
 
-    // 5. Utility
     document.getElementById('pwo-typing')?.classList.add('hidden');
-    if (uiData.is_me) {
-        soundOut.play().catch(() => {});
-    } else {
-        soundIn.play().catch(() => {});
-    }
+    (uiData.is_me ? soundOut : soundIn).play().catch(() => {});
 });
 
 window.addEventListener('ws_chat_history', async (e) => {
