@@ -10,7 +10,17 @@ export const Auth = {
     getUserId() {
         return localStorage.getItem('pwoUserId');
     },
-
+	
+	forceLogin() {
+	    localStorage.removeItem('pwoToken');
+	    localStorage.removeItem('pwoUserId');
+	    const overlay = document.getElementById('pwo-auth-overlay');
+	    if (overlay) {
+	        overlay.classList.remove('hidden');
+	        overlay.classList.add('flex');
+	    }
+	},
+	
     // Get auth token
     getToken() {
         return localStorage.getItem('pwoToken');

@@ -1,4 +1,5 @@
 import { render } from './pwo-ui.js';
+import { Auth } from './pwo-auth.js';
 
 // Global variables to maintain state across recording sessions
 let animationId;
@@ -80,6 +81,13 @@ export async function handleSend(state, ws) {
     const chatIn = document.getElementById('chat-in');
     const txt = chatIn.value.trim();
     const t = localStorage.getItem('pwoToken');
+	
+	if (!t) {
+        console.error("No token found. Forcing login.");
+        Auth.forceLogin(); // Trigger the login overlay
+        return;
+    }
+			
     if (!txt && !state.pendingFile) return;
     
     const tempId = Date.now();

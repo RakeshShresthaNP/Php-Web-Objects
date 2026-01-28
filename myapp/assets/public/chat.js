@@ -370,3 +370,13 @@ window.addEventListener('ws_typing', (e) => {
         typingIndicator.classList.add('hidden');
     }, 3000);
 });
+
+window.addEventListener('ws_error', (e) => {
+    const data = e.detail.data || e.detail;
+    
+    // Check if the error is due to an expired or invalid token
+    if (data.status === 401 || data.message === 'unauthorized' || data.code === 401) {
+        console.warn("Session expired via Socket. Forcing login...");
+        Auth.forceLogin();
+    }
+});
