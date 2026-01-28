@@ -60,27 +60,27 @@ export const PWO_STYLES = `
 	
     .pwo-msg-container { position: relative !important; overflow: visible !important; }
 
-    .pwo-delete-btn {
-        position: absolute !important;
-        top: -8px !important;
-        right: -8px !important;
-        width: 24px !important;
-        height: 24px !important;
-        background: #ef4444 !important;
-        color: white !important;
-        border-radius: 9999px !important;
-        border: 2px solid white !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        z-index: 60 !important;
-        
-        /* Hidden by default */
-        opacity: 0;
-        visibility: hidden;
-        transform: scale(0.8);
-        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
+	.pwo-delete-btn {
+	    position: absolute !important;
+	    top: -8px !important;
+	    right: -8px !important;
+	    width: 24px !important;
+	    height: 24px !important;
+	    background: #ef4444 !important;
+	    color: white !important;
+	    border-radius: 9999px !important;
+	    border: 2px solid white !important;
+	    display: flex !important;
+	    align-items: center !important;
+	    justify-content: center !important;
+	    z-index: 60 !important;
+	    
+	    /* Hidden by default */
+	    opacity: 0;
+	    visibility: hidden;
+	    transform: scale(0.8);
+	    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+	}
 
     /* Show when hovering over the relative container */
     .pwo-msg-container:hover .pwo-delete-btn {
@@ -174,15 +174,18 @@ export const PWO_HTML = `
         <span id="pwo-timer" class="text-[10px] font-mono text-emerald-600 font-bold">● 0:00</span>
     </div>
 
-	<div id="pwo-preview" class="hidden bg-white p-2 border-t flex items-center justify-between">
-	    <div class="flex items-center gap-2 overflow-hidden">
-	        <span class="text-xs text-emerald-600 font-medium truncate" id="pwo-filename">file.jpg</span>
+	<div id="pwo-preview" class="hidden p-2 border-t bg-white flex items-center justify-between">
+	    <div class="flex items-center gap-2">
+	        <span id="pwo-filename" class="text-xs font-medium text-emerald-700 truncate max-w-[220px]"></span>
 	    </div>
-	    <button id="pwo-clear" class="text-gray-400 hover:text-red-500">
-	        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+	    
+	    <button id="pwo-clear" class="group flex items-center justify-center w-5 h-5 rounded-full bg-red-50 hover:bg-red-500 transition-all border border-red-100">
+	        <svg class="w-3 h-3 text-red-500 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+	            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path>
+	        </svg>
 	    </button>
 	</div>
-	
+				
     <div class="p-3 bg-white border-t relative">
         <div id="pwo-emoji-picker" class="hidden absolute bottom-full left-4 mb-2 bg-white border rounded-lg shadow-xl p-2 grid grid-cols-6 gap-2 z-[10000] w-48">
             <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">😀</span>
