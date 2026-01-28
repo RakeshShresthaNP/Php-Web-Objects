@@ -44,7 +44,6 @@ window.db.open().then(() => {
 
 const db = window.db;
 
-
 // Function to load local history immediately
 async function loadLocalHistory() {
     // Consistency check: use 'd_created' NOT 'timestamp'

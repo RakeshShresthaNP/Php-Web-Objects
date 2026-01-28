@@ -5,37 +5,33 @@
 
 export const PWO_STYLES = `
 <style>
-    /* --- 1. BASE WINDOW & BUBBLE (STAYS GREEN) --- */
     #pwo-window { z-index: 9999; display: none; }
     #pwo-bubble { z-index: 9999; }
 
-    /* --- 2. PERMANENTLY COLORFUL BUTTONS --- */
-	#pwo-mic, #pwo-mic svg {
-	    color: #8b5cf6 !important; /* Permanent Violet */
-	    transition: all 0.3s ease;
-	}
-
-	#pwo-mic.rec-active { 
-	    color: #ef4444 !important; /* Turns Red when recording */
-	    animation: violetPulse 1.5s infinite; 
-	}
-
-	#pwo-attach, #pwo-attach svg {
-	    color: #6366f1 !important; /* Permanent Indigo */
-	    transition: all 0.2s ease;
-	}
-
-	#pwo-attach.active, #pwo-attach:hover {
-	    color: #4338ca !important;
-	}
-	
-    /* --- 3. THE REST OF YOUR CSS --- */
-    @keyframes violetPulse {
-        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
-        70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(139, 92, 246, 0); }
-        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+    #chat-box {
+        overflow-y: auto !important; 
+        overflow-x: hidden !important; 
+        scrollbar-gutter: stable; 
+        padding: 20px 15px !important;
+        flex: 1; 
+        display: flex; 
+        flex-direction: column;
+        background: #f9fafb; 
+        gap: 8px;
     }
 
+    #chat-box::-webkit-scrollbar { width: 6px !important; }
+    #chat-box::-webkit-scrollbar-thumb { 
+        background: #cbd5e1 !important; 
+        border-radius: 10px; 
+    }
+
+    .pwo-msg-row { display: flex; width: 100%; margin-bottom: 12px; }
+    .justify-end { justify-content: flex-end !important; }
+    .justify-start { justify-content: flex-start !important; }
+    .msg-body { word-break: break-word; white-space: pre-wrap; font-size: 0.875rem; }
+
+    /* FILE PREVIEW CLEAR BUTTON */
     #pwo-clear {
         display: flex !important;
         align-items: center; justify-content: center;
@@ -45,21 +41,7 @@ export const PWO_STYLES = `
         box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4) !important;
     }
 
-    #chat-box {
-        overflow-y: auto !important; overflow-x: hidden !important; 
-        scrollbar-gutter: stable; padding: 20px 15px !important;
-        flex: 1; display: flex; flex-direction: column;
-        background: #f9fafb; gap: 8px;
-    }
-
-    #chat-box::-webkit-scrollbar { width: 6px !important; }
-    #chat-box::-webkit-scrollbar-thumb { background: #cbd5e1 !important; border-radius: 10px; }
-
-    .pwo-msg-row { display: flex; width: 100%; margin-bottom: 12px; }
-    .justify-end { justify-content: flex-end !important; }
-    .justify-start { justify-content: flex-start !important; }
-    .msg-body { word-break: break-word; white-space: pre-wrap; font-size: 0.875rem; }
-
+    /* DELETE MESSAGE BUTTON */
     .pwo-delete-btn {
         position: absolute !important; top: -10px !important; right: -10px !important;
         width: 24px !important; height: 24px !important;
@@ -71,7 +53,19 @@ export const PWO_STYLES = `
     }
     .relative.group:hover .pwo-delete-btn { opacity: 1 !important; visibility: visible !important; }
 
-    .search-mark { background-color: #fde047 !important; color: #000000 !important; font-weight: bold !important; }
+    /* SEARCH HIGHLIGHTING */
+    .search-mark { 
+        background-color: #fde047 !important; 
+        color: #000000 !important; 
+        font-weight: bold !important; 
+    }
+
+    /* ANIMATIONS */
+    @keyframes violetPulse {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
+        70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(139, 92, 246, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+    }
 </style>
 `;
 
@@ -162,27 +156,33 @@ export const PWO_HTML = `
             <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">✨</span>
         </div>
 
-        <div class="flex items-end gap-2 bg-gray-100 rounded-2xl px-3 py-2">
-            <button id="pwo-emoji-btn" type="button" class="text-gray-500 hover:text-emerald-600 pb-1">😀</button>
-            
-            <button id="pwo-attach" class="pb-1">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
-            </button>
-            <input type="file" id="pwo-file-input" class="hidden" accept="image/*,video/*,.pdf">
+		<div class="flex items-end gap-2 bg-gray-100 rounded-2xl px-3 py-2">
+		    <button id="pwo-emoji-btn" type="button" class="text-gray-500 hover:text-emerald-600 pb-1">😀</button>
+		    
+		    <button id="pwo-attach" class="text-emerald-700 pb-1">
+		        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		            <path stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+		        </svg>
+		    </button>
+			<input type="file" id="pwo-file-input" class="hidden" accept="image/*,video/*,.pdf">
+		    
+			<textarea id="chat-in" rows="1" placeholder="Type a message..." 
+			                class="flex-1 bg-transparent border-none focus:ring-0 text-sm resize-none py-1"
+			                style="height: 36px; line-height: 20px; outline: none; border: none;"></textarea>
 
-            <textarea id="chat-in" rows="1" placeholder="Type a message..." 
-                class="flex-1 bg-transparent border-none focus:ring-0 text-sm resize-none py-1"
-                style="height: 36px; line-height: 20px; outline: none; border: none;"></textarea>
-
-            <button id="pwo-mic"class="pb-1">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-            </button>
-            
-            <button id="chat-send" class="text-emerald-600 hover:text-emerald-700 pb-1">
-                <svg class="w-5 h-5 rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
-            </button>
-        </div>
-    </div>
+		    <button id="pwo-mic" class="text-emerald-700 pb-1">
+		        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		            <path stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+		        </svg>
+		    </button>
+		    
+		    <button id="chat-send" class="text-emerald-700 pb-1">
+		        <svg class="w-5 h-5 rotate-90" fill="currentColor" viewBox="0 0 20 20">
+		            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
+		        </svg>
+		    </button>
+		</div>
+	</div>
 
     <div id="pwo-auth-overlay" class="absolute inset-0 bg-white/95 z-[100] hidden flex flex-col items-center justify-center p-8 text-center">
         <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
