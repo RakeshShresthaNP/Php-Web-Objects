@@ -1,361 +1,176 @@
-﻿<?php
-$pagetitle = isset($pagename) ? $pagename : 'Pwo ';
-?>
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Manage - <?php echo $pagetitle ?></title>
-
-<!-- Google Font: Source Sans Pro -->
-<link rel="stylesheet"
-	href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-<!-- Font Awesome -->
-<link rel="stylesheet"
-	href="<?php echo getUrl('assets/manage/plugins/fontawesome-free/css/all.min.css') ?>">
-<!-- Ionicons -->
-<link rel="stylesheet"
-	href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
-<!-- Tempusdominus Bootstrap 4 -->
-<link rel="stylesheet"
-	href="<?php echo getUrl('assets/manage/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css') ?>">
-<!-- iCheck -->
-<link rel="stylesheet"
-	href="<?php echo getUrl('assets/manage/plugins/icheck-bootstrap/icheck-bootstrap.min.css') ?>">
-<!-- JQVMap -->
-<link rel="stylesheet"
-	href="<?php echo getUrl('assets/manage/plugins/jqvmap/jqvmap.min.css') ?>">
-<!-- Theme style -->
-<link rel="stylesheet"
-	href="<?php echo getUrl('assets/manage/css/adminlte.min.css') ?>">
-<!-- overlayScrollbars -->
-<link rel="stylesheet"
-	href="<?php echo getUrl('assets/manage/plugins/overlayScrollbars/css/OverlayScrollbars.min.css') ?>">
-<!-- Daterange picker -->
-<link rel="stylesheet"
-	href="<?php echo getUrl('assets/manage/plugins/daterangepicker/daterangepicker.css') ?>">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo $pagename ?? 'Dashboard'; ?> | AdminJS</title>
+    
+    <link rel="stylesheet" href="<?php echo getUrl('assets/manage/tailwind.css'); ?>">
+    
+    <link rel="stylesheet" href="<?php echo getUrl('assets/manage/boxicons.min.css'); ?>">
+    
+    <style>
+        .sidebar-transition { transition: width 0.3s ease, transform 0.3s ease; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+    </style>
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
-	<div class="wrapper">
-
-		<!-- Navbar -->
-		<nav
-			class="main-header navbar navbar-expand navbar-white navbar-light">
-			<!-- Left navbar links -->
-			<ul class="navbar-nav">
-				<li class="nav-item"><a class="nav-link" data-widget="pushmenu"
-					href="#" role="button"><i class="fas fa-bars"></i></a></li>
-				<li class="nav-item d-none d-sm-inline-block"><a
-					href="<?php echo getUrl('manage') ?>" class="nav-link">Home</a></li>
-				<li class="nav-item d-none d-sm-inline-block"><a href="#"
-					class="nav-link">Contact</a></li>
-			</ul>
-
-			<!-- SEARCH FORM -->
-			<form class="form-inline ml-3">
-				<div class="input-group input-group-sm">
-					<input class="form-control form-control-navbar" type="search"
-						placeholder="Search" aria-label="Search">
-					<div class="input-group-append">
-						<button class="btn btn-navbar" type="submit">
-							<i class="fas fa-search"></i>
-						</button>
-					</div>
-				</div>
-			</form>
-
-			<!-- Right navbar links -->
-			<ul class="navbar-nav ml-auto">
-				<!-- Messages Dropdown Menu -->
-				<li class="nav-item dropdown"><a class="nav-link"
-					data-toggle="dropdown" href="#"> <i class="far fa-comments"></i> <span
-						class="badge badge-danger navbar-badge">3</span>
-				</a>
-					<div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-						<a href="#" class="dropdown-item"> <!-- Message Start -->
-							<div class="media">
-								<img
-									src="<?php echo getUrl('assets/manage/img/user1-128x128.jpg') ?>"
-									alt="User Avatar" class="img-size-50 mr-3 img-circle">
-								<div class="media-body">
-									<h3 class="dropdown-item-title">
-										Brad Diesel <span class="float-right text-sm text-danger"><i
-											class="fas fa-star"></i></span>
-									</h3>
-									<p class="text-sm">Call me whenever you can...</p>
-									<p class="text-sm text-muted">
-										<i class="far fa-clock mr-1"></i> 4 Hours Ago
-									</p>
-								</div>
-							</div> <!-- Message End -->
-						</a>
-						<div class="dropdown-divider"></div>
-						<a href="#" class="dropdown-item"> <!-- Message Start -->
-							<div class="media">
-								<img
-									src="<?php echo getUrl('assets/manage/img/user8-128x128.jpg') ?>"
-									alt="User Avatar" class="img-size-50 img-circle mr-3">
-								<div class="media-body">
-									<h3 class="dropdown-item-title">
-										John Pierce <span class="float-right text-sm text-muted"><i
-											class="fas fa-star"></i></span>
-									</h3>
-									<p class="text-sm">I got your message bro</p>
-									<p class="text-sm text-muted">
-										<i class="far fa-clock mr-1"></i> 4 Hours Ago
-									</p>
-								</div>
-							</div> <!-- Message End -->
-						</a>
-						<div class="dropdown-divider"></div>
-						<a href="#" class="dropdown-item"> <!-- Message Start -->
-							<div class="media">
-								<img
-									src="<?php echo getUrl('assets/manage/img/user3-128x128.jpg') ?>"
-									alt="User Avatar" class="img-size-50 img-circle mr-3">
-								<div class="media-body">
-									<h3 class="dropdown-item-title">
-										Nora Silvester <span class="float-right text-sm text-warning"><i
-											class="fas fa-star"></i></span>
-									</h3>
-									<p class="text-sm">The subject goes here</p>
-									<p class="text-sm text-muted">
-										<i class="far fa-clock mr-1"></i> 4 Hours Ago
-									</p>
-								</div>
-							</div> <!-- Message End -->
-						</a>
-						<div class="dropdown-divider"></div>
-						<a href="#" class="dropdown-item dropdown-footer">See All Messages</a>
-					</div></li>
-				<!-- Notifications Dropdown Menu -->
-				<li class="nav-item dropdown"><a class="nav-link"
-					data-toggle="dropdown" href="#"> <i class="far fa-bell"></i> <span
-						class="badge badge-warning navbar-badge">15</span>
-				</a>
-					<div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-						<span class="dropdown-item dropdown-header">15 Notifications</span>
-						<div class="dropdown-divider"></div>
-						<a href="#" class="dropdown-item"> <i class="fas fa-envelope mr-2"></i>
-							4 new messages <span class="float-right text-muted text-sm">3
-								mins</span>
-						</a>
-						<div class="dropdown-divider"></div>
-						<a href="#" class="dropdown-item"> <i class="fas fa-users mr-2"></i>
-							8 friend requests <span class="float-right text-muted text-sm">12
-								hours</span>
-						</a>
-						<div class="dropdown-divider"></div>
-						<a href="#" class="dropdown-item"> <i class="fas fa-file mr-2"></i>
-							3 new reports <span class="float-right text-muted text-sm">2 days</span>
-						</a>
-						<div class="dropdown-divider"></div>
-						<a href="#" class="dropdown-item dropdown-footer">See All
-							Notifications</a>
-					</div></li>
-
-				<!--begin::User Menu Dropdown-->
-				<?php
-    $cuser = getCurrentUser();
-    ?>
-				
-				<li class="nav-item dropdown user-menu"><a href="#"
-					class="nav-link dropdown-toggle" data-toggle="dropdown"> <img
-						src="<?php echo getUrl('assets/manage/img/user2-160x160.jpg')?>"
-						class="user-image rounded-circle shadow" alt="User Image" /> <span
-						class="d-none d-md-inline"><?php echo $cuser->realname ?></span>
-				</a>
-					<ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
-						<!--begin::User Image-->
-						<li class="user-header text-bg-primary"><img
-							src="<?php echo getUrl('assets/manage/img/user2-160x160.jpg')?>"
-							class="rounded-circle shadow" alt="User Image" />
-							<p>
-								<?php echo $cuser->realname ?> - <?php echo $cuser->perms ?>
-							</p></li>
-						<!--end::User Image-->
-						<!--begin::Menu Body-->
-						<li class="user-body">
-							<!--begin::Row-->
-							<div class="row">
-								<div class="col-4 text-center">
-									<a href="#">Followers</a>
-								</div>
-								<div class="col-4 text-center">
-									<a href="#">Sales</a>
-								</div>
-								<div class="col-4 text-center">
-									<a href="#">Friends</a>
-								</div>
-							</div> <!--end::Row-->
-						</li>
-						<!--end::Menu Body-->
-						<!--begin::Menu Footer-->
-						<li class="user-footer"><a href="#"
-							class="btn btn-outline-secondary">Profile</a> <a
-							href="<?php echo getUrl('login/logout') ?>"
-							class="btn btn-outline-danger float-end">Sign out</a></li>
-						<!--end::Menu Footer-->
-					</ul></li>
-				<!--end::User Menu Dropdown-->
-
-			</ul>
-		</nav>
-		<!-- /.navbar -->
-
-		<!-- Main Sidebar Container -->
-		<aside class="main-sidebar sidebar-dark-primary elevation-4">
-			<!-- Brand Logo -->
-			<a href="<?php echo getUrl('manage') ?>" class="brand-link"> <span
-				class="brand-text font-weight-light">PHPWebObjects</span>
-			</a>
-
-			<!-- Sidebar -->
-			<div class="sidebar">
-
-				<!-- Sidebar Menu -->
-				<nav class="mt-2">
-					<ul class="nav nav-pills nav-sidebar flex-column"
-						data-widget="treeview" role="menu" data-accordion="false">
-
-						<li class="nav-item"><a href="#" class="nav-link"> <i
-								class="nav-icon fas fa-edit"></i>
-								<p>
-									Forms <i class="fas fa-angle-left right"></i>
-								</p>
-						</a>
-							<ul class="nav nav-treeview">
-								<li class="nav-item"><a
-									href="<?php echo getUrl('manage/pages/advancedforms') ?>"
-									class="nav-link"> <i class="far fa-circle nav-icon"></i>
-										<p>Forms</p>
-								</a></li>
-							</ul></li>
-						<li class="nav-item"><a href="#" class="nav-link"> <i
-								class="nav-icon fas fa-table"></i>
-								<p>
-									Tables <i class="fas fa-angle-left right"></i>
-								</p>
-						</a>
-							<ul class="nav nav-treeview">
-								<li class="nav-item"><a
-									href="<?php echo getUrl('manage/pages/simpletables') ?>"
-									class="nav-link"> <i class="far fa-circle nav-icon"></i>
-										<p>Simple Tables</p>
-								</a></li>
-							</ul></li>
-
-					</ul>
-				</nav>
-				<!-- /.sidebar-menu -->
-			</div>
-			<!-- /.sidebar -->
-		</aside>
-
-		<!-- Content Wrapper. Contains page content -->
-		<div class="content-wrapper">
-			<!-- section class="content-header">
-				<div class="container-fluid">
-					<div class="row mb-2">
-						<div class="col-sm-6">
-							<h1><?php echo isset($pagename) ? $pagename : '' ?></h1>
-						</div>
-						<div class="col-sm-6">
-							<ol class="breadcrumb float-sm-right">
-								<li class="breadcrumb-item"><a href="#">Home</a></li>
-								<li class="breadcrumb-item active"><?php echo isset($pagename) ? $pagename : '' ?></li>
-							</ol>
-						</div>
-					</div>
-				</div>
-			</section-->
-			<br>
-
-            <?php
-
-            $splashmsgs = res()->getSplashMsg();
-
-            if ($splashmsgs) {
-                ?>
-              <div class="content">
-				<!-- Content Header (Page header) -->
-				<div class="container-fluid">
-					<div class="row mb-2">
-						<div class="col-sm-12">
-                					<?php echo $splashmsgs ?>
-                			</div>
-					</div>
-				</div>
-				<!-- /.container-fluid -->
-			</div>          
-            <?php
-            }
-            ?>
+<body class="bg-[#0b0e14] text-white font-sans overflow-hidden"> <div class="flex h-screen w-full overflow-hidden">
+        
+        <aside id="sidebar" class="sidebar-transition fixed inset-y-0 left-0 z-50 bg-[#151a21] border-r border-white/5 flex flex-col shrink-0 w-64 -translate-x-full md:relative md:translate-x-0 md:w-64">
             
-            <?php echo isset($mainregion) ? $mainregion : '' ?>  
-            
+            <div class="h-20 flex items-center px-6 gap-3 border-b border-white/5 shrink-0">
+                <div class="w-8 h-8 bg-[#4d7cfe] rounded-lg shrink-0 shadow-lg shadow-blue-500/20"></div>
+                <span class="sidebar-text text-xl font-bold tracking-tight whitespace-nowrap">AdminJS</span>
             </div>
 
-		<footer class="main-footer">
-			<strong>Copyright &copy; 2014 - <?php echo date('Y') ?> <a href="#">PHP
-					Web Objects</a>.
-			</strong> All rights reserved.
-			<div class="float-right d-none d-sm-inline-block">
-				<b>Version</b> 1.0
-			</div>
-		</footer>
+            <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
+                <a href="#" class="flex items-center gap-3 p-3 bg-blue-600/10 text-[#4d7cfe] rounded-xl group">
+                    <i class='bx bxs-dashboard text-xl'></i>
+                    <span class="sidebar-text font-medium whitespace-nowrap">Dashboard</span>
+                </a>
+                
+                <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
+                    <i class='bx bx-chat text-xl'></i>
+                    <span class="sidebar-text font-medium whitespace-nowrap">Live Support</span>
+                </a>
 
-		<!-- Control Sidebar -->
-		<aside class="control-sidebar control-sidebar-dark">
-			<!-- Control sidebar content goes here -->
-		</aside>
-		<!-- /.control-sidebar -->
-	</div>
-	<!-- ./wrapper -->
+                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-widest">Management</div>
+                
+                <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
+                    <i class='bx bx-user text-xl'></i>
+                    <span class="sidebar-text font-medium whitespace-nowrap">Users</span>
+                </a>
+                
+                <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
+                    <i class='bx bx-cog text-xl'></i>
+                    <span class="sidebar-text font-medium whitespace-nowrap">Settings</span>
+                </a>
+            </nav>
 
-	<!-- jQuery -->
-	<script
-		src="<?php echo getUrl('assets/manage/plugins/jquery/jquery.min.js') ?>"></script>
-	<!-- jQuery UI 1.11.4 -->
-	<script
-		src="<?php echo getUrl('assets/manage/plugins/jquery-ui/jquery-ui.min.js') ?>"></script>
-	<!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
-	<script>
-            $.widget.bridge('uibutton', $.ui.button)
-        </script>
-	<!-- Bootstrap 4 -->
-	<script
-		src="<?php echo getUrl('assets/manage/plugins/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
-	<!-- ChartJS -->
-	<script
-		src="<?php echo getUrl('assets/manage/plugins/chart.js/Chart.min.js') ?>"></script>
-	<!-- Sparkline -->
-	<script
-		src="<?php echo getUrl('assets/manage/plugins/sparklines/sparkline.js') ?>"></script>
-	<!-- JQVMap -->
-	<script
-		src="<?php echo getUrl('assets/manage/plugins/jqvmap/jquery.vmap.min.js') ?>"></script>
-	<script
-		src="<?php echo getUrl('assets/manage/plugins/jqvmap/maps/jquery.vmap.usa.js') ?>"></script>
-	<!-- jQuery Knob Chart -->
-	<script
-		src="<?php echo getUrl('assets/manage/plugins/jquery-knob/jquery.knob.min.js') ?>"></script>
-	<!-- daterangepicker -->
-	<script
-		src="<?php echo getUrl('assets/manage/plugins/moment/moment.min.js') ?>"></script>
-	<script
-		src="<?php echo getUrl('assets/manage/plugins/daterangepicker/daterangepicker.js') ?>"></script>
-	<!-- Tempusdominus Bootstrap 4 -->
-	<script
-		src="<?php echo getUrl('assets/manage/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') ?>"></script>
-	<!-- overlayScrollbars -->
-	<script
-		src="<?php echo getUrl('assets/manage/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') ?>"></script>
-	<!-- AdminLTE App -->
-	<script src="<?php echo getUrl('assets/manage/js/adminlte.min.js') ?>"></script>
-	<script src="<?php echo getUrl('assets/manage/js/demo.js') ?>"></script>
-	<script
-		src="<?php echo getUrl('assets/manage/js/pages/dashboard.js') ?>"></script>
+            <div class="p-4 border-t border-white/5 bg-black/10">
+                <div class="flex items-center gap-3">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=4d7cfe&color=fff" class="w-9 h-9 rounded-full shrink-0 border border-white/10">
+                    <div class="sidebar-text overflow-hidden">
+                        <p class="text-sm font-medium truncate text-white">Rakesh S.</p>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-widest leading-none">Administrator</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col min-w-0 bg-[#0b0e14] relative h-full">
+            
+            <header class="h-20 border-b border-white/5 flex items-center justify-between px-4 md:px-8 bg-[#0b0e14]/80 backdrop-blur-xl sticky top-0 z-40 w-full">
+                <div class="flex items-center gap-4">
+                    <button id="sidebarToggle" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all cursor-pointer">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+                    <h1 class="text-lg font-semibold tracking-tight"><?php echo $pagename ?? 'Dashboard'; ?></h1>
+                </div>
+
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <div class="relative">
+                        <button id="settingsBtn" class="p-2 text-gray-400 hover:text-white transition-colors cursor-pointer">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </button>
+                        <div id="settingsDropdown" class="hidden absolute right-0 mt-3 w-52 bg-[#1c222d] border border-white/10 rounded-xl shadow-2xl py-2 z-50">
+                             <div class="px-4 py-2 border-b border-white/5"><p class="text-xs font-bold uppercase text-gray-500">Quick Settings</p></div>
+                             <a href="#" class="block px-4 py-2 text-sm text-gray-300 hover:bg-[#4d7cfe] hover:text-white transition-all">System Config</a>
+                             <a href="#" class="block px-4 py-2 text-sm text-gray-300 hover:bg-[#4d7cfe] hover:text-white transition-all">Theme Options</a>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <button id="notifButton" class="p-2 text-gray-400 hover:text-white transition-colors relative cursor-pointer">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                            <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0b0e14]"></span>
+                        </button>
+                        <div id="notifDropdown" class="hidden absolute right-0 mt-3 w-80 bg-[#1c222d] border border-white/10 rounded-xl shadow-2xl py-2 z-50">
+                            <div class="px-4 py-2 border-b border-white/5"><p class="text-xs font-bold uppercase text-gray-500">Notifications</p></div>
+                            <div class="p-4 text-center text-sm text-gray-500">No new alerts</div>
+                        </div>
+                    </div>
+
+                    <div class="h-8 w-[1px] bg-white/5 mx-1 sm:mx-2"></div>
+
+                    <div class="relative">
+                        <button id="avatarButton" class="flex items-center gap-3 cursor-pointer group">
+                            <div class="hidden md:block text-right mr-1">
+                                <p class="text-xs font-medium text-white group-hover:text-[#4d7cfe]">Rakesh S.</p>
+                                <p class="text-[10px] text-green-500">Online</p>
+                            </div>
+                            <img src="https://ui-avatars.com/api/?name=Admin" class="w-10 h-10 rounded-full border border-white/10 group-hover:border-[#4d7cfe]">
+                        </button>
+
+                        <div id="avatarDropdown" class="hidden absolute right-0 mt-3 w-52 bg-[#1c222d] border border-white/10 rounded-xl shadow-2xl py-2 z-50">
+                            <a href="#" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-[#4d7cfe] hover:text-white transition-all">
+                                <i class='bx bx-user-circle text-lg'></i> Edit Profile
+                            </a>
+                            <div class="my-1 border-t border-white/5"></div>
+                            <a href="/logout" class="flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-all">
+                                <i class='bx bx-log-out text-lg'></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar w-full">
+                <div class="w-full">
+                    <?php echo $mainregion; ?>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ELEMENTS
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        const sidebarTexts = document.querySelectorAll('.sidebar-text');
+        
+        const avatarButton = document.getElementById('avatarButton');
+        const avatarDropdown = document.getElementById('avatarDropdown');
+        const notifButton = document.getElementById('notifButton');
+        const notifDropdown = document.getElementById('notifDropdown');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsDropdown = document.getElementById('settingsDropdown');
+
+        // SIDEBAR TOGGLE
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (window.innerWidth >= 768) {
+                sidebar.classList.toggle('md:w-64');
+                sidebar.classList.toggle('md:w-20');
+                sidebarTexts.forEach(text => text.classList.toggle('md:hidden'));
+            } else {
+                sidebar.classList.toggle('-translate-x-full');
+            }
+        });
+
+        // DROPDOWN MANAGER
+        const allMenus = [avatarDropdown, notifDropdown, settingsDropdown];
+        const setupDropdown = (btn, menu) => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                allMenus.forEach(m => { if(m !== menu) m.classList.add('hidden'); });
+                menu.classList.toggle('hidden');
+            });
+        };
+
+        setupDropdown(avatarButton, avatarDropdown);
+        setupDropdown(notifButton, notifDropdown);
+        setupDropdown(settingsBtn, settingsDropdown);
+
+        // CLOSE ON CLICK OUTSIDE
+        document.addEventListener('click', (e) => {
+            allMenus.forEach(m => m.classList.add('hidden'));
+            if (window.innerWidth < 768 && !sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+    </script>
 </body>
 </html>

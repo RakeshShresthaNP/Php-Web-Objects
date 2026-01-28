@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/* Crucial: Point this to your PHP views folder */
+@source "../../app/views/**/*.php";
+
+@theme {
+  --color-admin-bg: #0b0e14;
+  --color-admin-side: #151a21;
+  --color-admin-card: #1c222d;
+  --color-admin-accent: #4d7cfe;
+}
+
+/* Your custom scrollbar code below */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #1c222d;
+    border-radius: 10px;
+}

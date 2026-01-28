@@ -48,9 +48,7 @@ try {
 } catch (Exception $e) {
     $data['message'] = $e->getMessage();
 
-    if ($request->isAjax() || $request->apimode) {
-        $data['layout'] = false;
-    }
+    $data['layout'] = false;
 
     writeLog('exception_' . date('Y_m_d'), $data);
 
