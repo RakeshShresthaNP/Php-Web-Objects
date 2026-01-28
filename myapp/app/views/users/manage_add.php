@@ -1,125 +1,90 @@
+<div class="w-full px-4 md:px-8 pb-10">
+    
+    <div class="mb-8 flex flex-col gap-1">
+        <nav class="flex items-center gap-2 text-[10px] uppercase font-bold tracking-[0.15em]">
+            <a href="<?php echo getUrl('manage/dashboard') ?>" class="text-gray-400 hover:text-[#4d7cfe] transition-colors">Admin</a>
+            
+            <svg class="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+            
+            <a href="<?php echo getUrl('manage/users') ?>" class="text-gray-400 hover:text-[#4d7cfe] transition-colors uppercase">Management</a>
+            
+            <svg class="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+            
+            <span class="text-white">Create Account</span>
+        </nav>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <h2 class="text-3xl font-black tracking-tight text-white">Add User</h2>
+            <a href="<?php echo getUrl('manage/users') ?>" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 text-sm font-bold rounded-xl transition-all active:scale-95 border border-white/5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to List
+            </a>
+        </div>
+    </div>
 
-<!-- Main content -->
-<section class="content">
-	<div class="container-fluid">
-		<div class="row">
-			<div class="col-12">
-				<div class="card">
-					<div class="card-header">
-						<h3 class="card-title">
-							<a href="<?php echo getUrl('manage/users') ?>">Users</a>
-						</h3>
-					</div>
-					<!-- /.card-header -->
-					<div class="card-body">
-                    	<?php if (!empty($_SESSION['flash_errors'])) { ?>
-                        <div class="alert alert-danger">
-                    	<ul>
-                        <?php
-                        foreach ($_SESSION['flash_errors'] as $field => $messages) {
-                            foreach ($messages as $msg) {
-                                ?>
-                                <li><strong><?php echo ucfirst($field); ?>:</strong> <?php echo $msg; ?></li>
-                        <?php                    
-                            }
-                        }
-                        ?>
-                        </ul>
-                    	</div>
-                        <?php 
-                        unset($_SESSION['flash_errors']);
-                        }
-                        ?>
+    <hr class="border-white/5 mb-10">
 
-						<form action="<?php echo getUrl('manage/users/add') ?>"
-							method="post" id="addprofile" name="addprofile"
-							enctype="multipart/form-data">
+    <div class="max-w-4xl mx-auto">
+        
+        <?php if (!empty($_SESSION['flash_errors'])): ?>
+            <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                <?php foreach($_SESSION['flash_errors'] as $field => $msgs): ?>
+                    <?php foreach($msgs as $m): ?>
+                        <div class="flex items-center gap-2">
+                            <span class="w-1 h-1 bg-red-400 rounded-full"></span>
+                            <?php echo $m; ?>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endforeach; unset($_SESSION['flash_errors']); ?>
+            </div>
+        <?php endif; ?>
 
-							<table width="1002" border="0">
-								<tr>
-									<td>Name</td>
-									<td><input type="text" id="realname" required="required"
-										name="realname"
-										value="<?php echo isset($user['realname']) ? $user['realname'] : '' ?>"></td>
-								</tr>
-								<tr>
-									<td>Home Path</td>
-									<td><input type="text" id="homepath" required="required"
-										value="<?php echo isset($user['homepath']) ? $user['homepath'] : '' ?>"
-										name="homepath"></td>
-								</tr>
-								<tr>
-									<td>Email</td>
-									<td><input type="email" id="email" autocomplete="off"
-										value="<?php echo isset($user['email']) ? $user['email'] : '' ?>"
-										required="required" name="email"> <span id="handle_status"> </span></td>
-								</tr>
-								<tr>
-									<td>Password</td>
-									<td><input type="password" id="password" value=""
-										name="password" autocomplete="off"
-										pattern="(?=^.{6,46}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$">
-										<br> <span id="pass_chek1"></span>
-										<div
-											style="color: grey; font-size: 12px; line-height: 16px; margin-left: 10px; margin-top: 3px; width: 329px;">Password
-											must be 6 characters including one uppercase letter and
-											number.</div></td>
-								</tr>
-								<tr>
-									<td>Confirm Password</td>
-									<td><input type="password" id="confirm_password" value=""
-										name="confirm_password"> <span id="pass_chek"></span></td>
-								</tr>
-								<tr>
-									<td>&nbsp;</td>
-									<td><input type="submit" value="Add" id="submit" class=""
-										name="submit" style="margin-left: 10px;"></td>
-								</tr>
-							</table>
-					
-					</div>
-					<!-- /.card-body -->
-				</div>
-				<!-- /.card -->
+        <div class="bg-[#151a21] border border-white/5 rounded-2xl shadow-2xl overflow-hidden">
+            <form action="<?php echo getUrl('manage/users/add') ?>" method="post" id="addprofile" class="p-8 space-y-8">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-2">
+                        <label class="text-[10px] uppercase font-bold text-gray-500 tracking-widest pl-1">Full Name</label>
+                        <input type="text" name="realname" required placeholder="e.g. John Doe" value="<?php echo $user['realname'] ?? '' ?>" 
+                               class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-4 py-4 text-sm text-white focus:border-[#4d7cfe] outline-none transition-all">
+                    </div>
 
-			</div>
-			<!-- /.col -->
-		</div>
-		<!-- /.row -->
-	</div>
-	<!-- /.container-fluid -->
-</section>
-<!-- /.content -->
+                    <div class="space-y-2">
+                        <label class="text-[10px] uppercase font-bold text-gray-500 tracking-widest pl-1">Home Path</label>
+                        <input type="text" name="homepath" required placeholder="/home/user" value="<?php echo $user['homepath'] ?? '' ?>" 
+                               class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-4 py-4 text-sm text-white focus:border-[#4d7cfe] outline-none transition-all">
+                    </div>
 
-<script type="text/javascript">
-    $(document).ready(function () {
-        $("#addprofile").submit(function (event) {
-            var pass1 = document.getElementById("password").value;
-            var pass2 = document.getElementById("confirm_password").value;
+                    <div class="md:col-span-2 space-y-2">
+                        <label class="text-[10px] uppercase font-bold text-gray-500 tracking-widest pl-1">Email Address (Username)</label>
+                        <input type="email" name="email" required placeholder="email@example.com" value="<?php echo $user['email'] ?? '' ?>" 
+                               class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-4 py-4 text-sm text-white focus:border-[#4d7cfe] outline-none transition-all">
+                    </div>
 
-            if (pass1 != pass2) {
-                $('#pass_chek').html('Password Not Match');
-                $('#iserror2').val(1);
-            } else {
-                $('#pass_chek').html('');
-                $('#iserror2').val(0);
-            }
+                    <div class="space-y-2">
+                        <label class="text-[10px] uppercase font-bold text-gray-500 tracking-widest pl-1">Password</label>
+                        <input type="password" name="password" required placeholder="••••••••" 
+                               class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-4 py-4 text-sm text-white focus:border-[#4d7cfe] outline-none transition-all">
+                    </div>
 
-            if (pass1.length < 6) {
-                $('#pass_chek').html('Password must be minimum 6 characters');
-                passerror = 1;
-            } else {
-                $('#pass_chek').html('');
-                passerror = 0;
-            }
+                    <div class="space-y-2">
+                        <label class="text-[10px] uppercase font-bold text-gray-500 tracking-widest pl-1">Confirm Password</label>
+                        <input type="password" id="confirm_password" required placeholder="••••••••" 
+                               class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-4 py-4 text-sm text-white focus:border-[#4d7cfe] outline-none transition-all">
+                    </div>
+                </div>
 
-            if ($('#iserror1').val() == 1 || $('#iserror2').val() == 1) {
-                event.preventDefault();
-            } else {
-                return;
-            }
-
-        });
-
-    });
-</script>
+                <div class="pt-8 border-t border-white/5 flex justify-end">
+                    <button type="submit" name="submit" class="w-full md:w-auto px-12 py-4 bg-[#4d7cfe] hover:bg-blue-600 text-white font-extrabold rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95">
+                        Create User Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

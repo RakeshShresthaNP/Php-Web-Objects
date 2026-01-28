@@ -28,24 +28,58 @@
             <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
                 <a href="#" class="flex items-center gap-3 p-3 bg-blue-600/10 text-[#4d7cfe] rounded-xl group">
                     <i class='bx bxs-dashboard text-xl'></i>
-                    <span class="sidebar-text font-medium whitespace-nowrap">Dashboard</span>
+                    <span class="sidebar-text font-bold whitespace-nowrap">Dashboard</span>
+                </a>
+            
+                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">Operations</div>
+                
+                <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
+                    <i class='bx bx-transfer-alt text-xl'></i>
+                    <span class="sidebar-text font-medium whitespace-nowrap">Transactions</span>
                 </a>
                 
                 <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
-                    <i class='bx bx-chat text-xl'></i>
+                    <i class='bx bx-user-voice text-xl'></i>
                     <span class="sidebar-text font-medium whitespace-nowrap">Live Support</span>
                 </a>
-
-                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-widest">Management</div>
+            
+                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">Treasury</div>
+            
+                <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
+                    <i class='bx bx-trending-up text-xl'></i>
+                    <span class="sidebar-text font-medium whitespace-nowrap">FX Rate Setup</span>
+                </a>
+            
+                <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
+                    <i class='bx bx-wallet text-xl'></i>
+                    <span class="sidebar-text font-medium whitespace-nowrap">Settlements</span>
+                </a>
+            
+                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">Compliance</div>
+            
+                <a href="#" class="flex items-center justify-between p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all group">
+                    <div class="flex items-center gap-3">
+                        <i class='bx bx-shield-quarter text-xl'></i>
+                        <span class="sidebar-text font-medium whitespace-nowrap">KYC Queue</span>
+                    </div>
+                    <span class="sidebar-text bg-red-500 text-[10px] text-white px-2 py-0.5 rounded-full font-bold">3</span>
+                </a>
+            
+                <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
+                    <i class='bx bx-error-alt text-xl'></i>
+                    <span class="sidebar-text font-medium whitespace-nowrap">AML Alerts</span>
+                </a>
+            
+                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">Management</div>
                 
                 <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
-                    <i class='bx bx-user text-xl'></i>
-                    <span class="sidebar-text font-medium whitespace-nowrap">Users</span>
+                    <i class='bx bx-group text-xl'></i>
+                    <span class="sidebar-text font-medium whitespace-nowrap">Admin Users</span>
                 </a>
                 
                 <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
                     <i class='bx bx-cog text-xl'></i>
-                    <span class="sidebar-text font-medium whitespace-nowrap">Settings</span>
+                    <span class="sidebar-text font-medium whitespace-nowrap">System Settings</span>
                 </a>
             </nav>
 

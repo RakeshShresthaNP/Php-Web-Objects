@@ -108,41 +108,65 @@ function links(object $meta): string
 {
     if ($meta->total_pages <= 1)
         return '';
-
-    $html = '<nav aria-label="Page navigation"><ul class="pagination">';
-
-    // 1. Get current URL parameters
-    $params = $_GET;
-
-    // 2. Ensure 'perpage' is explicitly set in the parameters from meta
-    $params['perpage'] = $meta->per_page;
-
-    // --- Previous Button ---
-    $prevClass = ($meta->current_page <= 1) ? 'disabled' : '';
-    $params['page'] = max(1, $meta->current_page - 1);
-    $prevUrl = '?' . http_build_query($params);
-    $html .= "<li class='page-item {$prevClass}'><a class='page-link' href='{$prevUrl}'>Previous</a></li>";
-
-    // --- Page Numbers ---
-    for ($i = 1; $i <= $meta->total_pages; $i ++) {
-        $activeClass = ($i === $meta->current_page) ? 'active' : '';
-
-        // Update current page for the loop
-        $params['page'] = $i;
-        $url = '?' . http_build_query($params);
-
-        $html .= "<li class='page-item {$activeClass}'><a class='page-link' href='{$url}'>{$i}</a></li>";
-    }
-
-    // --- Next Button ---
-    $nextClass = ($meta->current_page >= $meta->total_pages) ? 'disabled' : '';
-    $params['page'] = min($meta->total_pages, $meta->current_page + 1);
-    $nextUrl = '?' . http_build_query($params);
-    $html .= "<li class='page-item {$nextClass}'><a class='page-link' href='{$nextUrl}'>Next</a></li>";
-
-    $html .= '</ul></nav>';
-
-    return $html;
+        
+        // Container matching your dark theme
+        $html = '<nav aria-label="Pagination" class="flex items-center gap-2">';
+        
+        // 1. Get current URL parameters
+        $params = $_GET;
+        
+        // 2. Explicitly set perpage
+        $params['perpage'] = $meta->per_page;
+        
+        // --- Previous Button ---
+        $isFirst = ($meta->current_page <= 1);
+        $params['page'] = max(1, $meta->current_page - 1);
+        $prevUrl = '?' . http_build_query($params);
+        
+        $prevClass = $isFirst
+        ? 'opacity-20 cursor-not-allowed pointer-events-none'
+            : 'hover:bg-white/10 hover:text-white border-white/10';
+            
+            $html .= "<a href='{$prevUrl}' class='flex items-center justify-center w-10 h-10 rounded-xl border text-gray-400 transition-all {$prevClass}'>
+                <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 19l-7-7 7-7'></path>
+                </svg>
+              </a>";
+            
+            // --- Page Numbers ---
+            for ($i = 1; $i <= $meta->total_pages; $i++) {
+                $isActive = ($i === $meta->current_page);
+                
+                $params['page'] = $i;
+                $url = '?' . http_build_query($params);
+                
+                if ($isActive) {
+                    // Active page: Your brand blue
+                    $html .= "<span class='flex items-center justify-center w-10 h-10 rounded-xl bg-[#4d7cfe] text-white font-bold shadow-lg shadow-blue-500/30'>{$i}</span>";
+                } else {
+                    // Inactive page: Subtle border
+                    $html .= "<a href='{$url}' class='flex items-center justify-center w-10 h-10 rounded-xl border border-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all font-medium'>{$i}</a>";
+                }
+            }
+            
+            // --- Next Button ---
+            $isLast = ($meta->current_page >= $meta->total_pages);
+            $params['page'] = min($meta->total_pages, $meta->current_page + 1);
+            $nextUrl = '?' . http_build_query($params);
+            
+            $nextClass = $isLast
+            ? 'opacity-20 cursor-not-allowed pointer-events-none'
+                : 'hover:bg-white/10 hover:text-white border-white/10';
+                
+                $html .= "<a href='{$nextUrl}' class='flex items-center justify-center w-10 h-10 rounded-xl border text-gray-400 transition-all {$nextClass}'>
+                <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 5l7 7-7 7'></path>
+                </svg>
+              </a>";
+                
+                $html .= '</nav>';
+                
+                return $html;
 }
 
 function base64_jwt_encode(string $text): string
