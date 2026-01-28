@@ -29,6 +29,35 @@ export const PWO_STYLES = `
         gap: 8px;
     }
 
+	.pwo-welcome-card {
+	    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+	    color: white;
+	    padding: 24px 20px;
+	    border-radius: 24px;
+	    margin: 10px 0 20px 0;
+	    text-align: center;
+	    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.3);
+	    animation: welcomeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	.pwo-welcome-icon {
+	    width: 50px;
+	    height: 50px;
+	    background: rgba(255, 255, 255, 0.2);
+	    backdrop-filter: blur(5px);
+	    border-radius: 50%;
+	    display: flex;
+	    align-items: center;
+	    justify-content: center;
+	    margin: 0 auto 12px;
+	    font-size: 24px;
+	}
+
+	@keyframes welcomeSlideUp {
+	    from { opacity: 0; transform: translateY(20px); }
+	    to { opacity: 1; transform: translateY(0); }
+	}
+	
     .pwo-msg-container { position: relative !important; overflow: visible !important; }
 
     .pwo-delete-btn {

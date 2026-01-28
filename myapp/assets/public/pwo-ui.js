@@ -262,11 +262,22 @@ export function render(data, isNew = true, isTemp = false) {
     if (msgId) div.setAttribute('data-msg-id', msgId);
 
     if (isSystem) {
-        div.className = "flex justify-center my-6 px-4 w-full";
-        div.innerHTML = `
-            <div class="bg-gray-100 text-gray-500 text-[11px] font-semibold uppercase tracking-widest py-1.5 px-4 rounded-full border border-gray-200">
-                ${data.message}
-            </div>`;
+		div.className = "px-4 w-full";
+		    div.innerHTML = `
+		        <div class="pwo-welcome-card">
+		            <div class="pwo-welcome-icon">👋</div>
+		            <h2 class="text-lg font-bold mb-1">Welcome to Support!</h2>
+		            <p class="text-emerald-50 text-xs leading-relaxed opacity-90">
+		                ${data.message || "How can we help you today? Feel free to ask a question or upload a file."}
+		            </p>
+		            <div class="mt-4 flex justify-center gap-2">
+		                <span class="bg-white/10 px-3 py-1 rounded-full text-[10px] font-medium border border-white/20">Fast Response</span>
+		                <span class="bg-white/10 px-3 py-1 rounded-full text-[10px] font-medium border border-white/20">24/7 Support</span>
+		            </div>
+		        </div>
+		    `;
+		    chatBox.appendChild(div);
+		    return; // Stop here for welcome messages
     } else {
         // Time formatting
         const dateObj = data.d_created ? new Date(data.d_created) : new Date();
