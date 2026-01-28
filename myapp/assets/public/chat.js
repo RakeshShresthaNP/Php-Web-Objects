@@ -11,24 +11,44 @@ import { ChatSearch } from './pwo-search.js';
 
 // --- 1. ASYNC DEPENDENCY LOADING ---
 async function loadDependencies() {
-    const scripts = [
-        { id: 'tw-script', src: 'assets/public/tailwind.js' },
+    const assets = [
+        { id: 'tw-style', src: 'assets/public/tailwind.css' },
         { id: 'dexie-script', src: 'assets/public/dexie.js' }
     ];
 
-    const load = (s) => new Promise((resolve) => {
-        if (document.getElementById(s.id)) return resolve();
-        const script = document.createElement('script');
-        script.id = s.id;
-        script.src = s.src;
-        script.onload = resolve;
-        document.head.appendChild(script);
+    const load = (a) => new Promise((resolve) => {
+        if (document.getElementById(a.id)) return resolve();
+        
+        const isCSS = a.src.endsWith('.css');
+        const el = document.createElement(isCSS ? 'link' : 'script');
+        el.id = a.id;
+
+        if (isCSS) {
+            el.rel = 'stylesheet';
+            el.href = a.src;
+        } else {
+            el.src = a.src;
+        }
+
+        el.onload = resolve;
+        el.onerror = () => {
+            console.warn(`Support System: ${a.src} failed to load.`);
+            resolve(); // Still resolve so the UI attempts to render
+        };
+        
+        document.head.appendChild(el);
+        
+        // Timeout backup: 5 seconds
+        setTimeout(resolve, 5000);
     });
 
-    await Promise.all(scripts.map(load));
+    await Promise.all(assets.map(load));
+    document.body.style.opacity = "1"; // Ensure body is visible
 }
 
+// Usage
 await loadDependencies();
+console.log("CSS and JS are both loaded!");
 
 // 1. Initialize Global Database
 window.db = new Dexie("PWOChatDB");
