@@ -39,7 +39,6 @@ window.addEventListener('pwo_open_image', (e) => {
 });
 
 // Close Image Lightbox Logic
-
 window.addEventListener('pwo_open_video', (e) => {
     // 1. Pause every video in the chat bubbles
     document.querySelectorAll('video').forEach(v => {
@@ -281,20 +280,19 @@ export function render(data, isNew = true, isTemp = false) {
                 <span class="text-[10px] font-bold text-white uppercase">AI</span>
             </div>` : '';
 
-        div.innerHTML = `
-            ${avatarHTML}
-            <div class="relative" style="width: fit-content; max-width: 85%; min-width: 100px;">
-                <div class="${isMe ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} p-3 shadow-sm"
-                     style="position: relative; overflow: visible !important;">
-                    ${deleteBtn}
-                    ${contentHTML}
-                    <div class="flex items-center justify-end gap-1 mt-1 text-[10px] ${isMe ? 'text-emerald-100' : 'text-gray-400'}">
-                        <span>${msgTime}</span>
-                        ${isMe ? `<span class="msg-status font-bold">${data.is_read ? '✓✓' : '✓'}</span>` : ''}
-                    </div>
-                </div>
-            </div>`;
-    }
+			div.innerHTML = `
+			    ${avatarHTML}
+			    <div class="pwo-msg-container" style="width: fit-content; max-width: 85%; min-width: 100px;">
+			        ${deleteBtn}
+			        <div class="${isMe ? 'bg-emerald-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-none'} p-3 shadow-sm">
+			            ${contentHTML}
+			            <div class="flex items-center justify-end gap-1 mt-1 text-[10px] ${isMe ? 'text-emerald-100' : 'text-gray-400'}">
+			                <span>${msgTime}</span>
+			                ${isMe ? `<span class="msg-status font-bold">${data.is_read ? '✓✓' : '✓'}</span>` : ''}
+			            </div>
+			        </div>
+			    </div>`;
+		}
 
     // Append to Chat Box
     chatBox.appendChild(div);
@@ -320,3 +318,25 @@ export function render(data, isNew = true, isTemp = false) {
 	}
 }
 
+(function initGlobalScroll() {
+    const chatBox = document.getElementById('chat-box');
+    const scrollBadge = document.getElementById('pwo-scroll-bottom');
+
+    if (!chatBox || !scrollBadge) return;
+
+    // Handle clicking the badge to scroll to bottom
+    scrollBadge.addEventListener('click', () => {
+        chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+        scrollBadge.classList.add('hidden');
+    });
+
+    // Handle hiding the badge when the user scrolls down manually
+    chatBox.addEventListener('scroll', () => {
+        const threshold = 100; 
+        const isAtBottom = (chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight) < threshold;
+        
+        if (isAtBottom) {
+            scrollBadge.classList.add('hidden');
+        }
+    });
+})();

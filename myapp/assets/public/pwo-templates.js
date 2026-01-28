@@ -7,6 +7,15 @@ export const PWO_STYLES = `
 <style>
     #pwo-window { z-index: 9999; display: none; }
     #pwo-bubble { z-index: 9999; }
+    
+    /* SCROLL BADGE */
+    #pwo-scroll-bottom {
+        position: absolute !important;
+        bottom: 80px !important;
+        right: 20px !important;
+        z-index: 50 !important;
+        transition: opacity 0.3s ease;
+    }
 
     #chat-box {
         overflow-y: auto !important; 
@@ -20,52 +29,53 @@ export const PWO_STYLES = `
         gap: 8px;
     }
 
-    #chat-box::-webkit-scrollbar { width: 6px !important; }
-    #chat-box::-webkit-scrollbar-thumb { 
-        background: #cbd5e1 !important; 
-        border-radius: 10px; 
-    }
+    .pwo-msg-container { position: relative !important; overflow: visible !important; }
 
-    .pwo-msg-row { display: flex; width: 100%; margin-bottom: 12px; }
-    .justify-end { justify-content: flex-end !important; }
-    .justify-start { justify-content: flex-start !important; }
-    .msg-body { word-break: break-word; white-space: pre-wrap; font-size: 0.875rem; }
-
-    /* FILE PREVIEW CLEAR BUTTON */
-    #pwo-clear {
-        display: flex !important;
-        align-items: center; justify-content: center;
-        width: 30px !important; height: 30px !important;
-        background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%) !important;
-        color: white !important; border-radius: 50% !important;
-        box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4) !important;
-    }
-
-    /* DELETE MESSAGE BUTTON */
     .pwo-delete-btn {
-        position: absolute !important; top: -10px !important; right: -10px !important;
-        width: 24px !important; height: 24px !important;
-        background: #ef4444 !important; color: white !important;
-        border-radius: 9999px !important; border: 2px solid white !important;
-        display: flex !important; align-items: center !important; justify-content: center !important;
-        z-index: 50 !important; opacity: 0 !important; visibility: hidden;
-        transition: all 0.2s ease-in-out;
+        position: absolute !important;
+        top: -8px !important;
+        right: -8px !important;
+        width: 24px !important;
+        height: 24px !important;
+        background: #ef4444 !important;
+        color: white !important;
+        border-radius: 9999px !important;
+        border: 2px solid white !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 60 !important;
+        
+        /* Hidden by default */
+        opacity: 0;
+        visibility: hidden;
+        transform: scale(0.8);
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    .relative.group:hover .pwo-delete-btn { opacity: 1 !important; visibility: visible !important; }
 
-    /* SEARCH HIGHLIGHTING */
-    .search-mark { 
-        background-color: #fde047 !important; 
-        color: #000000 !important; 
-        font-weight: bold !important; 
+    /* Show when hovering over the relative container */
+    .pwo-msg-container:hover .pwo-delete-btn {
+        opacity: 1;
+        visibility: visible;
+        transform: scale(1);
     }
 
-    /* ANIMATIONS */
-    @keyframes violetPulse {
-        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
-        70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(139, 92, 246, 0); }
-        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+    .pwo-delete-btn:hover {
+        background: #dc2626 !important;
+        transform: scale(1.15) !important;
     }
+
+    /* SEARCH NAV & HIGHLIGHTS */
+    #pwo-search-nav {
+        display: flex; gap: 8px; align-items: center; justify-content: center;
+        padding: 10px; background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(4px); border-bottom: 1px solid #e2e8f0;
+    }
+    .search-mark { background-color: #fde047 !important; color: #000000 !important; font-weight: bold !important; }
+
+    /* SCROLLBARS */
+    #chat-box::-webkit-scrollbar { width: 6px !important; }
+    #chat-box::-webkit-scrollbar-thumb { background: #cbd5e1 !important; border-radius: 10px; }
 </style>
 `;
 
