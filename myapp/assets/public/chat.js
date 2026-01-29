@@ -133,6 +133,7 @@ function startLogic() {
 	};
 
 	render(WELCOME_DATA, false);
+	
     const emojiBtn = document.getElementById('pwo-emoji-btn');
     
     if (emojiBtn) {
@@ -183,6 +184,8 @@ const sendBtn = document.getElementById('chat-send');
 // --- 4. AUTHENTICATION ---
 if (!Auth.isAuthenticated()) {
     document.getElementById('pwo-auth-overlay').classList.remove('hidden');
+	document.getElementById('sendmessage').classList.add('hidden');
+	document.getElementById('searchcommand').classList.add('hidden');
 }
 
 document.getElementById('pwo-do-login').addEventListener('click', async () => {
@@ -201,34 +204,36 @@ document.getElementById('pwo-do-login').addEventListener('click', async () => {
 
 document.getElementById('pwo-logout').addEventListener('click', () => {
     Auth.logout();
-    Auth.forceLogin();
+    location.href = '?logoutdone=success';
 });
 
 // --- 5. UI EVENT BINDINGS ---
 
 // Toggle Window
 bubble.addEventListener('click', () => {
-    // Check if currently hidden
     const isHidden = win.style.display === 'none' || win.style.display === '';
     win.style.display = isHidden ? 'flex' : 'none';
 	
-	if (Notification.permission === "default") {
-		Notification.requestPermission();
+	const token = Auth.getToken();
+	
+	if (token) {
+		if (Notification.permission === "default") {
+			Notification.requestPermission();
+		}
+			
+	    if (isHidden) {
+	        startLogic();
+			loadLocalHistory(); 
+			       
+	        if (Auth.isAuthenticated()) {
+	            if (!state.isSocketStarted) { 
+	                ws.connect(); 
+	                state.isSocketStarted = true; 
+	            }
+	            ws.call('chat', 'markread', { target_user_id: 0, token: Auth.getToken() }, getAuthHeaders());
+	        }
+	    }
 	}
-		
-    if (isHidden) {
-        // This starts all your Task 2 & 3 logic once correctly
-        startLogic();
-		loadLocalHistory(); 
-		       
-        if (Auth.isAuthenticated()) {
-            if (!state.isSocketStarted) { 
-                ws.connect(); 
-                state.isSocketStarted = true; 
-            }
-            ws.call('chat', 'markread', { target_user_id: 0, token: Auth.getToken() }, getAuthHeaders());
-        }
-    }
 });
 
 const queryString = window.location.search;

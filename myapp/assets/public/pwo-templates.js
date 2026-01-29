@@ -126,7 +126,7 @@ export const PWO_HTML = `
                 <p id="pwo-status" class="text-[10px] opacity-80">Connecting...</p>
             </div>
         </div>
-        <div class="flex gap-1 items-center">
+        <div id="searchcommand" class="flex gap-1 items-center">
 			<div id="search-nav" class="hidden absolute top-14 left-0 right-0 mx-4 p-2 bg-white/95 backdrop-blur shadow-lg border rounded-xl items-center gap-3 z-50">
 			    <div class="flex-1 px-2 border-r text-sm text-gray-600 truncate">Searching...</div>
 			    <span id="search-count" class="text-xs font-mono bg-gray-100 px-2 py-1 rounded">0/0</span>
@@ -186,7 +186,7 @@ export const PWO_HTML = `
 	    </button>
 	</div>
 				
-    <div class="p-3 bg-white border-t relative">
+    <div id="sendmessage" class="p-3 bg-white border-t relative">
         <div id="pwo-emoji-picker" class="hidden absolute bottom-full left-4 mb-2 bg-white border rounded-lg shadow-xl p-2 grid grid-cols-6 gap-2 z-[10000] w-48">
             <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">😀</span>
             <span class="cursor-pointer hover:bg-gray-100 p-1 rounded text-center">😂</span>
@@ -226,7 +226,7 @@ export const PWO_HTML = `
 		</div>
 	</div>
 
-    <div id="pwo-auth-overlay" class="absolute inset-0 bg-white/95 z-[100] hidden flex flex-col items-center justify-center p-8 text-center">
+    <div id="pwo-auth-overlay" class="absolute inset-0 z-[100] hidden flex flex-col items-center justify-center p-8 text-center">
         <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
         </div>
