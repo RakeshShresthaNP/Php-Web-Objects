@@ -50,7 +50,7 @@
                     <span class="sidebar-text font-medium whitespace-nowrap">Transactions</span>
                 </a>
                 
-                <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
+                <a href="<?php echo getUrl('manage/supportsystem'); ?>" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
                     <i class='bx bx-user-voice text-xl'></i>
                     <span class="sidebar-text font-medium whitespace-nowrap">Live Support</span>
                 </a>
@@ -84,9 +84,9 @@
             
                 <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">Management</div>
                 
-                <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
+                <a href="<?php echo getUrl('manage/users'); ?>" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
                     <i class='bx bx-group text-xl'></i>
-                    <span class="sidebar-text font-medium whitespace-nowrap">Admin Users</span>
+                    <span class="sidebar-text font-medium whitespace-nowrap">Users</span>
                 </a>
                 
                 <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">

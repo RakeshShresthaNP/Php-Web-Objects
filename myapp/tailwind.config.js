@@ -2,10 +2,6 @@
 module.exports = {
   // Point this to every file that contains Tailwind classes
   content: [
-    "./app/views/**/*.php",      // All PHP views
-    "./app/views/layouts/*.php", // Layout files
-    "./public/js/**/*.js",       // Admin & User JS files
-    "./assets/manage/*.js"           // Dashboard assets
   ],
   theme: {
     extend: {

@@ -3,6 +3,10 @@
 Thumbs.db
 desktop.ini
 
+/myapp/public/assets/uploads
+myapp/assets/manage/src.css
+/myapp/node_modules
+
 .myapp/node_modules
 .myapp/package-lock.json
 .myapp/assets/manage/src.css
