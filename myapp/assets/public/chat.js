@@ -193,7 +193,7 @@ document.getElementById('pwo-do-login').addEventListener('click', async () => {
     if (result.success) {
         const id = result.id || result.user_id || result.data?.id;
         if (id) localStorage.setItem('pwoUserId', id.toString());
-        location.reload(); 
+        location.href = '?logindone=success'; 
     } else {
         alert(result.error || "Login Failed");
     }
@@ -201,7 +201,7 @@ document.getElementById('pwo-do-login').addEventListener('click', async () => {
 
 document.getElementById('pwo-logout').addEventListener('click', () => {
     Auth.logout();
-    location.reload();
+    Auth.forceLogin();
 });
 
 // --- 5. UI EVENT BINDINGS ---
@@ -230,6 +230,12 @@ bubble.addEventListener('click', () => {
         }
     }
 });
+
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
+const loginStatus = urlParams.get('logindone');
+
+if (loginStatus == 'success') bubble.click();
 
 // Message Input Logic (Merged)
 textarea.addEventListener('keydown', (e) => {

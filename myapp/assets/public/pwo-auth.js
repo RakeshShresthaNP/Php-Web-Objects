@@ -54,6 +54,5 @@ export const Auth = {
     // Handle logout
     logout() {
         localStorage.clear();
-        location.reload();
     }
 };

@@ -32,10 +32,8 @@ window.addEventListener('pwo_open_image', (e) => {
     const dl = document.getElementById('pwo-lightbox-download');
     
     if (lightbox) {
-		
-		const imageUrl = e.detail;
         img.src = fileUrl;
-        dl.href = fileUrl; // Set the download URL
+        dl.href = fileUrl;
         
         lightbox.classList.remove('hidden');
     }
