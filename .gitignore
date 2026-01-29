@@ -1,32 +1,4 @@
 # --- System Files ---
-.DS_Store
-Thumbs.db
-desktop.ini
-
 /myapp/public/assets/uploads
 myapp/assets/manage/src.css
 /myapp/node_modules
-
-.myapp/node_modules
-.myapp/package-lock.json
-.myapp/assets/manage/src.css
-
-# --- IDEs and Editors ---
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# --- Environment Secrets (CRITICAL) ---
-.env
-.env.local
-.env.*.local
-*.pem
-*.key
-
-# --- Logs and Runtime ---
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
