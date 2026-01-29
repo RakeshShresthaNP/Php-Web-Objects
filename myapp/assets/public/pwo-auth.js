@@ -19,6 +19,7 @@ export const Auth = {
 	        overlay.classList.remove('hidden');
 	        overlay.classList.add('flex');
 	    }
+		location.href = '?logindone=logeinrequired&msg=tokenexpired'
 	},
 	
     // Get auth token

@@ -239,8 +239,13 @@ bubble.addEventListener('click', () => {
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 const loginStatus = urlParams.get('logindone');
+const msg = urlParams.get('msg');
 
-if (loginStatus == 'success') bubble.click();
+if (loginStatus) bubble.click();
+
+if (msg) {
+	document.getElementById('msg').innerHTML = 'Your token expired. <br> Login to Chat';
+}
 
 // Message Input Logic (Merged)
 textarea.addEventListener('keydown', (e) => {

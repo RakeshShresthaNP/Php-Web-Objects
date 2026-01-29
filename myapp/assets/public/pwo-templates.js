@@ -230,7 +230,7 @@ export const PWO_HTML = `
         <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
         </div>
-        <h4 class="text-lg font-bold text-gray-800 mb-2">Login to Chat</h4>
+        <h4 id="msg" class="text-lg font-bold text-gray-800 mb-2">Login to Chat</h4>
         <input type="text" id="pwo-user" placeholder="Username" class="w-full p-2 mb-2 border rounded-lg text-sm">
         <input type="password" id="pwo-pass" placeholder="Password" class="w-full p-2 mb-4 border rounded-lg text-sm">
         <button id="pwo-do-login" class="w-full py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700">Continue</button>
