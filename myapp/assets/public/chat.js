@@ -4,7 +4,7 @@ import { render } from './pwo-ui.js';
 import { 
     handleSend, handleFile, handleMic, 
     initDeleteHandler, initSearchHandler, processOfflineQueue,
-    initAutoExpand, initDragAndDrop, initEmojiPicker, initExportHandler, initLightboxHandler
+    initAutoExpand, initDragAndDrop, initEmojiPicker, initExportHandler
 } from './pwo-logic.js';
 import { Auth } from './pwo-auth.js';
 import { ChatSearch } from './pwo-search.js';
@@ -80,21 +80,6 @@ async function loadLocalHistory() {
 document.head.insertAdjacentHTML('beforeend', PWO_STYLES);
 document.body.insertAdjacentHTML('beforeend', PWO_HTML);
 
-const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
-};
-
-const WELCOME_DATA = { 
-    message: `${getGreeting()}! How can we help you today?`, 
-    is_me: false, 
-    system: true 
-};
-
-render(WELCOME_DATA, false);
-
 // --- 3. STATE & SOCKET SETUP ---
 const state = {
     isReadingFile: false,
@@ -133,6 +118,21 @@ window.addEventListener('click', () => {
 });
 
 function startLogic() {
+
+	const getGreeting = () => {
+	    const hour = new Date().getHours();
+	    if (hour < 12) return "Good morning";
+	    if (hour < 18) return "Good afternoon";
+	    return "Good evening";
+	};
+
+	const WELCOME_DATA = { 
+	    message: `${getGreeting()}! How can we help you today?`, 
+	    is_me: false, 
+	    system: true 
+	};
+
+	render(WELCOME_DATA, false);
     const emojiBtn = document.getElementById('pwo-emoji-btn');
     
     if (emojiBtn) {
@@ -142,7 +142,6 @@ function startLogic() {
         initExportHandler();
         initAutoExpand();
         initDragAndDrop(state); // Now 'state' is safe to use
-		initLightboxHandler();
         
         initDeleteHandler(ws);  // Now 'ws' is safe to use
         initSearchHandler();
@@ -173,44 +172,6 @@ function startLogic() {
 	    if (input) input.value = '';
 	    searchMgr.perform(''); // Resets and hides UI
 	});	
-	window.addEventListener('pwo_open_image', (e) => {
-	    const lightbox = document.getElementById('pwo-lightbox');
-	    const lightboxImg = document.getElementById('pwo-lightbox-img');
-	    const downloadLink = document.getElementById('pwo-lightbox-download');
-	    
-	    if (lightbox && lightboxImg && downloadLink) {
-	        const imageUrl = e.detail;
-	        lightboxImg.src = imageUrl;
-	        downloadLink.href = imageUrl; // Set the download URL
-	        
-	        lightbox.classList.remove('hidden');
-	        lightbox.style.display = 'flex';
-	    }
-	});
-
-	// Close button logic specifically
-	document.getElementById('pwo-lightbox-close').onclick = () => {
-	    document.getElementById('pwo-lightbox').classList.add('hidden');
-	    document.getElementById('pwo-lightbox').style.display = 'none';
-	};
-	
-	const lightbox = document.getElementById('pwo-lightbox');
-	const downloadBtn = document.getElementById('pwo-lightbox-download');
-
-	if (lightbox && downloadBtn) {
-	    lightbox.addEventListener('click', (e) => {
-	        // Only close if clicking the dark background or the close 'X' button
-	        if (e.target === lightbox || e.target.closest('#pwo-lightbox-close')) {
-	            lightbox.classList.add('hidden');
-	            lightbox.style.display = 'none';
-	        }
-	    });
-
-	    downloadBtn.addEventListener('click', (e) => {
-	        // This stops the click from "bubbling" up to the lightbox background
-	        e.stopPropagation(); 
-	    });
-	}	
 }
 
 // UI References

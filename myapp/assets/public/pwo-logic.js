@@ -385,27 +385,3 @@ export async function initExportHandler() {
     };
 }
 
-// Add this to pwo-logic.js
-export function initLightboxHandler() {
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            const lightbox = document.getElementById('pwo-lightbox');
-            
-            if (lightbox) {
-                // 1. Force the style to none to override the inline "display: flex"
-                lightbox.style.display = 'none';
-                
-                // 2. Add the hidden class for good measure
-                lightbox.classList.add('hidden');
-                
-                // 3. Clear the image src so it's empty for next time
-                const img = document.getElementById('pwo-lightbox-img');
-                if (img) img.src = "";
-            }
-            
-            // Repeat for PDF and Video if necessary
-            const pdf = document.getElementById('pdf-modal');
-            if (pdf) pdf.classList.add('hidden');
-        }
-    }, true);
-}

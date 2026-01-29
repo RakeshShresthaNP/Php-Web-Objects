@@ -31,14 +31,21 @@ window.addEventListener('pwo_open_image', (e) => {
     const img = document.getElementById('pwo-lightbox-img');
     const dl = document.getElementById('pwo-lightbox-download');
     
-    if (lightbox && img) {
+    if (lightbox) {
+		
+		const imageUrl = e.detail;
         img.src = fileUrl;
-        if (dl) dl.href = fileUrl; // Let users download from the zoom view
+        dl.href = fileUrl; // Set the download URL
+        
         lightbox.classList.remove('hidden');
     }
+	
+	document.getElementById('pwo-lightbox-close').onclick = () => {
+	    lightbox.classList.add('hidden');
+	};
+	
 });
 
-// Close Image Lightbox Logic
 window.addEventListener('pwo_open_video', (e) => {
     // 1. Pause every video in the chat bubbles
     document.querySelectorAll('video').forEach(v => {
@@ -75,24 +82,14 @@ window.closeVideoModal = function() {
 
 window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        // 1. Close Video Modal
-        if (typeof window.closeVideoModal === 'function') {
-            window.closeVideoModal();
-        }
-
-        // 2. Close PDF Modal
-        const pdfModal = document.getElementById('pdf-modal');
-        if (pdfModal && !pdfModal.classList.contains('hidden')) {
-            pdfModal.classList.add('hidden');
-            const pdfFrame = document.getElementById('pdf-frame');
-            if (pdfFrame) pdfFrame.src = ""; // Clear memory
-        }
-
-        // 3. Close Image Lightbox
-        const lightbox = document.getElementById('pwo-lightbox');
-        if (lightbox && !lightbox.classList.contains('hidden')) {
-            lightbox.classList.add('hidden');
-        }
+	    const lightbox = document.getElementById('pwo-lightbox');	    
+	    if (lightbox) lightbox.classList.add('hidden');
+	    
+	    const pdf = document.getElementById('pdf-modal');
+	    if (pdf) pdf.classList.add('hidden');
+		
+		const video = document.getElementById('video-modal');
+		if (video) window.closeVideoModal();
     }
 });
 
@@ -102,7 +99,7 @@ window.addEventListener('mousedown', (e) => {
     const lightbox = document.getElementById('pwo-lightbox');
 
     if (e.target === videoModal) {
-        window.closeVideoModal(); // Calls the function that pauses video
+        window.closeVideoModal();
     }
     if (e.target === pdfModal) pdfModal.classList.add('hidden');
     if (e.target === lightbox) lightbox.classList.add('hidden');
