@@ -26,12 +26,13 @@ CREATE TABLE IF NOT EXISTS `chat_logs` (
   `d_created` datetime DEFAULT current_timestamp(),
   `d_updated` datetime DEFAULT NULL ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
-  KEY `idx_sender` (`sender_id`),
-  KEY `idx_created` (`d_created`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `idx_sender` (`sender_id`, `d_created`)
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
--- Dumping data for table pwo.chat_logs: ~0 rows (approximately)
+-- Dumping data for table pwo.chat_logs: 0 rows
 DELETE FROM `chat_logs`;
+/*!40000 ALTER TABLE `chat_logs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `chat_logs` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.documentextractions
 CREATE TABLE IF NOT EXISTS `documentextractions` (
@@ -242,6 +243,9 @@ CREATE TABLE IF NOT EXISTS `mst_users` (
   `realname` varchar(100) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `perms` varchar(255) DEFAULT NULL,
+  `totp_secret` varchar(32) DEFAULT NULL,
+  `totp_enabled` tinyint(1) DEFAULT 0,
+  `d_lastlogin` datetime DEFAULT NULL,
   `status` tinyint(1) DEFAULT 1,
   `d_created` timestamp NULL DEFAULT utc_timestamp(),
   `u_created` bigint(20) DEFAULT NULL,
@@ -255,10 +259,10 @@ CREATE TABLE IF NOT EXISTS `mst_users` (
 -- Dumping data for table pwo.mst_users: 3 rows
 DELETE FROM `mst_users`;
 /*!40000 ALTER TABLE `mst_users` DISABLE KEYS */;
-INSERT INTO `mst_users` (`id`, `partner_id`, `c_name`, `email`, `phone`, `homepath`, `realname`, `password`, `perms`, `status`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
-	(1, 1, 'superadmin', 'superadmin@gmail.com', '', 'manage', 'Rakesh Shrestha', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'superadmin', 1, '2026-01-01 02:00:00', 0, '2026-01-01 02:00:00', 0),
-	(2, 1, 'admin', 'admin@gmail.com', '', 'dashboard', 'Rakesh Shrestha', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'admin', 1, '2026-01-01 02:00:00', 1, '2026-01-24 13:43:48', 1),
-	(3, 1, 'user', 'user@gmail.com', '', 'dashboard', 'Rakesh Shrestha', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'user', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
+INSERT INTO `mst_users` (`id`, `partner_id`, `c_name`, `email`, `phone`, `homepath`, `realname`, `password`, `perms`, `status`, `d_created`, `u_created`, `d_updated`, `u_updated`, `totp_secret`, `totp_enabled`, `d_lastlogin`) VALUES
+	(1, 1, 'superadmin', 'superadmin@gmail.com', '', 'manage', 'Rakesh Shrestha', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'superadmin', 1, '2026-01-01 02:00:00', 0, '2026-01-30 04:43:46', 0, '', 1, NULL),
+	(2, 1, 'admin', 'admin@gmail.com', '', 'dashboard', 'Rakesh Shrestha', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'admin', 1, '2026-01-01 02:00:00', 1, '2026-01-24 13:43:48', 1, '', 1, NULL),
+	(3, 1, 'user', 'user@gmail.com', '', 'dashboard', 'Rakesh Shrestha', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'user', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1, '', 0, NULL);
 /*!40000 ALTER TABLE `mst_users` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.sys_auditlogs
@@ -355,7 +359,7 @@ CREATE TABLE IF NOT EXISTS `sys_methods` (
   KEY `key_methods` (`c_name`,`module_id`,`status`,`perms`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
--- Dumping data for table pwo.sys_methods: 34 rows
+-- Dumping data for table pwo.sys_methods: 36 rows
 DELETE FROM `sys_methods`;
 /*!40000 ALTER TABLE `sys_methods` DISABLE KEYS */;
 INSERT INTO `sys_methods` (`id`, `c_name`, `module_id`, `controllername`, `controllermethod`, `description`, `perms`, `status`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
@@ -376,23 +380,25 @@ INSERT INTO `sys_methods` (`id`, `c_name`, `module_id`, `controllername`, `contr
 	(15, 'users_manage_disable', 5, 'users', 'manage_disable', '', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
 	(16, 'users_manage_enable', 5, 'users', 'manage_enable', '', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
 	(17, 'auth_api_login', 1, 'auth', 'api_login', '', 'none', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(18, 'auth_api_refresh', 1, 'auth', 'api_refresh', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(19, 'auth_api_logout', 1, 'auth', 'api_logout', '', 'none', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(20, 'auth_api_codes', 1, 'auth', 'api_codes', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(21, 'user_api_info', 6, 'user', 'api_info', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(22, 'profile_api_search', 7, 'profile', 'api_search', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(23, 'timezone_api_gettimezone', 8, 'timezone', 'api_gettimezone', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(24, 'financetest_index', 11, 'financetest', 'index', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(25, 'geminitest_index', 12, 'geminitest', 'index', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(26, 'mathtest_index', 10, 'mathtest', 'index', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(27, 'mltest_index', 9, 'mltest', 'index', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(28, 'planimport_api_importhr', 13, 'planimport', 'api_importhr', '', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(29, 'chat_send', 14, 'chat', 'send', NULL, 'none', 1, '2026-01-24 09:46:56', 1, NULL, NULL),
-	(30, 'chat_history', 14, 'chat', 'history', NULL, 'admin,superadmin,user', 1, '2026-01-24 09:46:56', 1, NULL, NULL),
-	(31, 'chat_delete', 14, 'chat', 'delete', NULL, 'admin,superadmin,user', 1, '2026-01-24 09:48:48', 1, NULL, NULL),
-	(33, 'chat_uploadchunk', 14, 'chat', 'uploadchunk', NULL, 'user,admin,superadmin', 1, '2026-01-25 01:23:06', NULL, NULL, NULL),
-	(34, 'chat_markread', 14, 'chat', 'markread', 'Updates is_read status for message marks', 'user,admin,superadmin', 1, '2026-01-26 09:45:00', 1, NULL, NULL),
-	(35, 'chat_typing', 14, 'chat', 'typing', 'Broadcasts typing status to partners', 'user,admin,superadmin', 1, '2026-01-26 09:45:00', 1, NULL, NULL);
+	(18, 'auth_api_logout', 1, 'auth', 'api_logout', '', 'none', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(19, 'auth_api_verifyotp', 1, 'auth', 'api_verifyotp', '', 'none', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(20, 'user_api_info', 6, 'user', 'api_info', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(21, 'profile_api_search', 7, 'profile', 'api_search', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(22, 'timezone_api_gettimezone', 8, 'timezone', 'api_gettimezone', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(23, 'financetest_index', 11, 'financetest', 'index', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(24, 'geminitest_index', 12, 'geminitest', 'index', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(25, 'mathtest_index', 10, 'mathtest', 'index', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(26, 'mltest_index', 9, 'mltest', 'index', '', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(27, 'planimport_api_importhr', 13, 'planimport', 'api_importhr', '', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
+	(28, 'chat_send', 14, 'chat', 'send', '', 'none', 1, '2026-01-24 09:46:56', 1, '2026-01-01 02:00:00', 1),
+	(29, 'chat_history', 14, 'chat', 'history', '', 'admin,superadmin,user', 1, '2026-01-24 09:46:56', 1, '2026-01-01 02:00:00', 1),
+	(30, 'chat_delete', 14, 'chat', 'delete', '', 'admin,superadmin,user', 1, '2026-01-24 09:48:48', 1, '2026-01-01 02:00:00', 1),
+	(31, 'chat_uploadchunk', 14, 'chat', 'uploadchunk', '', 'user,admin,superadmin', 1, '2026-01-25 01:23:06', 1, '2026-01-01 02:00:00', 1),
+	(32, 'chat_markread', 14, 'chat', 'markread', 'Updates is_read status for message marks', 'user,admin,superadmin', 1, '2026-01-26 09:45:00', 1, '2026-01-01 02:00:00', 1),
+	(33, 'chat_typing', 14, 'chat', 'typing', 'Broadcasts typing status to partners', 'user,admin,superadmin', 1, '2026-01-26 09:45:00', 1, '2026-01-01 02:00:00', 1),
+	(34, 'supportsystem_manage_index', 15, 'supportsystem', 'manage_index', '', 'superadmin,admin,demo', 1, '2026-01-29 00:47:30', 1, '2026-01-29 00:47:30', 1),
+	(35, 'supportsystem_api_gettickets', 15, 'supportsystem', 'api_gettickets', '', 'superadmin,admin,demo', 1, '2025-12-31 20:15:00', 1, '2025-12-31 20:15:00', 1),
+	(36, 'supportsystem_api_getmessages', 15, 'supportsystem', 'api_getmessages', '', 'superadmin,admin,demo', 1, '2025-12-31 20:15:00', 1, '2025-12-31 20:15:00', 1);
 /*!40000 ALTER TABLE `sys_methods` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.sys_modules
@@ -410,7 +416,7 @@ CREATE TABLE IF NOT EXISTS `sys_modules` (
   KEY `key_modules` (`status`,`perms`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
--- Dumping data for table pwo.sys_modules: 14 rows
+-- Dumping data for table pwo.sys_modules: 15 rows
 DELETE FROM `sys_modules`;
 /*!40000 ALTER TABLE `sys_modules` DISABLE KEYS */;
 INSERT INTO `sys_modules` (`id`, `c_name`, `perms`, `status`, `d_created`, `u_created`, `d_updated`, `u_updated`) VALUES
@@ -427,7 +433,8 @@ INSERT INTO `sys_modules` (`id`, `c_name`, `perms`, `status`, `d_created`, `u_cr
 	(11, 'financetest', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
 	(12, 'geminitest', 'admin,superadmin,user,demo', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
 	(13, 'planimport', 'superadmin', 1, '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(14, 'chat', 'none', 1, '2026-01-24 09:46:56', 1, NULL, NULL);
+	(14, 'chat', 'none', 1, '2026-01-24 09:46:56', 1, '2026-01-01 02:00:00', 1),
+	(15, 'supportsystem', 'superadmin,admin,demo', 1, '2026-01-29 00:37:15', 1, '2026-01-29 00:37:15', 1);
 /*!40000 ALTER TABLE `sys_modules` ENABLE KEYS */;
 
 -- Dumping structure for table pwo.sys_sessions
