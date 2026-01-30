@@ -136,7 +136,7 @@ $results = $user->paginateGraph($schema, 1, 10);
 ### 6. Security and Extended Libraries
 * **Hardened Security:** Built-in protection against XSS and SQL Injection.
 * **Identity Gate & 2FA: Built-in, zero-dependency Two-Factor Authentication (TOTP) supporting Microsoft Authenticator, Google Authenticator and Authy with native QR Code provisioning.
-* **Auth & API:** Integrated Authentication scaffolding and JWT API support.
+* **Auth & API:** Integrated Authentication scaffolding and JWT (JSON Web Tokens) API support for secure, stateless sessions.
 * **Modern UI:** Dashboard integration with pre-built visual elements based on tailwind css. For AI compatibility and further info https://github.com/RakeshShresthaNP/VWEB-Dashboard
 * **Extended Libraries:** Event/Queue Management Mechanism, WebSocket Server Mechanism, AuditLog Data Structure, CreditScore Helper Routine, Mailer(Native PHP or SMTP), Data Validation Rules, Support for Firebase Messaging, SMPP (SMSC), QR Codes, AES Encryption, Time based OTP, Excel (XLSX) Import, Pagination, and SoapClient for NTLMStream.
 
