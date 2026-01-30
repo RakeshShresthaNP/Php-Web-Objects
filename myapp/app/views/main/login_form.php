@@ -17,49 +17,42 @@ body {
 	backdrop-filter: blur(10px);
 }
 
-.otp-input {
-	letter-spacing: 0.5em;
-	text-align: center;
-	font-weight: 900;
-}
-
 #qrcode img, #qrcode canvas {
 	margin: 0 auto;
 	border-radius: 0.5rem;
 }
-/* Enhanced OTP Input Styling */
+
+/* Premium OTP Input Styling */
 .otp-input {
-	letter-spacing: 0.6em; /* Creates space between digits */
-	text-indent: 0.3em; /* Centers digits perfectly */
-	text-align: center;
-	font-family: 'Courier New', Courier, monospace;
-	/* Hard-security look */
-	font-weight: 900;
-	font-size: 1.8rem;
-	background: rgba(0, 0, 0, 0.5) !important;
-	border: 1px solid rgba(255, 255, 255, 0.1) !important;
-	color: #3b82f6; /* Matching your blue theme */
-	transition: all 0.3s ease-in-out;
+    letter-spacing: 0.6em; /* Spacing between digits */
+    text-indent: 0.3em;    /* Centers digits perfectly */
+    text-align: center;
+    font-family: 'JetBrains Mono', 'Courier New', monospace; 
+    font-weight: 900;
+    font-size: 2rem;
+    color: #60a5fa; /* Soft blue digits */
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 2px solid rgba(255, 255, 255, 0.05) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .otp-input:focus {
-	border-color: #3b82f6 !important;
-	background: rgba(0, 0, 0, 0.7) !important;
-	box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
-	transform: translateY(-2px);
-	outline: none;
+    border-color: #3b82f6 !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    box-shadow: 0 0 25px rgba(59, 130, 246, 0.3);
+    color: #ffffff;
+    transform: scale(1.02);
+    outline: none;
 }
 
-/* Chrome/Safari: Remove arrows from number input */
-.otp-input::-webkit-outer-spin-button, .otp-input::-webkit-inner-spin-button
-	{
-	-webkit-appearance: none;
-	margin: 0;
+/* Hide standard browser arrows/spinners */
+.otp-input::-webkit-outer-spin-button,
+.otp-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
-
-/* Firefox: Remove arrows */
 .otp-input[type=number] {
-	-moz-appearance: textfield;
+    -moz-appearance: textfield;
 }
 </style>
 <script
@@ -96,10 +89,10 @@ body {
 				class="mx-auto border-4 border-white rounded-xl shadow-lg flex justify-center p-2 bg-white w-[200px] h-[200px]"></div>
 			<p id="secret-key"
 				class="text-[9px] text-gray-500 font-mono break-all px-4 uppercase"></p>
-			<input type="number" id="otp-setup" maxlength="6"
-				placeholder="••••••" inputmode="numeric"
-				class="otp-input w-full p-4 text-white bg-black/40 border border-white/5 rounded-2xl outline-none">
-			<button id="btn-confirm-setup"
+            <input type="number" id="otp-setup" placeholder="" 
+                   inputmode="numeric" maxlength="6"
+                   class="otp-input w-full p-5 rounded-2xl outline-none mb-4">
+       			<button id="btn-confirm-setup"
 				class="w-full py-4 text-xs font-black text-white uppercase bg-green-600 rounded-2xl">Confirm
 				Setup</button>
 		</div>
@@ -107,10 +100,10 @@ body {
 		<div id="form-verify" class="hidden space-y-6 text-center">
 			<p class="text-[10px] text-gray-400 font-bold uppercase">Enter
 				6-Digit Code</p>
-			<input type="number" id="otp-verify" maxlength="6"
-				placeholder="••••••" inputmode="numeric"
-				class="otp-input w-full p-4 text-white bg-black/40 border border-white/5 rounded-2xl outline-none">
-			<button id="btn-authorize"
+            <input type="number" id="otp-verify" placeholder="" 
+                   inputmode="numeric" maxlength="6"
+                   class="otp-input w-full p-5 rounded-2xl outline-none mb-4">
+       			<button id="btn-authorize"
 				class="w-full py-4 text-xs font-black text-white uppercase bg-blue-600 rounded-2xl">Authorize</button>
 		</div>
 
