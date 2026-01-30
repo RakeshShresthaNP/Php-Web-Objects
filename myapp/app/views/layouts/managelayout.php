@@ -155,7 +155,7 @@
                                 <i class='bx bx-user-circle text-lg'></i> Edit Profile
                             </a>
                             <div class="my-1 border-t border-white/5"></div>
-                            <a href="/logout" class="flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-all">
+                            <a href="<?php echo getUrl('login/logout'); ?>" class="flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-all">
                                 <i class='bx bx-log-out text-lg'></i> Logout
                             </a>
                         </div>

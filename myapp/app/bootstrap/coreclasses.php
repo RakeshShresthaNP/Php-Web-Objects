@@ -495,7 +495,6 @@ final class Response
 
         if (! isset($data['message'])) {
             if ($data['code'] == 200) {
-                $data['code'] = 0;
                 $data['message'] = 'ok';
             } else if ($data['code'] >= 400 && $data['code'] <= 500) {
                 $data['message'] = 'apiexception';

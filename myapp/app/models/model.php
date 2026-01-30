@@ -86,6 +86,11 @@ class model
         $this->_rs[$key] = $val;
     }
 
+    public function getData(): object
+    {
+        return (object) $this->_rs;
+    }
+
     // --- Query Builder ---
     public function select(string $fields = '*'): self
     {
