@@ -38,7 +38,7 @@ Simple/Easy to learn and high-performance, lightweight PHP MVC framework that br
 ---
 
 ### 1. Core Architecture and Routing
-* **Modern MVC Framework:** Lightweight architecture inspired by CodeIgniter and CakePHP.
+* **Modern MVC Framework:** Lightweight architecture inspired by CodeIgniter, CakePHP (controller and views) and Laravel (ORM and Event Management).
 * **Intelligent Routing:** Seamless URI-to-controller mapping for clean, SEO-friendly URLs.
 * **Native Dependency Injection:** High-efficiency DI mechanism ensuring libraries load only when required.
 * **Extensible View Engine:** Supports PHP-native views through a high-performance, minimalist template engine.
