@@ -1,7 +1,6 @@
 -- --------------------------------------------------------
--- Host:                         127.0.0.1
--- Server version:               11.8.5-MariaDB
--- HeidiSQL Version:             12.10.0.7000
+-- Final PWO Database Script
+-- Integrated: Original Order + Full Data + Advanced Indexing
 -- --------------------------------------------------------
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -21,7 +20,10 @@ CREATE TABLE IF NOT EXISTS `chat_logs` (
   `created_by` bigint(20) DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `updated_by` bigint(20) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  -- OPTIMIZATION: Fast lookup for conversation history and unread counts
+  INDEX `idx_chat_history` (`sender_id`, `target_id`, `created_at`),
+  INDEX `idx_unread_check` (`target_id`, `is_read`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2. documentextractions
@@ -37,7 +39,9 @@ CREATE TABLE IF NOT EXISTS `documentextractions` (
   `created_by` bigint(20) DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `updated_by` bigint(20) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  -- OPTIMIZATION: Ensure one extraction record per document per partner
+  UNIQUE KEY `uk_partner_document` (`partner_id`, `document_id`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 3. documents
@@ -53,7 +57,10 @@ CREATE TABLE IF NOT EXISTS `documents` (
   `created_by` bigint(20) DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `updated_by` bigint(20) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  -- OPTIMIZATION: Filter documents by status within a partner tenant
+  INDEX `idx_partner_docs` (`partner_id`, `status`),
+  INDEX `idx_user_docs` (`user_id`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 4. marketdatas
@@ -67,7 +74,9 @@ CREATE TABLE IF NOT EXISTS `marketdatas` (
   `created_by` bigint(20) DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `updated_by` bigint(20) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  -- OPTIMIZATION: Speed up time-series price lookups for specific assets
+  INDEX `idx_ticker_time` (`c_name`, `dtimestamp`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 5. mlmodelmetadatas
@@ -115,7 +124,8 @@ CREATE TABLE IF NOT EXISTS `mst_partner_settings` (
   `created_by` bigint(20) DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `updated_by` bigint(20) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  INDEX `idx_settings_partner` (`partner_id`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 8. mst_users
@@ -133,6 +143,8 @@ CREATE TABLE IF NOT EXISTS `mst_users` (
   `updated_at` timestamp NULL DEFAULT NULL,
   `updated_by` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
+  -- OPTIMIZATION: Multi-tenant unique constraint (Usernames unique per company)
+  UNIQUE KEY `uk_partner_username` (`partner_id`, `c_name`),
   UNIQUE KEY `key_usersemail` (`email`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -154,7 +166,9 @@ CREATE TABLE IF NOT EXISTS `sys_auditlogs` (
   `created_by` bigint(20) DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `updated_by` bigint(20) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  INDEX `idx_audit_search` (`entitytype`, `entityid`),
+  INDEX `idx_audit_user` (`user_id`)
 ) ENGINE=Aria TRANSACTIONAL=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 10. sys_modules
@@ -181,7 +195,7 @@ INSERT INTO `sys_modules` (`id`, `c_name`, `perms`, `status`, `created_at`, `cre
 (13, 'reports', 'superadmin,admin', 1, '2026-01-01 02:00:00', 1), (14, 'chat', 'none', 1, '2026-01-24 09:46:56', 1),
 (15, 'supportsystem', 'superadmin,admin,demo', 1, '2026-01-29 00:37:15', 1);
 
--- 11. sys_methods (ALL 36 ROWS RESTORED)
+-- 11. sys_methods (ALL 36 DATA ROWS INCLUDED)
 CREATE TABLE IF NOT EXISTS `sys_methods` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `c_name` varchar(32) DEFAULT NULL,
@@ -194,7 +208,10 @@ CREATE TABLE IF NOT EXISTS `sys_methods` (
   `created_by` bigint(20) DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `updated_by` bigint(20) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  -- OPTIMIZATION: Covering index for the application router
+  UNIQUE KEY `uk_route_lookup` (`controllername`, `controllermethod`),
+  INDEX `idx_method_module` (`module_id`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `sys_methods` (`id`, `c_name`, `module_id`, `controllername`, `controllermethod`, `perms`, `status`, `created_at`, `created_by`) VALUES
@@ -218,9 +235,8 @@ INSERT INTO `sys_methods` (`id`, `c_name`, `module_id`, `controllername`, `contr
 (35, 'support_config', 15, 'supportsystem', 'config', 'superadmin', 1, '2026-01-29 00:47:30', 1), (36, 'support_analytics', 15, 'supportsystem', 'analytics', 'superadmin,admin', 1, '2026-01-29 00:47:30', 1);
 
 -- --------------------------------------------------------
--- FOREIGN KEY IMPLEMENTATION (Maintaining original table order above)
+-- FINAL FOREIGN KEY CONSTRAINTS
 -- --------------------------------------------------------
-
 ALTER TABLE `mst_partner_settings` ADD CONSTRAINT `fk_settings_partner` FOREIGN KEY (`partner_id`) REFERENCES `mst_partners` (`id`) ON DELETE CASCADE;
 ALTER TABLE `mst_users` ADD CONSTRAINT `fk_users_partner` FOREIGN KEY (`partner_id`) REFERENCES `mst_partners` (`id`) ON DELETE CASCADE;
 ALTER TABLE `sys_methods` ADD CONSTRAINT `fk_methods_module` FOREIGN KEY (`module_id`) REFERENCES `sys_modules` (`id`) ON DELETE CASCADE;
