@@ -25,12 +25,12 @@ final class cLogin extends cController
         $isBlocked->execute([
             $ip
         ]);
+
         if ($isBlocked->fetch()) {
-            die("Your IP is blocked.");
+            die(_t("your_ip_is_blocked"));
         }
 
         $data = array();
-
         $data['username'] = '';
         $data['user'] = '';
 
@@ -48,12 +48,12 @@ final class cLogin extends cController
         $isBlocked->execute([
             $ip
         ]);
+
         if ($isBlocked->fetch()) {
-            die("Your IP is blocked.");
+            die(_t("your_ip_is_blocked"));
         }
 
         $data = array();
-
         $data['username'] = '';
         $data['user'] = '';
 
@@ -64,17 +64,14 @@ final class cLogin extends cController
         if ($this->req->isPost()) {
             try {
                 $muser = new user();
-
                 $params = getRequestData();
-
                 $rules = [
                     'username' => 'required|email'
                 ];
-
                 $v = Validator::make($params, $rules);
 
                 if ($v->fails()) {
-                    $this->res->redirect('login/forgotpass', '<div class="text-error-500">Username is required!</div>');
+                    $this->res->redirect('login/forgotpass', '<div class="text-error-500">' . _t('username_is_required') . '</div>');
                     return;
                 }
 
@@ -82,30 +79,25 @@ final class cLogin extends cController
 
                 if (! $user) {
                     $this->dispatcher->dispatch(new EventForgotPassword($params['username'], $ip, false));
-
-                    $this->res->redirect('login/forgotpass', '<div class="text-error-500">User does not exist!</div>');
+                    $this->res->redirect('login/forgotpass', '<div class="text-error-500">' . _t('user_does_not_exist') . '</div>');
                     return;
                 }
 
                 if ($user->status == 2) {
                     $this->dispatcher->dispatch(new EventForgotPassword($params['username'], $ip, false));
-
-                    $this->res->redirect('login/forgotpass', '<div class="text-error-500">User is disableddoes not exist!</div>');
+                    $this->res->redirect('login/forgotpass', '<div class="text-error-500">' . _t('user_is_disabled') . '</div>');
                     return;
                 }
 
                 if ($user->perms != 'superadmin' && $user->partner_id != $this->partner->id) {
                     $this->dispatcher->dispatch(new EventForgotPassword($params['username'], $ip, false));
-
-                    $this->res->redirect('login', '<div class="text-error-500">User does not exist</div>');
+                    $this->res->redirect('login', '<div class="text-error-500">' . _t('user_does_not_exist') . '</div>');
                     return;
                 }
 
                 $this->dispatcher->dispatch(new EventForgotPassword($params['username'], $ip, true, $user, $this->partner));
-
-                $this->res->redirect('login/forgotpass', '<div class="text-brand-500">Your password has been mailed to you!</div>');
+                $this->res->redirect('login/forgotpass', '<div class="text-brand-500">' . _t('password_mailed_to_you') . '</div>');
             } catch (Exception $e) {
-                // Catch the "Please wait 5 minutes" message
                 $this->res->redirect('login/forgotpass', '<div class="text-error-500">' . $e->getMessage() . '</div>');
             }
         }
@@ -116,7 +108,6 @@ final class cLogin extends cController
     public function logout()
     {
         setCurrentUser();
-
-        $this->res->redirect('login', '<div class="text-brand-500">You have logged out!</div>');
+        $this->res->redirect('login', '<div class="text-brand-500">' . _t('logged_out') . '</div>');
     }
 }

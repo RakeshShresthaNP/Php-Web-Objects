@@ -46,7 +46,7 @@ final class DB
         }
 
         // Expected format: serialize(['mysql', 'localhost', 'user', 'pass', 'dbname'])
-        list ($dbtype, $host, $user, $pass, $dbname) = unserialize(DB_CON);
+        list ($dbtype, $host, $user, $pass, $dbname) = DB_CON;
 
         $dsn = $dbtype . ':host=' . $host . ';dbname=' . $dbname;
 

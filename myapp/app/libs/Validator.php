@@ -23,10 +23,10 @@ final class Validator
         'image/jpeg',
         'image/png',
         'application/pdf',
-        'application/msword', // .doc
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-        'application/vnd.ms-excel', // .xls
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' // .xlsx
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     ];
 
     public function __construct(private array &$data, private array $customMessages = [], private string $secretKey = 'bank-level-secret-key-123')
@@ -67,24 +67,18 @@ final class Validator
                 null
             ];
 
-            // 1. Automatic Sanitization & Normalization
             if (is_string($value))
                 $value = trim(strip_tags($value));
 
             $isValid = match ($ruleName) {
-                // --- Numeric & Integer Rules ---
                 'numeric' => ctype_digit(strval($value)),
                 'digits' => ctype_digit(strval($value)) && strlen(strval($value)) === (int) $param,
                 'int_only' => filter_var($value, FILTER_VALIDATE_INT) !== false,
-
-                // --- Identity & Security ---
                 'required' => ! empty($value) || $value === "0" || $value === 0,
                 'email' => (bool) ($value = strtolower(filter_var($value, FILTER_VALIDATE_EMAIL))),
                 'ip' => filter_var($value, FILTER_VALIDATE_IP) !== false,
                 'uuid' => preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', (string) $value),
                 'password' => preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', (string) $value),
-
-                // --- Strings & Patterns ---
                 'alpha' => ctype_alpha(str_replace(' ', '', strip_tags((string) $value))),
                 'alpha_space' => preg_match('/^[a-zA-Z\s]+$/', strip_tags((string) $value)),
                 'alpha_secure' => preg_match('/^[a-zA-Z0-9@._-]+$/', strip_tags((string) $value)),
@@ -92,62 +86,45 @@ final class Validator
                 'max' => is_numeric($value) ? (float) $value <= (float) $param : strlen((string) $value) <= (int) $param,
                 'matches' => (string) $value === (string) ($this->data[$param] ?? ''),
                 'json' => (json_decode((string) $value) !== null),
-
-                // Inside applyRulesToField match expression:
                 'html' => $this->validateAndCleanHTML($value, $param),
-
-                // --- Banking & Math (BCMath) ---
                 'iban' => $this->validateIBAN((string) $value),
                 'card' => $this->validateAndCleanCard($value),
                 'amount' => is_numeric($value) && bccomp((string) $value, '0', 2) > 0,
                 'min_amt' => bccomp((string) $value, (string) $param, 2) >= 0,
                 'max_amt' => bccomp((string) $value, (string) $param, 2) <= 0,
-                'currency' => in_array(strtoupper((string) $value), ['USD', 'EUR', 'GBP', 'AED']) && (bool) ($value = strtoupper($value)),
+                'currency' => in_array(strtoupper((string) $value), [
+                    'USD',
+                    'EUR',
+                    'GBP',
+                    'AED'
+                ]) && (bool) ($value = strtoupper($value)),
                 'balance' => $this->checkUserBalance($value, $param),
                 'velocity' => $this->checkVelocity($param),
-
-                // Phone Validator logic
                 'phone' => (function () use (&$value, $param) {
                     $clean = preg_replace('/[^\d]/', '', (string) $value);
-
-                    // Length & Spam Guard
-                    if (strlen($clean) < 7 || strlen($clean) > 15 || preg_match('/^(\d)\1{9,}$/', $clean)) {
+                    if (strlen($clean) < 7 || strlen($clean) > 15 || preg_match('/^(\d)\1{9,}$/', $clean))
                         return false;
-                    }
-
                     $country = strtoupper($param ?? 'DEFAULT');
                     $config = HelperGeo::$phonePatterns[$country] ?? HelperGeo::$phonePatterns['DEFAULT'];
-
                     $isValid = (bool) preg_match($config['regex'], $clean);
-                    if ($isValid && ! empty($config['prefix'])) {
-                        $value = '+' . $config['prefix'] . $clean; // Store in E.164
-                    }
+                    if ($isValid && ! empty($config['prefix']))
+                        $value = '+' . $config['prefix'] . $clean;
                     return $isValid;
                 })(),
-
-                // Zip Validator logic
                 'zip' => (function () use ($value, $param) {
                     $val = trim((string) $value);
                     $country = strtoupper($param ?? 'DEFAULT');
-
-                    if (in_array($country, HelperGeo::NO_ZIP_COUNTRIES) && empty($val)) {
+                    if (in_array($country, HelperGeo::NO_ZIP_COUNTRIES) && empty($val))
                         return true;
-                    }
-
                     $regex = HelperGeo::$postalPatterns[$country] ?? HelperGeo::$postalPatterns['DEFAULT'];
                     return (bool) preg_match($regex, $val);
                 })(),
-
-                // --- Database Integrity (With Ignore & Composite Support) ---
                 'unique' => $this->dbLookup($field, $value, $param, true),
                 'exists' => $this->dbLookup($field, $value, $param, false),
-
-                // --- Temporal ---
                 'date_format' => (function () use ($value, $param) {
                     $d = DateTime::createFromFormat($param, (string) $value);
                     return $d && $d->format($param) === $value;
                 })(),
-
                 default => true
             };
 
@@ -162,9 +139,7 @@ final class Validator
     {
         if (empty($value))
             return true;
-
-        // Use your specific list as the master default
-        $defaultTags = [
+        $tags = $customTags ? explode(',', $customTags) : [
             'a',
             'em',
             'strong',
@@ -184,25 +159,14 @@ final class Validator
             'i',
             'p'
         ];
-
-        $tags = $customTags ? explode(',', $customTags) : $defaultTags;
         $formattedTags = '<' . implode('><', $tags) . '>';
-
-        // 1. Strip disallowed tags
         $clean = strip_tags((string) $value, $formattedTags);
-
-        // 2. High-Security attribute cleaning (XSS Prevention)
-        // Removes all 'on' events (onclick, onerror) and javascript: protocol
         $clean = preg_replace('/on\w+="[^"]*"/i', '', $clean);
         $clean = preg_replace('/href="javascript:[^"]*"/i', 'href="#"', $clean);
-
-        // Update by reference
         $value = $clean;
-
         return true;
     }
 
-    // High-Efficiency IBAN Mod-97 Check
     private function validateIBAN(string $iban): bool
     {
         $iban = str_replace(' ', '', strtoupper($iban));
@@ -218,7 +182,6 @@ final class Validator
         return (bcmod($numericIban, '97') === '1');
     }
 
-    // Luhn Algorithm & Normalization
     private function validateAndCleanCard(mixed &$number): bool
     {
         $number = preg_replace('/\D/', '', (string) $number);
@@ -237,7 +200,6 @@ final class Validator
         return ($sum > 0 && $sum % 10 == 0);
     }
 
-    // Advanced DB Lookup (Handles Unique, Exists, Ignore-on-Update, and Composite Keys)
     private function dbLookup(string $field, mixed $value, string $param, bool $isUniqueCheck): bool
     {
         if (! $this->db)
@@ -248,18 +210,14 @@ final class Validator
         $args = [
             $value
         ];
-
-        // Ignore logic: unique:table,id,5
         if (isset($p[1], $p[2]) && $p[1] !== '' && $p[2] !== '') {
             $sql .= " AND `{$p[1]}` != ?";
             $args[] = $p[2];
         }
-        // Composite logic: unique:table,,,account_id,10
         if (isset($p[3], $p[4])) {
             $sql .= " AND `{$p[3]}` = ?";
             $args[] = $p[4];
         }
-
         $stmt = $this->db->prepare($sql);
         $stmt->execute($args);
         $found = (bool) $stmt->fetch();
@@ -294,7 +252,7 @@ final class Validator
     public function validateFile(string $field, ?array $file, string $rules): bool
     {
         if (! $file || ! isset($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) {
-            $this->errors[$field][] = "File upload failed or no file provided.";
+            $this->errors[$field][] = _t("file_upload_failed");
             return false;
         }
 
@@ -302,13 +260,11 @@ final class Validator
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         $actualMime = $finfo->file($file['tmp_name']);
 
-        // 1. Strict Internal Mime Check
         if (! in_array($actualMime, self::ALLOWED_MIMES)) {
-            $this->errors[$field][] = "File type not allowed. Only Images, PDF, Word, and Excel are permitted.";
+            $this->errors[$field][] = _t("file_type_not_allowed");
             return false;
         }
 
-        // 2. Dynamic Rule Checks (e.g., max_size)
         foreach ($ruleArray as $rule) {
             [
                 $type,
@@ -317,23 +273,21 @@ final class Validator
                 $rule,
                 null
             ];
-
             if ($type === 'max_size') {
-                $maxBytes = (int) $param * 1024 * 1024;
-                if ($file['size'] > $maxBytes) {
-                    $this->errors[$field][] = "File is too large. Maximum size is {$param}MB.";
+                if ($file['size'] > ((int) $param * 1024 * 1024)) {
+                    $this->errors[$field][] = str_replace(':param', (string) $param, _t("file_too_large"));
                     return false;
                 }
             }
         }
-
         return true;
     }
 
     private function addError($field, $rule, $param): void
     {
-        $msg = $this->customMessages["$field.$rule"] ?? $this->customMessages[$rule] ?? "Field $field invalid ($rule).";
-        $this->errors[$field][] = str_replace(':param', $param ?? '', $msg);
+        $msg = $this->customMessages["$field.$rule"] ?? $this->customMessages[$rule] ?? _t($rule) ?? "Field $field invalid ($rule).";
+
+        $this->errors[$field][] = str_replace(':param', (string) ($param ?? ''), $msg);
     }
 
     public function fails(): bool

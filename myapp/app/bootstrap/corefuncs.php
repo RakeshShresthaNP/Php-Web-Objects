@@ -68,6 +68,34 @@ function getDataDiff(array &$arr1, array &$arr2): array
     return $changes;
 }
 
+function _t(string $key): string
+{
+    static $translations = null;
+
+    if ($translations === null) {
+        $lang = $_SESSION['lang'] ?? 'en';
+        $file = APP_DIR . 'lang/' . $lang . '.php';
+
+        if (file_exists($file)) {
+            $translations = require $file;
+        } else {
+            $fallback = APP_DIR . 'lang/en.php';
+            $translations = file_exists($fallback) ? require $fallback : [];
+        }
+    }
+
+    return $translations[$key] ?? $key;
+}
+
+function _t_json(array $keys): string
+{
+    $translations = [];
+    foreach ($keys as $key) {
+        $translations[$key] = _t($key);
+    }
+    return json_encode($translations, JSON_UNESCAPED_UNICODE);
+}
+
 function genUID(): string
 {
     $bytes = random_bytes(16);
@@ -108,65 +136,61 @@ function links(object $meta): string
 {
     if ($meta->total_pages <= 1)
         return '';
-        
-        // Container matching your dark theme
-        $html = '<nav aria-label="Pagination" class="flex items-center gap-2">';
-        
-        // 1. Get current URL parameters
-        $params = $_GET;
-        
-        // 2. Explicitly set perpage
-        $params['perpage'] = $meta->per_page;
-        
-        // --- Previous Button ---
-        $isFirst = ($meta->current_page <= 1);
-        $params['page'] = max(1, $meta->current_page - 1);
-        $prevUrl = '?' . http_build_query($params);
-        
-        $prevClass = $isFirst
-        ? 'opacity-20 cursor-not-allowed pointer-events-none'
-            : 'hover:bg-white/10 hover:text-white border-white/10';
-            
-            $html .= "<a href='{$prevUrl}' class='flex items-center justify-center w-10 h-10 rounded-xl border text-gray-400 transition-all {$prevClass}'>
+
+    // Container matching your dark theme
+    $html = '<nav aria-label="Pagination" class="flex items-center gap-2">';
+
+    // 1. Get current URL parameters
+    $params = $_GET;
+
+    // 2. Explicitly set perpage
+    $params['perpage'] = $meta->per_page;
+
+    // --- Previous Button ---
+    $isFirst = ($meta->current_page <= 1);
+    $params['page'] = max(1, $meta->current_page - 1);
+    $prevUrl = '?' . http_build_query($params);
+
+    $prevClass = $isFirst ? 'opacity-20 cursor-not-allowed pointer-events-none' : 'hover:bg-white/10 hover:text-white border-white/10';
+
+    $html .= "<a href='{$prevUrl}' class='flex items-center justify-center w-10 h-10 rounded-xl border text-gray-400 transition-all {$prevClass}'>
                 <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 19l-7-7 7-7'></path>
                 </svg>
               </a>";
-            
-            // --- Page Numbers ---
-            for ($i = 1; $i <= $meta->total_pages; $i++) {
-                $isActive = ($i === $meta->current_page);
-                
-                $params['page'] = $i;
-                $url = '?' . http_build_query($params);
-                
-                if ($isActive) {
-                    // Active page: Your brand blue
-                    $html .= "<span class='flex items-center justify-center w-10 h-10 rounded-xl bg-[#4d7cfe] text-white font-bold shadow-lg shadow-blue-500/30'>{$i}</span>";
-                } else {
-                    // Inactive page: Subtle border
-                    $html .= "<a href='{$url}' class='flex items-center justify-center w-10 h-10 rounded-xl border border-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all font-medium'>{$i}</a>";
-                }
-            }
-            
-            // --- Next Button ---
-            $isLast = ($meta->current_page >= $meta->total_pages);
-            $params['page'] = min($meta->total_pages, $meta->current_page + 1);
-            $nextUrl = '?' . http_build_query($params);
-            
-            $nextClass = $isLast
-            ? 'opacity-20 cursor-not-allowed pointer-events-none'
-                : 'hover:bg-white/10 hover:text-white border-white/10';
-                
-                $html .= "<a href='{$nextUrl}' class='flex items-center justify-center w-10 h-10 rounded-xl border text-gray-400 transition-all {$nextClass}'>
+
+    // --- Page Numbers ---
+    for ($i = 1; $i <= $meta->total_pages; $i ++) {
+        $isActive = ($i === $meta->current_page);
+
+        $params['page'] = $i;
+        $url = '?' . http_build_query($params);
+
+        if ($isActive) {
+            // Active page: Your brand blue
+            $html .= "<span class='flex items-center justify-center w-10 h-10 rounded-xl bg-[#4d7cfe] text-white font-bold shadow-lg shadow-blue-500/30'>{$i}</span>";
+        } else {
+            // Inactive page: Subtle border
+            $html .= "<a href='{$url}' class='flex items-center justify-center w-10 h-10 rounded-xl border border-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-all font-medium'>{$i}</a>";
+        }
+    }
+
+    // --- Next Button ---
+    $isLast = ($meta->current_page >= $meta->total_pages);
+    $params['page'] = min($meta->total_pages, $meta->current_page + 1);
+    $nextUrl = '?' . http_build_query($params);
+
+    $nextClass = $isLast ? 'opacity-20 cursor-not-allowed pointer-events-none' : 'hover:bg-white/10 hover:text-white border-white/10';
+
+    $html .= "<a href='{$nextUrl}' class='flex items-center justify-center w-10 h-10 rounded-xl border text-gray-400 transition-all {$nextClass}'>
                 <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 5l7 7-7 7'></path>
                 </svg>
               </a>";
-                
-                $html .= '</nav>';
-                
-                return $html;
+
+    $html .= '</nav>';
+
+    return $html;
 }
 
 function base64_jwt_encode(string $text): string

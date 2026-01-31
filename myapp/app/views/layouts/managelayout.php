@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $pagename ?? 'Dashboard'; ?> | AdminJS</title>
+    <title><?php echo _t($pagename ?? 'dashboard'); ?> | AdminJS</title>
     
     <link rel="stylesheet" href="<?php echo getUrl('assets/manage/tailwind.css'); ?>">
-    
     <link rel="stylesheet" href="<?php echo getUrl('assets/manage/boxicons.min.css'); ?>">
     
     <style>
@@ -16,7 +15,8 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-[#0b0e14] text-white font-sans overflow-hidden"> <div class="flex h-screen w-full overflow-hidden">
+<body class="bg-[#0b0e14] text-white font-sans overflow-hidden"> 
+    <div class="flex h-screen w-full overflow-hidden">
         
         <aside id="sidebar" class="sidebar-transition fixed inset-y-0 left-0 z-50 bg-[#151a21] border-r border-white/5 flex flex-col shrink-0 w-64 -translate-x-full md:relative md:translate-x-0 md:w-64">
             
@@ -28,70 +28,80 @@
             <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
                 <a href="#" class="flex items-center gap-3 p-3 bg-blue-600/10 text-[#4d7cfe] rounded-xl group">
                     <i class='bx bxs-dashboard text-xl'></i>
-                    <span class="sidebar-text font-bold whitespace-nowrap">Dashboard</span>
+                    <span class="sidebar-text font-bold whitespace-nowrap"><?php echo _t('dashboard'); ?></span>
                 </a>
                 
-                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">Lending Ops</div>
+                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">
+                    <?php echo _t('lending_ops'); ?>
+                </div>
                 
                 <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
                     <i class='bx bx-money text-xl'></i>
-                    <span class="sidebar-text font-medium whitespace-nowrap">Loan Applications</span>
+                    <span class="sidebar-text font-medium whitespace-nowrap"><?php echo _t('loan_applications'); ?></span>
                 </a>
                 
                 <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
                     <i class='bx bx-calendar-check text-xl'></i>
-                    <span class="sidebar-text font-medium whitespace-nowrap">Repayment Schedule</span>
+                    <span class="sidebar-text font-medium whitespace-nowrap"><?php echo _t('repayment_schedule'); ?></span>
                 </a>    
         
-                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">Operations</div>
+                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">
+                    <?php echo _t('operations'); ?>
+                </div>
                 
                 <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
                     <i class='bx bx-transfer-alt text-xl'></i>
-                    <span class="sidebar-text font-medium whitespace-nowrap">Transactions</span>
+                    <span class="sidebar-text font-medium whitespace-nowrap"><?php echo _t('transactions'); ?></span>
                 </a>
                 
                 <a href="<?php echo getUrl('manage/supportsystem'); ?>" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
                     <i class='bx bx-user-voice text-xl'></i>
-                    <span class="sidebar-text font-medium whitespace-nowrap">Live Support</span>
+                    <span class="sidebar-text font-medium whitespace-nowrap"><?php echo _t('live_support'); ?></span>
                 </a>
             
-                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">Treasury</div>
+                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">
+                    <?php echo _t('treasury'); ?>
+                </div>
             
                 <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
                     <i class='bx bx-trending-up text-xl'></i>
-                    <span class="sidebar-text font-medium whitespace-nowrap">FX Rate Setup</span>
+                    <span class="sidebar-text font-medium whitespace-nowrap"><?php echo _t('fx_rate_setup'); ?></span>
                 </a>
             
                 <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
                     <i class='bx bx-wallet text-xl'></i>
-                    <span class="sidebar-text font-medium whitespace-nowrap">Settlements</span>
+                    <span class="sidebar-text font-medium whitespace-nowrap"><?php echo _t('settlements'); ?></span>
                 </a>
             
-                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">Compliance</div>
+                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">
+                    <?php echo _t('compliance'); ?>
+                </div>
             
                 <a href="#" class="flex items-center justify-between p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all group">
                     <div class="flex items-center gap-3">
                         <i class='bx bx-shield-quarter text-xl'></i>
-                        <span class="sidebar-text font-medium whitespace-nowrap">KYC Queue</span>
+                        <span class="sidebar-text font-medium whitespace-nowrap"><?php echo _t('kyc_queue'); ?></span>
                     </div>
                     <span class="sidebar-text bg-red-500 text-[10px] text-white px-2 py-0.5 rounded-full font-bold">3</span>
                 </a>
             
                 <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
                     <i class='bx bx-error-alt text-xl'></i>
-                    <span class="sidebar-text font-medium whitespace-nowrap">AML Alerts</span>
+                    <span class="sidebar-text font-medium whitespace-nowrap"><?php echo _t('aml_alerts'); ?></span>
                 </a>
             
-                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">Management</div>
+                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">
+                    <?php echo _t('management'); ?>
+                </div>
                 
                 <a href="<?php echo getUrl('manage/users'); ?>" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
                     <i class='bx bx-group text-xl'></i>
-                    <span class="sidebar-text font-medium whitespace-nowrap">Users</span>
+                    <span class="sidebar-text font-medium whitespace-nowrap"><?php echo _t('users'); ?></span>
                 </a>
                 
                 <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
                     <i class='bx bx-cog text-xl'></i>
-                    <span class="sidebar-text font-medium whitespace-nowrap">System Settings</span>
+                    <span class="sidebar-text font-medium whitespace-nowrap"><?php echo _t('system_settings'); ?></span>
                 </a>
             </nav>
 
@@ -100,7 +110,7 @@
                     <img src="https://ui-avatars.com/api/?name=Admin&background=4d7cfe&color=fff" class="w-9 h-9 rounded-full shrink-0 border border-white/10">
                     <div class="sidebar-text overflow-hidden">
                         <p class="text-sm font-medium truncate text-white">Rakesh S.</p>
-                        <p class="text-[10px] text-gray-500 uppercase tracking-widest leading-none">Administrator</p>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-widest leading-none"><?php echo _t('administrator'); ?></p>
                     </div>
                 </div>
             </div>
@@ -113,7 +123,7 @@
                     <button id="sidebarToggle" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all cursor-pointer">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                     </button>
-                    <h1 class="text-lg font-semibold tracking-tight"><?php echo $pagename ?? 'Dashboard'; ?></h1>
+                    <h1 class="text-lg font-semibold tracking-tight"><?php echo _t($pagename ?? 'dashboard'); ?></h1>
                 </div>
 
                 <div class="flex items-center gap-2 sm:gap-4">
@@ -122,9 +132,9 @@
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </button>
                         <div id="settingsDropdown" class="hidden absolute right-0 mt-3 w-52 bg-[#1c222d] border border-white/10 rounded-xl shadow-2xl py-2 z-50">
-                             <div class="px-4 py-2 border-b border-white/5"><p class="text-xs font-bold uppercase text-gray-500">Quick Settings</p></div>
-                             <a href="#" class="block px-4 py-2 text-sm text-gray-300 hover:bg-[#4d7cfe] hover:text-white transition-all">System Config</a>
-                             <a href="#" class="block px-4 py-2 text-sm text-gray-300 hover:bg-[#4d7cfe] hover:text-white transition-all">Theme Options</a>
+                             <div class="px-4 py-2 border-b border-white/5"><p class="text-xs font-bold uppercase text-gray-500"><?php echo _t('quick_settings'); ?></p></div>
+                             <a href="#" class="block px-4 py-2 text-sm text-gray-300 hover:bg-[#4d7cfe] hover:text-white transition-all"><?php echo _t('system_config'); ?></a>
+                             <a href="#" class="block px-4 py-2 text-sm text-gray-300 hover:bg-[#4d7cfe] hover:text-white transition-all"><?php echo _t('theme_options'); ?></a>
                         </div>
                     </div>
 
@@ -134,8 +144,8 @@
                             <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0b0e14]"></span>
                         </button>
                         <div id="notifDropdown" class="hidden absolute right-0 mt-3 w-80 bg-[#1c222d] border border-white/10 rounded-xl shadow-2xl py-2 z-50">
-                            <div class="px-4 py-2 border-b border-white/5"><p class="text-xs font-bold uppercase text-gray-500">Notifications</p></div>
-                            <div class="p-4 text-center text-sm text-gray-500">No new alerts</div>
+                            <div class="px-4 py-2 border-b border-white/5"><p class="text-xs font-bold uppercase text-gray-500"><?php echo _t('notifications'); ?></p></div>
+                            <div class="p-4 text-center text-sm text-gray-500"><?php echo _t('no_new_alerts'); ?></div>
                         </div>
                     </div>
 
@@ -145,18 +155,18 @@
                         <button id="avatarButton" class="flex items-center gap-3 cursor-pointer group">
                             <div class="hidden md:block text-right mr-1">
                                 <p class="text-xs font-medium text-white group-hover:text-[#4d7cfe]">Rakesh S.</p>
-                                <p class="text-[10px] text-green-500">Online</p>
+                                <p class="text-[10px] text-green-500"><?php echo _t('online'); ?></p>
                             </div>
                             <img src="https://ui-avatars.com/api/?name=Admin" class="w-10 h-10 rounded-full border border-white/10 group-hover:border-[#4d7cfe]">
                         </button>
 
                         <div id="avatarDropdown" class="hidden absolute right-0 mt-3 w-52 bg-[#1c222d] border border-white/10 rounded-xl shadow-2xl py-2 z-50">
                             <a href="#" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-[#4d7cfe] hover:text-white transition-all">
-                                <i class='bx bx-user-circle text-lg'></i> Edit Profile
+                                <i class='bx bx-user-circle text-lg'></i> <?php echo _t('edit_profile'); ?>
                             </a>
                             <div class="my-1 border-t border-white/5"></div>
                             <a href="<?php echo getUrl('login/logout'); ?>" class="flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-all">
-                                <i class='bx bx-log-out text-lg'></i> Logout
+                                <i class='bx bx-log-out text-lg'></i> <?php echo _t('logout'); ?>
                             </a>
                         </div>
                     </div>

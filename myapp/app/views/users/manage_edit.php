@@ -2,27 +2,27 @@
     
     <div class="mb-8 flex flex-col gap-1">
         <nav class="flex items-center gap-2 text-[10px] uppercase font-bold tracking-[0.15em]">
-            <a href="<?php echo getUrl('manage/dashboard') ?>" class="text-gray-400 hover:text-[#4d7cfe] transition-colors">Admin</a>
+            <a href="<?php echo getUrl('manage/dashboard') ?>" class="text-gray-400 hover:text-[#4d7cfe] transition-colors"><?php echo _t('admin'); ?></a>
             
             <svg class="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
             </svg>
             
-            <a href="<?php echo getUrl('manage/users') ?>" class="text-gray-400 hover:text-[#4d7cfe] transition-colors uppercase">Management</a>
+            <a href="<?php echo getUrl('manage/users') ?>" class="text-gray-400 hover:text-[#4d7cfe] transition-colors uppercase"><?php echo _t('management'); ?></a>
             
             <svg class="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
             </svg>
             
-            <span class="text-white">Edit User</span>
+            <span class="text-white"><?php echo _t('edit_user'); ?></span>
         </nav>
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <h2 class="text-3xl font-black tracking-tight text-white">Edit Profile</h2>
+            <h2 class="text-3xl font-black tracking-tight text-white"><?php echo _t('edit_profile'); ?></h2>
             <a href="<?php echo getUrl('manage/users') ?>" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 text-sm font-bold rounded-xl transition-all active:scale-95 border border-white/5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
-                Back to List
+                <?php echo _t('back_to_list'); ?>
             </a>
         </div>
     </div>
@@ -37,7 +37,7 @@
                     <?php foreach($msgs as $m): ?>
                         <div class="flex items-center gap-2">
                             <span class="w-1 h-1 bg-red-400 rounded-full"></span>
-                            <?php echo $m; ?>
+                            <?php echo _t($m); ?>
                         </div>
                     <?php endforeach; ?>
                 <?php endforeach; unset($_SESSION['flash_errors']); ?>
@@ -50,40 +50,40 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="space-y-2">
-                        <label class="text-[10px] uppercase font-bold text-gray-500 tracking-widest pl-1">Full Name</label>
+                        <label class="text-[10px] uppercase font-bold text-gray-500 tracking-widest pl-1"><?php echo _t('full_name'); ?></label>
                         <input type="text" name="realname" required value="<?php echo $user->realname; ?>" 
                                class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-4 py-4 text-sm text-white focus:border-[#4d7cfe] outline-none transition-all">
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-[10px] uppercase font-bold text-gray-500 tracking-widest pl-1">Home Path</label>
+                        <label class="text-[10px] uppercase font-bold text-gray-500 tracking-widest pl-1"><?php echo _t('home_path'); ?></label>
                         <input type="text" name="homepath" required value="<?php echo $user->homepath; ?>" 
                                class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-4 py-4 text-sm text-white focus:border-[#4d7cfe] outline-none transition-all">
                     </div>
 
                     <div class="md:col-span-2 space-y-2">
-                        <label class="text-[10px] uppercase font-bold text-gray-500 tracking-widest pl-1">Email Address (Username)</label>
+                        <label class="text-[10px] uppercase font-bold text-gray-500 tracking-widest pl-1"><?php echo _t('email_username'); ?></label>
                         <input type="email" name="email" required value="<?php echo $user->email; ?>" 
                                class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-4 py-4 text-sm text-white focus:border-[#4d7cfe] outline-none transition-all">
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-[10px] uppercase font-bold text-gray-500 tracking-widest pl-1">New Password</label>
+                        <label class="text-[10px] uppercase font-bold text-gray-500 tracking-widest pl-1"><?php echo _t('new_password'); ?></label>
                         <input type="password" name="password" placeholder="••••••••" 
                                class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-4 py-4 text-sm text-white focus:border-[#4d7cfe] outline-none transition-all">
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-[10px] uppercase font-bold text-gray-500 tracking-widest pl-1">Confirm Password</label>
+                        <label class="text-[10px] uppercase font-bold text-gray-500 tracking-widest pl-1"><?php echo _t('confirm_password'); ?></label>
                         <input type="password" id="confirm_password" placeholder="••••••••" 
                                class="w-full bg-[#0b0e14] border border-white/10 rounded-xl px-4 py-4 text-sm text-white focus:border-[#4d7cfe] outline-none transition-all">
                     </div>
                 </div>
 
                 <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p class="text-[10px] text-gray-500 italic">Leave password fields blank to keep current credentials.</p>
+                    <p class="text-[10px] text-gray-500 italic"><?php echo _t('leave_password_blank_hint'); ?></p>
                     <button type="submit" name="submit" class="w-full md:w-auto px-12 py-4 bg-[#4d7cfe] hover:bg-blue-600 text-white font-extrabold rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95">
-                        Save Changes
+                        <?php echo _t('save_changes'); ?>
                     </button>
                 </div>
             </form>
