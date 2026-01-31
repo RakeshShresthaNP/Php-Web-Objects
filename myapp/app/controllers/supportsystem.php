@@ -30,70 +30,80 @@ final class cSupportSystem extends cController
 
     public function api_gettickets()
     {
-        // We group by sender_id to find the latest message from each customer
+        // This query finds the latest message for each conversation involving a non-admin user
         $sql = "SELECT
                 u.id as user_id,
                 u.realname,
                 c.message as last_msg,
                 c.d_created,
+                c.sender_id as last_sender_id,
                 (SELECT COUNT(*) FROM chat_logs
                  WHERE sender_id = u.id AND is_read = 0) as unread_count
             FROM mst_users u
-            JOIN chat_logs c ON c.sender_id = u.id
-            WHERE c.id IN (
-                SELECT MAX(id) FROM chat_logs
-                GROUP BY sender_id
+            JOIN chat_logs c ON c.id = (
+                SELECT id FROM chat_logs
+                WHERE sender_id = u.id OR target_id = u.id
+                ORDER BY d_created DESC LIMIT 1
             )
-            AND u.perms NOT IN ('superadmin', 'admin')
+            WHERE u.perms NOT IN ('superadmin', 'admin')
             ORDER BY c.d_created DESC";
-
+        
         $tickets = $this->db->query($sql)->fetchAll();
+        
+        $data['code'] = 200;
         $data['data'] = [
             'tickets' => $tickets
         ];
-
+        
         $this->res->json($data);
     }
-
+    
     /**
      * API: Get messages for a specific user
      */
+    /**
+     * API: Get messages for a specific user
+     * All admins can view this history
+     */
     public function api_getmessages()
     {
-        // Get user_id from GET parameters
-        $user_id = $_GET['user_id'];
-
-        if (! $user_id) {
+        $user_id = $_GET['user_id'] ?? null;
+        
+        if (!$user_id) {
             $data['code'] = 400;
             $data['error'] = 'User ID missing';
-
-            $this->res->json($data);
+            return $this->res->json($data);
         }
-
-        // Removed target_id from the query to prevent SQL errors
-        $sql = "SELECT * FROM chat_logs
-                WHERE sender_id = ?
-                AND status = 1
-                ORDER BY d_created ASC";
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(1, $user_id);
-        $stmt->execute();
-
-        $messages = $stmt->fetchAll();
-
-        // Mark messages as read (Removed target_id check here as well)
-        /*
-         * $this->db->query("UPDATE chat_logs SET is_read = 1 WHERE sender_id = :uid", [
-         * 'uid' => $user_id
-         * ]);
+        
+        /**
+         * The Logic:
+         * 1. Show messages where the USER is the sender.
+         * 2. Show messages where the USER is the target (sent by ANY admin).
          */
-
-        $data['data'] = [
-            'messages' => $messages
-        ];
-
-        // Return using your specific JSON architecture
+        $sql = "SELECT
+                    m.*,
+                    r.message AS reply_to_text,
+                    u.realname as sender_name,
+                    u.perms as sender_perms
+                FROM chat_logs m
+                LEFT JOIN chat_logs r ON m.reply_to = r.id
+                LEFT JOIN mst_users u ON m.sender_id = u.id
+                WHERE (m.sender_id = :uid OR m.target_id = :uid)
+                AND m.status = 1
+                ORDER BY m.d_created ASC";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['uid' => $user_id]);
+        $messages = $stmt->fetchAll();
+        
+        // Mark messages SENT BY THE USER as read, because an admin is now looking at them
+        $update = "UPDATE chat_logs SET is_read = 1
+                   WHERE sender_id = :uid AND is_read = 0";
+        $this->db->prepare($update)->execute(['uid' => $user_id]);
+        
+        $data['code'] = 200;
+        $data['data'] = ['messages' => $messages];
         $this->res->json($data);
     }
 }
+

@@ -14,9 +14,9 @@ declare(strict_types = 1);
 
 if (! defined('PWO_DIR_ASSETS')) {
     $basePath = APP_DIR . "../";
-    define('DIR_TEMP', $basePath . "public" . DIRECTORY_SEPARATOR . "assets" . DIRECTORY_SEPARATOR . "temp" . DIRECTORY_SEPARATOR);
-    define('DIR_UPLOADS', $basePath . "public" . DIRECTORY_SEPARATOR . "assets" . DIRECTORY_SEPARATOR . "uploads" . DIRECTORY_SEPARATOR . "chat" . DIRECTORY_SEPARATOR);
-    define('URL_BASE', 'public/assets/uploads/chat/');
+    define('DIR_TEMP', $basePath . "public" . DIRECTORY_SEPARATOR . "temp" . DIRECTORY_SEPARATOR);
+    define('DIR_UPLOADS', $basePath . "public" . DIRECTORY_SEPARATOR . "uploads" . DIRECTORY_SEPARATOR . "chat" . DIRECTORY_SEPARATOR);
+    define('URL_BASE', 'public/uploads/chat/');
     if (! is_dir(DIR_TEMP))
         @mkdir(DIR_TEMP, 0777, true);
     if (! is_dir(DIR_UPLOADS))
@@ -68,11 +68,17 @@ final class cChat extends cController
         try {
             if (! $this->user)
                 throw new ApiException("Auth Required", 401);
+
             $message = htmlspecialchars($params['message'] ?? '');
             $fileId = $params['file_id'] ?? null;
             $fileName = $params['file_name'] ?? null;
+
+            $targetId = (int) ($params['target_id'] ?? 0);
+            $replyTo = ! empty($params['reply_to']) ? (int) $params['reply_to'] : null;
+
             $finalUrl = null;
 
+            // --- File Handling Logic ---
             if ($fileId && $fileName) {
                 $tempDir = DIR_TEMP . $fileId . DIRECTORY_SEPARATOR;
                 $dateSub = date('Y') . DIRECTORY_SEPARATOR . date('m') . DIRECTORY_SEPARATOR;
@@ -96,25 +102,34 @@ final class cChat extends cController
                 }
             }
 
+            // 1. Save to Database
             $chatLog = new model('chat_logs');
             $chatLog->sender_id = $this->user->id;
+            $chatLog->target_id = $targetId;
             $chatLog->message = $message;
             $chatLog->file_path = $finalUrl;
             $chatLog->file_name = $fileName;
+            $chatLog->reply_to = $replyTo;
             $chatLog->is_read = 0;
-            $id = $chatLog->save();
 
+            $newId = $chatLog->save();
+
+            // 2. Prepare the data payload
             $data = [
-                'id' => $id,
+                'id' => $newId,
                 'message' => $message,
                 'file_path' => $finalUrl,
                 'file_name' => $fileName,
                 'sender' => $this->user->realname ?? 'User',
                 'sender_id' => (int) $this->user->id,
+                'target_id' => $targetId,
+                'reply_to' => $replyTo,
                 'is_read' => 0,
-                'time' => date('H:i')
+                'time' => date('H:i'),
+                'd_created' => date('Y-m-d H:i:s')
             ];
 
+            // 3. REVERTED BROADCAST (Single broadcast as it was)
             if ($server) {
                 $server->broadcast([
                     'type' => 'new_message',
@@ -131,7 +146,7 @@ final class cChat extends cController
             writeLog('chat_send_error_' . date('Y_m_d'), "User #{$this->user->id}: " . $t->getMessage());
             return [
                 'status' => 'error',
-                'message' => 'Failed to send message'
+                'message' => 'Failed to send'
             ];
         }
     }
@@ -141,10 +156,16 @@ final class cChat extends cController
         try {
             if (! $this->user)
                 throw new ApiException("Auth Error", 401);
+
+            // The ID of the user the admin is currently chatting with
+            $userId = (int) $this->user->id;
+
             $hmodel = new model('chat_logs');
             $history = $hmodel->select('p.id, p.message, p.file_path, p.file_name, p.d_created as time, u.realname as sender, p.sender_id, p.is_read')
                 ->join('mst_users u', 'u.id', '=', 'p.sender_id', 'LEFT')
-                ->where('p.sender_id', '=', (int) $this->user->id)
+                ->
+            // This RAW query ensures we get both sides of the conversation
+            whereRaw("(p.sender_id = $userId OR p.target_id = $userId)")
                 ->orderBy('p.id', 'DESC')
                 ->limit(50)
                 ->find();
@@ -170,12 +191,14 @@ final class cChat extends cController
                 return;
             $userRole = $this->user->perms ?? 'user';
             $partnerId = ($userRole === 'admin' || $userRole === 'superadmin') ? (int) ($params['target_user_id'] ?? 0) : 0;
-            
+
             $hmodel = new model('chat_logs');
             $hmodel->where('sender_id', '=', $partnerId)
-            ->where('is_read', '=', 0)
-            ->updateWhere(['is_read' => 1]);
-            
+                ->where('is_read', '=', 0)
+                ->updateWhere([
+                'is_read' => 1
+            ]);
+
             $server->broadcast([
                 'type' => 'message_read',
                 'data' => [
@@ -209,36 +232,38 @@ final class cChat extends cController
         try {
             $messageId = (int) ($params['message_id'] ?? 0);
             $hmodel = new model('chat_logs');
-            
+
             // 1. Find the message data first so we can get the file path
             $message = $hmodel->where('id', '=', $messageId)->first();
-            
+
             // 2. Check ownership before doing anything
-            if ($message && (int)$message->sender_id === (int)$this->user->id) {
-                
+            if ($message && (int) $message->sender_id === (int) $this->user->id) {
+
                 // 3. Handle Physical File Deletion
-                if (!empty($message->file_path)) {
+                if (! empty($message->file_path)) {
                     // Adjust base path to your 'public' folder
                     $base = APP_DIR . "../public/";
                     $physical = $base . str_replace('/', DIRECTORY_SEPARATOR, $message->file_path);
-                    
+
                     if (file_exists($physical)) {
                         @unlink($physical);
                     }
                 }
-                
+
                 // 4. Delete the Database Record using deleteWhere
                 // This is safer because it doesn't rely on the object's internal state
                 $hmodel->where('id', '=', $messageId)->deleteWhere();
-                
+
                 if ($server) {
                     $server->broadcast([
                         'type' => 'message_deleted',
-                        'data' => ['id' => $messageId]
+                        'data' => [
+                            'id' => $messageId
+                        ]
                     ]);
                 }
             }
-            
+
             return [
                 'status' => 'success',
                 'message' => 'Removed'
@@ -251,7 +276,7 @@ final class cChat extends cController
             ];
         }
     }
-    
+
     private function recursiveRemove($dir): void
     {
         if (! is_dir($dir))
