@@ -618,7 +618,7 @@ final class Application
             $request->apimode = false;
         }
 
-        $pathPrefixes = unserialize(PATH_PREFIX);
+        $pathPrefixes = PATH_PREFIX;
 
         $request->pathprefix = '';
         $request->controller = ($c = array_shift($uriparts)) ? mb_strtolower($c) : MAIN_CONTROLLER;

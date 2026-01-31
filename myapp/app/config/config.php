@@ -16,9 +16,19 @@ define('SYSTEM_TIMEZONE', 'UTC');
 
 define('DEBUG', '1');
 
-define('DB_CON', ['mysql', 'localhost', 'root', '', 'pwo']);
+define('DB_CON', [
+    'mysql',
+    'localhost',
+    'root',
+    '',
+    'pwo'
+]);
 
-define('PATH_PREFIX', ['dashboard', 'manage', 'api']);
+define('PATH_PREFIX', [
+    'dashboard',
+    'manage',
+    'api'
+]);
 
 define('MAIN_CONTROLLER', 'home');
 define('MAIN_METHOD', 'index');

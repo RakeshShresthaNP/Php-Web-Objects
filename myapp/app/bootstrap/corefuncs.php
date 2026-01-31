@@ -73,7 +73,7 @@ function _t(string $key): string
     static $translations = null;
 
     if ($translations === null) {
-        $lang = $_SESSION['lang'] ?? 'en';
+        $lang = $_SESSION['lang'] ?? DEFAULT_LANG;
         $file = APP_DIR . 'lang/' . $lang . '.php';
 
         if (file_exists($file)) {
