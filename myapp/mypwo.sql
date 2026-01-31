@@ -1,84 +1,69 @@
 -- --------------------------------------------------------
 -- Host:                         127.0.0.1
--- Server version:               11.8.5-MariaDB - MariaDB Server
--- Server OS:                    Win64
+-- Server version:               11.8.5-MariaDB
 -- HeidiSQL Version:             12.10.0.7000
 -- --------------------------------------------------------
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET NAMES utf8 */;
 /*!50503 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
--- Dumping structure for table pwo.chat_logs
+-- 1. chat_logs
 CREATE TABLE IF NOT EXISTS `chat_logs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `sender_id` int(11) NOT NULL COMMENT 'Links to mst_users.id',
+  `sender_id` bigint(20) unsigned NOT NULL,
   `reply_to` int(11) DEFAULT NULL,
-  `target_id` int(11) DEFAULT NULL,
+  `target_id` bigint(20) unsigned DEFAULT NULL,
   `message` text DEFAULT NULL,
   `file_path` varchar(512) DEFAULT NULL,
   `file_name` varchar(255) DEFAULT NULL,
   `is_read` tinyint(1) DEFAULT 0,
   `status` tinyint(1) DEFAULT 1,
   `created_at` timestamp NULL DEFAULT utc_timestamp(),
-  `created_by` bigint(20) DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
-  `updated_by` bigint(20) DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_sender` (`sender_id`,`target_id`,`created_at`,`reply_to`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping structure for table pwo.documentextractions
+-- 2. documentextractions
 CREATE TABLE IF NOT EXISTS `documentextractions` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `partner_id` int(10) unsigned NOT NULL DEFAULT 0,
+  `partner_id` int(11) unsigned NOT NULL DEFAULT 0,
   `document_id` uuid DEFAULT NULL,
   `extractedjson` json NOT NULL CHECK (json_valid(`extractedjson`)),
   `aimodel` varchar(50) DEFAULT NULL,
   `confidencescore` decimal(5,2) DEFAULT NULL,
   `ishumanverified` tinyint(1) DEFAULT 0,
   `created_at` timestamp NULL DEFAULT utc_timestamp(),
-  `created_by` bigint(20) DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
-  `updated_by` bigint(20) DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `key_documentextractions` (`partner_id`,`document_id`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping structure for table pwo.documents
+-- 3. documents
 CREATE TABLE IF NOT EXISTS `documents` (
   `id` uuid NOT NULL,
-  `partner_id` int(11) NOT NULL DEFAULT 0,
+  `partner_id` int(11) unsigned NOT NULL DEFAULT 0,
   `user_id` bigint(20) unsigned DEFAULT NULL,
   `filename` varchar(255) DEFAULT NULL,
   `s3path` varchar(512) DEFAULT NULL,
   `mimetype` varchar(50) DEFAULT NULL,
   `status` enum('pending','processing','completed','failed') DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT utc_timestamp(),
-  `created_by` bigint(20) DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
-  `updated_by` bigint(20) DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `key_documents` (`partner_id`,`user_id`,`filename`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping structure for event pwo.e_clearsessions
-DELIMITER //
-CREATE EVENT `e_clearsessions` ON SCHEDULE EVERY 15 MINUTE STARTS '2026-01-01 02:00:00' ON COMPLETION NOT PRESERVE ENABLE DO DELETE FROM sys_sessions WHERE lastaccessed < NOW() - INTERVAL 1 HOUR//
-DELIMITER ;
-
--- Dumping structure for function pwo.f_split_string
-DELIMITER //
-CREATE FUNCTION `f_split_string`(`x` VARCHAR(255), `delim` VARCHAR(12), `pos` INT) RETURNS varchar(255) CHARSET utf8mb3 COLLATE utf8mb3_unicode_ci
-RETURN REPLACE(SUBSTRING(SUBSTRING_INDEX(x, delim, pos), LENGTH(SUBSTRING_INDEX(x, delim, pos -1)) + 1), delim, '')//
-DELIMITER ;
-
--- Dumping structure for table pwo.marketdatas
+-- 4. marketdatas
 CREATE TABLE IF NOT EXISTS `marketdatas` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `c_name` varchar(10) NOT NULL,
@@ -86,14 +71,14 @@ CREATE TABLE IF NOT EXISTS `marketdatas` (
   `volume` bigint(20) DEFAULT NULL,
   `dtimestamp` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT utc_timestamp(),
-  `created_by` bigint(20) DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
-  `updated_by` bigint(20) DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `key_marketdatas` (`c_name`,`dtimestamp`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping structure for table pwo.mlmodelmetadatas
+-- 5. mlmodelmetadatas
 CREATE TABLE IF NOT EXISTS `mlmodelmetadatas` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `c_name` varchar(100) DEFAULT NULL,
@@ -101,70 +86,104 @@ CREATE TABLE IF NOT EXISTS `mlmodelmetadatas` (
   `accuracymetrics` json NOT NULL CHECK (json_valid(`accuracymetrics`)),
   `serializedpath` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT utc_timestamp(),
-  `created_by` bigint(20) DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
-  `updated_by` bigint(20) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `key_mlmodelmetadatas` (`c_name`,`version`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping structure for table pwo.mst_partners
+-- 6. mst_partners
 CREATE TABLE IF NOT EXISTS `mst_partners` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `c_name` varchar(64) DEFAULT NULL,
   `hostname` varchar(256) DEFAULT NULL,
   `sitetitle` varchar(256) DEFAULT NULL,
   `email` varchar(256) DEFAULT NULL,
-  `phone1` varchar(32) DEFAULT '',
-  `phone2` varchar(32) DEFAULT NULL,
-  `contactfax` varchar(32) DEFAULT NULL,
-  `address1` varchar(64) DEFAULT '',
-  `address2` varchar(64) DEFAULT NULL,
   `city` varchar(32) DEFAULT '',
-  `state` varchar(32) DEFAULT '',
   `country` varchar(32) DEFAULT 'US',
-  `zip` varchar(32) DEFAULT '',
-  `remarks` varchar(128) DEFAULT '',
   `created_at` timestamp NULL DEFAULT utc_timestamp(),
-  `created_by` bigint(20) DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
-  `updated_by` bigint(20) DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `key_partnershost` (`hostname`),
-  KEY `key_partners` (`c_name`,`email`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+  UNIQUE KEY `key_partnershost` (`hostname`)
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Data for mst_partners
-INSERT INTO `mst_partners` (`id`, `c_name`, `hostname`, `sitetitle`, `email`, `city`, `country`, `created_at`, `created_by`, `updated_at`, `updated_by`) VALUES
-	(1, 'Test', 'localhost', 'Pwo Title', 'test@test.com', 'Kathmandu', 'NP', '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1),
-	(2, 'Test2', 'localhost2', 'Pwo Title2', 'test2@test.com', 'Kathmandu', 'NP', '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
+INSERT INTO `mst_partners` (`id`, `c_name`, `hostname`, `email`, `created_at`) VALUES
+	(1, 'Test', 'localhost', 'test@test.com', '2026-01-01 02:00:00');
 
--- Dumping structure for table pwo.mst_partner_settings
+-- 7. mst_partner_settings
 CREATE TABLE IF NOT EXISTS `mst_partner_settings` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `partner_id` int(11) NOT NULL,
+  `partner_id` int(11) unsigned NOT NULL,
   `secretkey` varchar(256) DEFAULT NULL,
-  `mailhost` varchar(256) DEFAULT NULL,
-  `mailport` varchar(256) DEFAULT NULL,
-  `mailusername` varchar(256) DEFAULT NULL,
-  `mailpassword` varchar(256) DEFAULT NULL,
-  `geoip_api_key` varchar(256) DEFAULT NULL,
-  `firebase_api_key` varchar(256) DEFAULT NULL,
-  `gemini_api_key` varchar(256) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT utc_timestamp(),
-  `created_by` bigint(20) DEFAULT NULL,
+  `created_by` bigint(20) unsigned DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
-  `updated_by` bigint(20) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `key_partnersettingss` (`partner_id`,`mailhost`,`mailusername`)
-) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Data for mst_partner_settings
-INSERT INTO `mst_partner_settings` (`id`, `partner_id`, `secretkey`, `mailhost`, `mailport`, `created_at`, `created_by`, `updated_at`, `updated_by`) VALUES
-	(1, 1, 'Nepal@123', 'smtp.gmail.com', '587', '2026-01-01 02:00:00', 1, '2026-01-01 02:00:00', 1);
-
--- Dumping structure for table pwo.mst_reportpivots
-CREATE TABLE IF NOT EXISTS `mst_reportpivots` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+-- 8. mst_users
+CREATE TABLE IF NOT EXISTS `mst_users` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `partner_id` int(11) unsigned NOT NULL DEFAULT 0,
   `c_name` varchar(50) DEFAULT NULL,
-  `desc` varchar(200) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
+  `perms` varchar(255) DEFAULT NULL,
+  `status` tinyint(1) DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT utc_timestamp(),
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `key_usersemail` (`email`)
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `mst_users` (`id`, `partner_id`, `c_name`, `email`, `password`, `perms`, `status`, `created_at`) VALUES
+	(1, 1, 'superadmin', 'superadmin@gmail.com', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'superadmin', 1, '2026-01-01 02:00:00');
+
+-- 9. sys_auditlogs
+CREATE TABLE IF NOT EXISTS `sys_auditlogs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned DEFAULT NULL,
+  `actionname` varchar(50) DEFAULT NULL,
+  `datadiff` json NOT NULL CHECK (json_valid(`datadiff`)),
+  `ipdetails` json NOT NULL CHECK (json_valid(`ipdetails`)),
+  `devicedetails` json NOT NULL CHECK (json_valid(`devicedetails`)),
+  `created_at` timestamp NULL DEFAULT utc_timestamp(),
+  `created_by` bigint(20) unsigned DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `updated_by` bigint(20) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 10. sys_blocked_ips
+CREATE TABLE IF NOT EXISTS `sys_blocked_ips` (
+  `ip_address` varchar(45) NOT NULL,
+  `reason` varchar(255) DEFAULT 'Brute force detected',
+  `blocked_at` timestamp NULL DEFAULT utc_timestamp(),
+  PRIMARY KEY (`ip_address`)
+) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 11. sys_sessions
+CREATE TABLE IF NOT EXISTS `sys_sessions` (
+  `id` varchar(32) NOT NULL,
+  `sdata` varchar(2500) NOT NULL,
+  `lastaccessed` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MEMORY DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
+
+-- --------------------------------------------------------
+-- ADDING FOREIGN KEY CONSTRAINTS (At the end for stability)
+-- --------------------------------------------------------
+
+ALTER TABLE `mst_users` ADD CONSTRAINT `fk_users_partner` FOREIGN KEY (`partner_id`) REFERENCES `mst_partners` (`id`) ON DELETE CASCADE;
+ALTER TABLE `mst_partner_settings` ADD CONSTRAINT `fk_settings_partner` FOREIGN KEY (`partner_id`) REFERENCES `mst_partners` (`id`) ON DELETE CASCADE;
+ALTER TABLE `chat_logs` ADD CONSTRAINT `fk_chat_sender` FOREIGN KEY (`sender_id`) REFERENCES `mst_users` (`id`) ON DELETE CASCADE;
+ALTER TABLE `documents` ADD CONSTRAINT `fk_doc_partner` FOREIGN KEY (`partner_id`) REFERENCES `mst_partners` (`id`) ON DELETE CASCADE;
+ALTER TABLE `documents` ADD CONSTRAINT `fk_doc_user` FOREIGN KEY (`user_id`) REFERENCES `mst_users` (`id`) ON DELETE SET NULL;
+ALTER TABLE `sys_auditlogs` ADD CONSTRAINT `fk_audit_user` FOREIGN KEY (`user_id`) REFERENCES `mst_users` (`id`) ON DELETE SET NULL;
+
+/*!40014 SET FOREIGN_KEY_CHECKS=1 */;
