@@ -41,7 +41,7 @@ By clearing memory after every request and avoiding "middleware bloat," PWO prov
 ---
 
 ### 1. Core Architecture and Routing
-* **Modern MVC Framework:** Lightweight architecture inspired by CodeIgniter, CakePHP (controller and views) and Laravel (ORM and Event Management).
+* **Modern MVC Framework:** Lightweight architecture inspired by CodeIgniter, CakePHP (Controllers and Views) and Laravel (ORM and Event Management).
 * **Intelligent Routing:** Seamless URI-to-controller mapping for clean, SEO-friendly URLs.
 * **Native Dependency Injection:** High-efficiency DI mechanism ensuring libraries load only when required.
 * **Extensible View Engine:** Supports PHP-native views through a high-performance, minimalist template engine.
