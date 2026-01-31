@@ -22,7 +22,7 @@ final class cPlanImport extends cController
     {
         // Validate file upload
         if (! isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
-            throw new ApiException('Year or month is missing.', 422);
+            throw new ApiException(_t('file_upload_failed'), 422);
         }
 
         $db = db();
@@ -101,7 +101,7 @@ final class cPlanImport extends cController
                                     $exec_query = $i_stmt->execute();
                                 } catch (Exception $e) {
                                     $db->rollBack();
-                                    throw new ApiException($e->getMessage(), $e->getCode());
+                                    throw new ApiException($e->getMessage(), (int) $e->getCode());
                                 }
                             }
                         }
@@ -132,17 +132,18 @@ final class cPlanImport extends cController
                 $db->commit();
 
                 if ($exec_query) {
-                    $data['message'] = 'Successfully Imported Sheet';
+                    $data['message'] = _t('successfully_imported_sheet');
 
                     $this->res->json($data);
                 } else {
-                    throw new ApiException('Year or month is missing.', 422);
+                    throw new ApiException(_t('year_or_month_missing'), 422);
                 }
             } else {
-                throw new ApiException('Year or month is missing.', 422);
+                throw new ApiException(_t('year_or_month_missing'), 422);
             }
         } else {
-            throw new ApiException('xlsx error: ' . $xlsx->error(), 503);
+            $error_msg = _t('xlsx_error') . ': ' . $xlsx->error();
+            throw new ApiException($error_msg, 503);
         }
     }
 }

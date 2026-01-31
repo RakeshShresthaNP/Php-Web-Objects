@@ -74,19 +74,19 @@ final class HelperCurrency
     public function toWords(int $number): string
     {
         if ($number < 20)
-            return $this->dictionary[$number];
+            return _t($this->dictionary[$number]);
 
         if ($number < 100) {
             $tens = ((int) ($number / 10)) * 10;
             $units = $number % 10;
-            return $this->dictionary[$tens] . ($units ? '-' . $this->dictionary[$units] : '');
+            return _t($this->dictionary[$tens]) . ($units ? '-' . _t($this->dictionary[$units]) : '');
         }
 
         if ($number < 1000) {
             $hundreds = (int) ($number / 100);
             $remainder = $number % 100;
-            $res = $this->dictionary[$hundreds] . ' hundred';
-            return $remainder ? $res . ' and ' . $this->toWords($remainder) : $res;
+            $res = _t($this->dictionary[$hundreds]) . ' ' . _t('hundred');
+            return $remainder ? $res . ' ' . _t('and') . ' ' . $this->toWords($remainder) : $res;
         }
 
         // Logic for Thousands and Millions
@@ -97,9 +97,10 @@ final class HelperCurrency
             if ($number >= $unit) {
                 $count = (int) ($number / $unit);
                 $remainder = $number % $unit;
-                $res = $this->toWords($count) . ' ' . $word;
+                $res = $this->toWords($count) . ' ' . _t($word);
                 if ($remainder) {
-                    $res .= ($remainder < 100 ? ' and ' : ', ') . $this->toWords($remainder);
+                    $separator = ($remainder < 100 ? ' ' . _t('and') . ' ' : ', ');
+                    $res .= $separator . $this->toWords($remainder);
                 }
                 return $res;
             }
@@ -115,15 +116,15 @@ final class HelperCurrency
     {
         $code = strtoupper($code);
         if (! isset($this->currencies[$code])) {
-            throw new Exception("Currency code $code not registered.");
+            throw new Exception(_t('invalid_domain')); // Reusing key for 'unregistered/invalid' context
         }
 
         $config = $this->currencies[$code];
         $parts = explode('.', number_format($amount, 2, '.', ''));
 
-        $mainWords = $this->toWords((int) $parts[0]) . ' ' . $config['main'];
-        $minorWords = ((int) $parts[1] > 0) ? ' and ' . $this->toWords((int) $parts[1]) . ' ' . $config['minor'] : '';
+        $mainWords = $this->toWords((int) $parts[0]) . ' ' . _t(strtolower($config['main']));
+        $minorWords = ((int) $parts[1] > 0) ? ' ' . _t('and') . ' ' . $this->toWords((int) $parts[1]) . ' ' . _t(strtolower($config['minor'])) : '';
 
-        return ucfirst($mainWords . $minorWords) . ' Only.';
+        return ucfirst($mainWords . $minorWords) . ' ' . _t('only') . '.';
     }
 }

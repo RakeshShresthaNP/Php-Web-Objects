@@ -20,7 +20,7 @@ final class cUsers extends cController
 
     public function manage_index()
     {
-        $data['users'] = 'Users';
+        $data['users'] = _t('users');
 
         $currentPage = (int) ($_GET['page'] ?? 1);
         $perPage = (int) ($_GET['perpage'] ?? 1);
@@ -43,7 +43,7 @@ final class cUsers extends cController
 
     public function manage_add()
     {
-        $data['pagename'] = 'Add User';
+        $data['pagename'] = _t('add_user');
 
         $user = [];
 
@@ -60,12 +60,12 @@ final class cUsers extends cController
             ];
 
             $messages = [
-                'email.required' => 'We need email address to secure your account.',
-                'email.unique' => 'This email is already registered with another user.',
-                'realname.alpha_space' => 'Names can only contain letters and spaces.',
-                'password.min' => 'Your new password must be at least 12 characters long.',
-                'confirm_password.matches' => 'The password confirmation does not match the new password.',
-                'password.password' => 'Your password must include an uppercase letter, a number, and a special character.'
+                'email.required' => _t('email_required_secure'),
+                'email.unique' => _t('email_already_registered'),
+                'realname.alpha_space' => _t('name_alpha_space_error'),
+                'password.min' => _t('password_min_length_error'),
+                'confirm_password.matches' => _t('password_mismatch_error'),
+                'password.password' => _t('password_complexity_error')
             ];
 
             $v = Validator::make($vars, $rules, $messages);
@@ -93,7 +93,7 @@ final class cUsers extends cController
             $user->assign($vars);
             $user->insert();
 
-            $this->res->redirect('manage/users', 'User Added Successfully');
+            $this->res->redirect('manage/users', _t('user_added_successfully'));
         }
 
         $data['user'] = $user;
@@ -103,7 +103,7 @@ final class cUsers extends cController
 
     public function manage_edit($id = 0)
     {
-        $data['pagename'] = 'Users';
+        $data['pagename'] = _t('users');
 
         $user = new user($id);
 
@@ -124,12 +124,12 @@ final class cUsers extends cController
             ];
 
             $messages = [
-                'email.required' => 'We need email address to secure your account.',
-                'email.unique' => 'This email is already registered with another user.',
-                'realname.alpha_space' => 'Names can only contain letters and spaces.',
-                'password.min' => 'Your new password must be at least 12 characters long.',
-                'confirm_password.matches' => 'The password confirmation does not match the new password.',
-                'password.password' => 'Your password must include an uppercase letter, a number, and a special character.'
+                'email.required' => _t('email_required_secure'),
+                'email.unique' => _t('email_already_registered'),
+                'realname.alpha_space' => _t('name_alpha_space_error'),
+                'password.min' => _t('password_min_length_error'),
+                'confirm_password.matches' => _t('password_mismatch_error'),
+                'password.password' => _t('password_complexity_error')
             ];
 
             $v = Validator::make($vars, $rules, $messages);
@@ -153,7 +153,7 @@ final class cUsers extends cController
             $user->assign($vars);
             $user->update();
 
-            $this->res->redirect('manage/users', 'User Updated Successfully');
+            $this->res->redirect('manage/users', _t('user_updated_successfully'));
         }
 
         $this->res->view($data);
@@ -161,25 +161,25 @@ final class cUsers extends cController
 
     public function manage_disable($userid = 0)
     {
-        $data['pagename'] = 'Users';
+        $data['pagename'] = _t('users');
 
         $user = new user($userid);
         $user->status = 2;
         $user->u_updated = $this->user->id;
         $user->update();
 
-        $this->res->redirect('manage/users', 'User Disabled');
+        $this->res->redirect('manage/users', _t('user_disabled'));
     }
 
     public function manage_enable($userid = 0)
     {
-        $data['pagename'] = 'Users';
+        $data['pagename'] = _t('users');
 
         $user = new user($userid);
         $user->status = 1;
         $user->u_updated = $this->user->id;
         $user->update();
 
-        $this->res->redirect('manage/users', 'User Enabled');
+        $this->res->redirect('manage/users', _t('user_enabled'));
     }
 }

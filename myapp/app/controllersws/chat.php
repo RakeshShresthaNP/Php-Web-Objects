@@ -42,7 +42,7 @@ final class cChat extends cController
                 if ($server)
                     $server->send($senderId, [
                         'type' => 'error',
-                        'detail' => 'Folder creation failed'
+                        'detail' => _t('folder_creation_failed')
                     ]);
                 return;
             }
@@ -67,7 +67,7 @@ final class cChat extends cController
     {
         try {
             if (! $this->user)
-                throw new ApiException("Auth Required", 401);
+                throw new ApiException(_t('identity_verification_required'), 401);
 
             $message = htmlspecialchars($params['message'] ?? '');
             $fileId = $params['file_id'] ?? null;
@@ -120,7 +120,7 @@ final class cChat extends cController
                 'message' => $message,
                 'file_path' => $finalUrl,
                 'file_name' => $fileName,
-                'sender' => $this->user->realname ?? 'User',
+                'sender' => $this->user->realname ?? _t('user'),
                 'sender_id' => (int) $this->user->id,
                 'target_id' => $targetId,
                 'reply_to' => $replyTo,
@@ -146,7 +146,7 @@ final class cChat extends cController
             writeLog('chat_send_error_' . date('Y_m_d'), "User #{$this->user->id}: " . $t->getMessage());
             return [
                 'status' => 'error',
-                'message' => 'Failed to send'
+                'message' => _t('file_upload_failed')
             ];
         }
     }
@@ -155,7 +155,7 @@ final class cChat extends cController
     {
         try {
             if (! $this->user)
-                throw new ApiException("Auth Error", 401);
+                throw new ApiException(_t('identity_verification_required'), 401);
 
             // The ID of the user the admin is currently chatting with
             $userId = (int) $this->user->id;
@@ -266,13 +266,13 @@ final class cChat extends cController
 
             return [
                 'status' => 'success',
-                'message' => 'Removed'
+                'message' => _t('delete')
             ];
         } catch (Throwable $t) {
             writeLog('chat_delete_error_' . date('Y_m_d'), $t->getMessage());
             return [
                 'status' => 'error',
-                'message' => 'Delete failed: ' . $t->getMessage()
+                'message' => _t('file_upload_failed')
             ];
         }
     }

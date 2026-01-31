@@ -18,6 +18,8 @@
 CREATE TABLE IF NOT EXISTS `chat_logs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `sender_id` int(11) NOT NULL COMMENT 'Links to mst_users.id',
+  `reply_to` int(11) DEFAULT NULL,
+  `target_id` int(11) DEFAULT NULL,
   `message` text DEFAULT NULL,
   `file_path` varchar(512) DEFAULT NULL COMMENT 'Path to the reassembled file',
   `file_name` varchar(255) DEFAULT NULL COMMENT 'Original name of the uploaded file',
@@ -26,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `chat_logs` (
   `d_created` datetime DEFAULT current_timestamp(),
   `d_updated` datetime DEFAULT NULL ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
-  KEY `idx_sender` (`sender_id`, `d_created`)
+  KEY `idx_sender` (`sender_id`,`target_id`,`d_created`,`reply_to`)
 ) ENGINE=Aria DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci PAGE_CHECKSUM=1;
 
 -- Dumping data for table pwo.chat_logs: 0 rows

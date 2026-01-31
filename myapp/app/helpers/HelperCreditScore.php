@@ -15,7 +15,7 @@
  // 2. Get the full detailed data for your database JSON column
  $fullDetails = $helper->getExplanation();
 
- echo "User Score: " . $score; 
+ echo "User Score: " . $score;
  // $score is 822 (example)
  // $fullDetails['final_score'] is also 822
  #
@@ -106,7 +106,7 @@ final class HelperCreditScore
             return [
                 'direction' => 'stable',
                 'change' => 0,
-                'message' => 'No calculation found.'
+                'message' => _t('no_calculation_found')
             ];
         }
 
@@ -114,7 +114,7 @@ final class HelperCreditScore
             return [
                 'direction' => 'stable',
                 'change' => 0,
-                'message' => 'First score generated. Keep paying on time to build history!'
+                'message' => _t('first_score_generated_hint')
             ];
         }
 
@@ -137,24 +137,24 @@ final class HelperCreditScore
 
         if (! empty($prevB)) {
             if ($currB['utilization'] < $prevB['utilization']) {
-                $reasons[] = "Your credit usage increased, which negatively impacted your score.";
+                $reasons[] = _t('reason_utilization_increased');
             } elseif ($currB['utilization'] > $prevB['utilization']) {
-                $reasons[] = "Lower credit utilization is helping your score rise.";
+                $reasons[] = _t('reason_utilization_decreased');
             }
 
             if ($currB['payment_history'] > $prevB['payment_history']) {
-                $reasons[] = "Great work! On-time payments are boosting your reliability.";
+                $reasons[] = _t('reason_payment_history_improved');
             }
 
             if ($currB['new_credit'] < $prevB['new_credit']) {
-                $reasons[] = "Recent credit inquiries have caused a small temporary dip.";
+                $reasons[] = _t('reason_new_inquiries_dip');
             }
         }
 
         $message = match ($direction) {
-            'up' => "Your score improved by {$diff} points!",
-            'down' => "Your score dropped by " . abs($diff) . " points.",
-            'stable' => "Your score is stable at {$current}."
+            'up' => _t('score_improved_by') . ' ' . $diff . ' ' . _t('points'),
+            'down' => _t('score_dropped_by') . ' ' . abs($diff) . ' ' . _t('points'),
+            'stable' => _t('score_stable_at') . ' ' . $current . '.'
         };
 
         return [

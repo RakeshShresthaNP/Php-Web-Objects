@@ -44,8 +44,10 @@ final class EventForgotPassword
             ]);
 
             if ($stmt->fetchColumn() >= 5) {
-                $this->db->prepare("INSERT IGNORE INTO sys_blocked_ips (ip_address, reason) VALUES (?, 'Forgot Pass Brute Force')")->execute([
-                    $this->ip
+                $reason = _t('pass_reset') . ' ' . _t('failed_login');
+                $this->db->prepare("INSERT IGNORE INTO sys_blocked_ips (ip_address, reason) VALUES (?, ?)")->execute([
+                    $this->ip,
+                    $reason
                 ]);
             }
             return;
@@ -60,14 +62,14 @@ final class EventForgotPassword
             AND created_at > DATE_SUB(UTC_TIMESTAMP(), INTERVAL 5 MINUTE)
             LIMIT 1
         ");
+        
         // We look for the email inside the JSON payload column
         $limitCheck->execute([
             '%"email":"' . $this->user->email . '"%'
         ]);
 
         if ($limitCheck->fetch()) {
-            // We throw a specific exception so the controller can catch it
-            throw new Exception("A reset link was recently sent. Please wait 5 minutes before trying again.");
+            throw new Exception(_t('reset_link_recently_sent'));
         }
 
         // 3. SUCCESS Logic: Add to Job Queue for background mailing

@@ -88,7 +88,7 @@ class model
 
     public function getData(): object
     {
-        return (object) $this->_rs;
+        return $this->_rs;
     }
 
     // --- Query Builder ---
@@ -187,6 +187,14 @@ class model
         $prefix = empty($this->_where) ? "" : "{$boolean} ";
         $placeholders = implode(',', array_fill(0, count($values), '?'));
         $this->_where[] = "{$prefix}{$column} IN ({$placeholders})";
+        $this->_bindings = array_merge($this->_bindings, $values);
+        return $this;
+    }
+
+    public function whereNotIn(string $column, array $values): self
+    {
+        $placeholders = implode(', ', array_fill(0, count($values), '?'));
+        $this->_where[] = (empty($this->_where) ? "" : " AND ") . "{$column} NOT IN ({$placeholders})";
         $this->_bindings = array_merge($this->_bindings, $values);
         return $this;
     }
@@ -734,7 +742,7 @@ class model
         return $mapped;
     }
 
-    private function buildSelectSql(string $fields, string $alias = 'p'): string
+    private function buildSelectSql(string $fields, ?string $alias = null): string
     {
         $where = $this->_where;
         if ($this->softDelete && ! $this->_ignoreSoftDelete) {

@@ -23,12 +23,10 @@ final class cAuth extends cController
         if (isset($this->partner->settings[0]->secretkey)) {
             $secret_key = $this->partner->settings[0]->secretkey;
         } else {
-            // Updated with _t()
             throw new ApiException(_t('invalid_partner_setting_format'), 401);
         }
 
         if (! $secret_key) {
-            // Updated with _t()
             throw new ApiException(_t('partner_setting_is_blank'), 401);
         }
 
@@ -54,12 +52,10 @@ final class cAuth extends cController
         ]);
 
         if ($isBlocked->fetch()) {
-            // Updated with _t()
             throw new ApiException(_t("your_ip_is_blocked"), 503);
         }
 
         if (! $this->req->isPost()) {
-            // Updated with _t()
             throw new ApiException(_t('invalid_request_method'), 400);
         }
 
@@ -82,20 +78,17 @@ final class cAuth extends cController
 
         if (! $user || ! AuthSecurity::verifyAndUpgrade($fdata['password'], $user->password, $user->id)) {
             $this->dispatcher->dispatch(new EventLogin($username, $ip, false));
-            // Updated with _t()
             throw new ApiException(_t('invalid_credentials'), 405);
         }
 
         if ($user->status == 2) {
             $this->dispatcher->dispatch(new EventLogin($username, $ip, false));
-            // Updated with _t()
             throw new ApiException(_t('user_disabled'), 405);
         }
 
         // Check partner constraints
         if ($user->perms != 'superadmin' && $user->partner_id != $this->partner->id) {
             $this->dispatcher->dispatch(new EventLogin($username, $ip, false));
-            // Updated with _t()
             throw new ApiException(_t('error_login'), 405);
         }
 
@@ -125,8 +118,8 @@ final class cAuth extends cController
 
             return $this->res->json($data);
         }
-        // --- TOTP LOGIC END ---
 
+        // --- TOTP LOGIC END ---
         $this->dispatcher->dispatch(new EventLogin($username, $ip, true));
 
         $udata = [
@@ -155,12 +148,10 @@ final class cAuth extends cController
         $otp_code = $fdata['otp_code'] ?? null;
 
         if (! $otp_code) {
-            // Updated with _t()
             throw new ApiException(_t('otp_code_is_required'), 405);
         }
 
         if (! isset($_SESSION['pending_auth_id'])) {
-            // Updated with _t()
             throw new ApiException(_t('session_expired_please_login_again'), 401);
         }
 
@@ -168,7 +159,6 @@ final class cAuth extends cController
         $secret = $_SESSION['temp_secret'] ?? $user->totp_secret;
 
         if (! $secret) {
-            // Updated with _t()
             throw new ApiException(_t('no_secret_found'), 401);
         }
 
@@ -197,19 +187,17 @@ final class cAuth extends cController
                 'status' => 'success'
             ];
 
-            // Updated with _t()
             $data['message'] = _t('authorized');
             $data['code'] = 200;
 
             unset($_SESSION['pending_auth_id']);
 
-            $udata = $user->getData();
+            $udata = (object) $user->getData();
             setCurrentUser($udata);
 
             return $this->res->json($data);
         }
 
-        // Updated with _t()
         throw new ApiException(_t('invalid_otp'), 405);
     }
 }

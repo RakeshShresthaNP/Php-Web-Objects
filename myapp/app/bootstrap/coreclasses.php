@@ -152,7 +152,7 @@ final class Request
         $this->partner = $pdata;
 
         if (! isset($this->partner->id)) {
-            throw new Exception('Invalid Domain Name', 503);
+            throw new Exception(_t('invalid_domain'), 503);
         }
     }
 
@@ -239,13 +239,13 @@ final class Request
             $secret_key = $this->partner->settings[0]->secretkey;
         } else {
             // If we are in WebSocket mode, this indicates getPartner() wasn't called or failed
-            throw new ApiException('Invalid partner setting. Secret Key not found.', 401);
+            throw new ApiException(_t('invalid_partner_setting') . " " . _t('secret_key_not_found'), 401);
         }
 
         // 2. Split the token into its three parts
         $tokenParts = explode('.', $jwt);
         if (count($tokenParts) !== 3) {
-            throw new ApiException('Invalid token format.', 401);
+            throw new ApiException(_t('invalid_token_format'), 401);
         }
 
         $header = $tokenParts[0];
@@ -260,7 +260,7 @@ final class Request
         // 4. Verify it matches the signature provided in the token
         if (! hash_equals($base64UrlSignature, $signatureProvided)) {
             // If this fails, the token was signed with a different key than what is in the DB
-            throw new ApiException('Signature is not valid. Check if Login Key matches DB Key.', 401);
+            throw new ApiException(_t('invalid_signature') . " " . _t('check_key_match'), 401);
         }
 
         // 5. Decode and check the expiration time
@@ -268,12 +268,12 @@ final class Request
         $payloadData = json_decode($payloadDecoded);
 
         if (! $payloadData || ! isset($payloadData->exp)) {
-            throw new ApiException('Invalid token payload.', 401);
+            throw new ApiException(_t('invalid_token_payload'), 401);
         }
 
         // 6. Check if token is expired
         if (time() > $payloadData->exp) {
-            throw new ApiException('Token has expired.', 401);
+            throw new ApiException(_t('token_expired'), 401);
         }
 
         return $payloadData;
@@ -306,16 +306,16 @@ final class Request
         if ($cdata) {
             if ($cdata->status == 2) {
                 if ($this->apimode) {
-                    throw new ApiException("$this->controller Does not Exist", 503);
+                    throw new ApiException($this->controller . " " . _t('not_exist'), 503);
                 } else {
-                    throw new Exception("$this->controller Does not Exist", 503);
+                    throw new Exception($this->controller . " " . _t('not_exist'), 503);
                 }
             }
         } else {
             if ($this->apimode) {
-                throw new ApiException("$this->controller Does not Exist", 503);
+                throw new ApiException($this->controller . " " . _t('not_exist'), 503);
             } else {
-                throw new Exception("$this->controller Does not Exist", 503);
+                throw new Exception($this->controller . " " . _t('not_exist'), 503);
             }
         }
 
@@ -336,9 +336,9 @@ final class Request
 
         if (! $iscontollerallowed) {
             if ($this->apimode) {
-                throw new ApiException('Access to controller: ' . $this->controller . ' not allowed!', 503);
+                throw new ApiException(_t('access_to_controller') . " " . $this->controller . " " . _t('not_allowed'), 503);
             } else {
-                res()->redirect('login', '<div class="text-error-500">Access to module: ' . $this->controller . ' not allowed!</div>');
+                res()->redirect('login', '<div class="text-error-500">' . _t('access_to_module') . " " . $this->controller . " " . _t('not_allowed') . '</div>');
             }
         }
 
@@ -371,16 +371,16 @@ final class Request
         if ($mdata) {
             if ($mdata->status == 2) {
                 if ($this->apimode) {
-                    throw new ApiException($this->controller . '_' . $this->method . ' Does not Exist', 503);
+                    throw new ApiException($this->controller . '_' . $this->method . " " . _t('not_exist'), 503);
                 } else {
-                    throw new Exception($this->controller . '_' . $this->method . ' Does not Exist', 503);
+                    throw new Exception($this->controller . '_' . $this->method . " " . _t('not_exist'), 503);
                 }
             }
         } else {
             if ($this->apimode) {
-                throw new ApiException($this->controller . '_' . $this->method . ' Does not Exist', 503);
+                throw new ApiException($this->controller . '_' . $this->method . " " . _t('not_exist'), 503);
             } else {
-                throw new Exception($this->controller . '_' . $this->method . ' Does not Exist', 503);
+                throw new Exception($this->controller . '_' . $this->method . " " . _t('not_exist'), 503);
             }
         }
 
@@ -401,9 +401,9 @@ final class Request
 
         if (! $ismethodallowed) {
             if ($this->apimode) {
-                throw new ApiException('Access to method: ' . $this->controller . '_' . $this->method . ' not allowed!', 503);
+                throw new ApiException(_t('access_to_method') . " " . $this->controller . '_' . $this->method . " " . _t('not_allowed'), 503);
             } else {
-                res()->redirect('login', '<div class="text-error-500">Access to module: ' . $this->controller . ' not allowed!</div>');
+                res()->redirect('login', '<div class="text-error-500">' . _t('access_to_module') . " " . $this->controller . " " . _t('not_allowed') . '</div>');
             }
         }
 
@@ -598,7 +598,7 @@ final class Application
 
         $uriparts = explode('/', str_replace(array(
             SITE_URI . PATH_URI,
-            '?' . $_SERVER['QUERY_STRING']
+            '?' . ($_SERVER['QUERY_STRING'] ?? '')
         ), '', SITE_URI . $_SERVER['REQUEST_URI']));
         $uriparts = array_filter($uriparts);
 
