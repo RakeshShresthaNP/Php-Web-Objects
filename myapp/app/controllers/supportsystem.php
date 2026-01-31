@@ -13,12 +13,9 @@
 final class cSupportSystem extends cController
 {
 
-    private PDO $db;
-
     public function __construct()
     {
         parent::__construct();
-        $this->db = db();
     }
 
     public function manage_index()
@@ -32,7 +29,6 @@ final class cSupportSystem extends cController
     {
         $m = new model('mst_users');
 
-        // 1. Build and execute the query
         $tickets = $m->selectRaw("mst_users.id as user_id, mst_users.realname, c.message, c.d_created, c.sender_id as last_sender_id, (SELECT COUNT(*) FROM chat_logs WHERE sender_id = mst_users.id AND is_read = 0) as unread_count")
             ->join('chat_logs c', 'c.id', '=', "(SELECT id FROM chat_logs WHERE (sender_id = mst_users.id OR target_id = mst_users.id) ORDER BY d_created DESC LIMIT 1)", 'INNER')
             ->whereNotIn('mst_users.perms', [
@@ -42,7 +38,6 @@ final class cSupportSystem extends cController
             ->orderBy('c.d_created', 'DESC')
             ->find();
 
-        // 2. Prepare the API response
         $data = [
             'code' => 200,
             'data' => [
@@ -50,7 +45,6 @@ final class cSupportSystem extends cController
             ]
         ];
 
-        // 3. Send the JSON response
         return $this->res->json($data);
     }
 
@@ -65,7 +59,6 @@ final class cSupportSystem extends cController
         }
 
         $m = new model('chat_logs');
-        $m = new model('chat_logs');
 
         $messages = $m->selectRaw("chat_logs.*, r.message AS reply_to_text, u.realname as sender_name, u.perms as sender_perms")
             ->join('chat_logs r', 'chat_logs.reply_to', '=', 'r.id', 'LEFT')
@@ -78,14 +71,11 @@ final class cSupportSystem extends cController
             ->orderBy('chat_logs.d_created', 'ASC')
             ->find();
 
-        // Using whereUpdate to mark messages as read
-        /*
         $m->where('sender_id', $user_id)
             ->where('is_read', 0)
-            ->whereUpdate([
+            ->updateWhere([
             'is_read' => 1
         ]);
-        */
 
         $data['code'] = 200;
         $data['data'] = [
