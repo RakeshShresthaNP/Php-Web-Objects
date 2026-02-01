@@ -18,11 +18,11 @@ require_once APP_DIR . 'bootstrap/loader.php';
 
 unset($_REQUEST);
 
-function setCurrentUser(?object &$userdata = null): void
+function setCurrentUser(mixed &$userdata = null): void
 {
     // Prevent session errors in CLI/WebSocket mode
     if (PHP_SAPI !== 'cli') {
-        Session::getContext(SESS_TYPE)->set('authUser', $userdata);
+        Session::getContext(SESS_TYPE)->set('authUser', (object) $userdata);
     }
 }
 
@@ -613,7 +613,7 @@ final class Application
         } else {
             $request->user = getCurrentUser();
             if ($request->user) {
-                $request->cusertype = $request->user->perms;
+                $request->cusertype = $request->user->perms ?? 'none';
             }
             $request->apimode = false;
         }

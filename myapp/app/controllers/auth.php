@@ -192,7 +192,7 @@ final class cAuth extends cController
 
             unset($_SESSION['pending_auth_id']);
 
-            $udata = (object) $user->getData();
+            $udata = $user->getData();
             setCurrentUser($udata);
 
             return $this->res->json($data);

@@ -16,7 +16,7 @@ if (! defined('PWO_DIR_ASSETS')) {
     $basePath = APP_DIR . "../";
     define('DIR_TEMP', $basePath . "public" . DIRECTORY_SEPARATOR . "temp" . DIRECTORY_SEPARATOR);
     define('DIR_UPLOADS', $basePath . "public" . DIRECTORY_SEPARATOR . "uploads" . DIRECTORY_SEPARATOR . "chat" . DIRECTORY_SEPARATOR);
-    define('URL_BASE', 'public/uploads/chat/');
+    define('URL_BASE', '/pwo/myapp/public/uploads/chat/');
     if (! is_dir(DIR_TEMP))
         @mkdir(DIR_TEMP, 0777, true);
     if (! is_dir(DIR_UPLOADS))

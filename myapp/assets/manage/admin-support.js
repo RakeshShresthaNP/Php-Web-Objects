@@ -1,216 +1,165 @@
 import WSClient from '../public/wsclient.js';
 import { parseMarkdown } from '../public/pwo-ui.js';
 import { Auth } from '../public/pwo-auth.js';
+import { 
+    handleSend, 
+    handleFile, 
+    handleMic, 
+    initAutoExpand, 
+    initEmojiPicker 
+} from '../public/pwo-logic.js';
 
 const servername = window.location.protocol + '//' + window.location.hostname + '/pwo/myapp/';
 
 class AdminSupport {
     constructor() {
         this.activeUserId = null;
-        this.msgFlow = document.getElementById('message-flow');
-        this.ticketList = document.getElementById('chat-list');
-        // Ensure ws protocol matches environment (ws vs wss)
+        this.state = { activeUserId: null, pendingFile: null };
+
+        // --- MAP TO YOUR HTML IDs ---
+        this.ui = {
+            flow:    document.getElementById('chat-box'),
+            list:    document.getElementById('chat-list'),
+            input:   document.getElementById('chat-in'),
+            sendBtn: document.getElementById('chat-send'),
+            fileIn:  document.getElementById('pwo-file-input'),
+            attach:  document.getElementById('pwo-attach'),
+            mic:     document.getElementById('pwo-mic')
+        };
+        
         const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
         this.ws = new WSClient(`${protocol}://${window.location.hostname}:8080`, 'pwoToken');
+        
         this.init();
     }
 
     async init() {
         this.ws.connect();
+        initAutoExpand();
+        initEmojiPicker();
         this.attachEventListeners();
         await this.loadTickets();
     }
 
-    getAuthHeaders() {
-        return { 
-            'X-Forwarded-Host': window.location.hostname,
-            'Authorization': `Bearer ${Auth.getToken()}`
-        };
-    }
-
     attachEventListeners() {
-        // Listen for new messages via WebSocket
-        window.addEventListener('ws_new_message', async (e) => {
+        // Websocket Updates
+        window.addEventListener('ws_new_message', (e) => {
             const msg = e.detail;
-            await this.loadTickets(); // Refresh sidebar to show latest snippet/unread count
-            
             const myId = Auth.getUserId();
-            const isFromCurrentTarget = parseInt(msg.sender_id) === parseInt(this.activeUserId);
-            const isFromMe = parseInt(msg.sender_id) === parseInt(myId);
-
-            if (this.activeUserId && (isFromCurrentTarget || isFromMe)) {
-                // Check if message already exists in DOM (to prevent double rendering from optimistic UI)
-                const existing = msg.id ? document.querySelector(`[data-id="${msg.id}"]`) : null;
-                if (!existing) {
-                    this.renderBubble(msg, isFromMe ? 'admin' : 'user');
-                    this.scrollToBottom();
-                }
+            // If the message belongs to the current open chat
+            if (this.activeUserId && (parseInt(msg.sender_id) === parseInt(this.activeUserId) || parseInt(msg.sender_id) === parseInt(myId))) {
+                this.renderBubble(msg, parseInt(msg.sender_id) === parseInt(myId) ? 'admin' : 'user');
+                this.scrollToBottom();
             }
+            this.loadTickets(); // Refresh sidebar
         });
 
-        // UI Event Listeners
-        const sendBtn = document.getElementById('send-btn');
-        if (sendBtn) sendBtn.onclick = () => this.handleSend();
+        // Click Attach Icon -> Triggers Hidden File Input
+        if (this.ui.attach) this.ui.attach.onclick = () => this.ui.fileIn.click();
         
-        const input = document.getElementById('admin-input');
-        if (input) {
-            input.onkeypress = (e) => { 
+        // File Selection
+        if (this.ui.fileIn) this.ui.fileIn.onchange = (e) => handleFile(e.target.files[0], this.state);
+        
+        // Mic / Voice
+        if (this.ui.mic) this.ui.mic.onclick = () => handleMic(this.ws, this.state);
+
+        // Send Click
+        if (this.ui.sendBtn) {
+            this.ui.sendBtn.onclick = () => {
+                this.state.activeUserId = this.activeUserId;
+                handleSend(this.state, this.ws);
+            };
+        }
+
+        // Enter Key
+        if (this.ui.input) {
+            this.ui.input.onkeypress = (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    this.handleSend();
+                    this.state.activeUserId = this.activeUserId;
+                    handleSend(this.state, this.ws);
                 }
             };
         }
     }
 
     async selectUser(userId) {
-        if (this.activeUserId === userId) return;
         this.activeUserId = userId;
-        
+        this.state.activeUserId = userId;
+
         try {
             const res = await fetch(`${servername}api/support/getmessages?user_id=${userId}`, {
                 headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
             });
             const response = await res.json();
             
-            if (response.code === 200) {
-                this.msgFlow.innerHTML = '';
-                const messages = response.data.messages ? Object.values(response.data.messages) : [];
+            if (response.code === 200 && this.ui.flow) {
+                this.ui.flow.innerHTML = ''; // Clears the SVG placeholder
                 
+                const messages = response.data.messages ? Object.values(response.data.messages) : [];
                 messages.forEach(m => {
                     const role = (parseInt(m.sender_id) === parseInt(Auth.getUserId())) ? 'admin' : 'user';
                     this.renderBubble(m, role);
                 });
                 
                 this.scrollToBottom();
-                
-                // Mark messages as read via WebSocket
-                this.ws.call('chat', 'markread', { 
-                    target_user_id: parseInt(userId),
-                    token: Auth.getToken() 
-                }, this.getAuthHeaders());
-
-                await this.loadTickets(); 
+                this.ws.call('chat', 'markread', { target_user_id: parseInt(userId), token: Auth.getToken() });
             }
-        } catch (err) { console.error("Failed to load messages:", err); }
-    }
-
-    async handleSend() {
-        const input = document.getElementById('admin-input');
-        const txt = input.value.trim();
-        const token = Auth.getToken();
-
-        if (!this.activeUserId || !txt || !token) return;
-
-        // 1. Send via WebSocket
-        this.ws.call('chat', 'send', {
-            target_id: this.activeUserId,
-            message: txt,
-            token: token
-        }, this.getAuthHeaders());
-
-        // 2. Optimistic UI: Render immediately for the admin
-        this.renderBubble({
-            message: txt,
-            sender_id: Auth.getUserId(),
-            created_at: new Date().toISOString()
-        }, 'admin');
-        
-        input.value = '';
-        this.scrollToBottom();
+        } catch (err) { console.error("Message Load Error:", err); }
     }
 
     async loadTickets() {
         try {
-            const res = await fetch(`${servername}api/support/gettickets?nocache=${Date.now()}`, {
+            const res = await fetch(`${servername}api/support/gettickets`, {
                 headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
             });
             const response = await res.json();
             if (response.code === 200) {
-                const ticketsArray = Object.values(response.data.tickets || {});
-                // Sort by most recent activity
-                ticketsArray.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-                this.renderSidebar(ticketsArray);
+                this.renderSidebar(Object.values(response.data.tickets || {}));
             }
-        } catch (err) { console.error("Ticket Load Error:", err); }
+        } catch (err) { console.error("Sidebar Load Error:", err); }
     }
 
     renderSidebar(tickets) {
-        if (!this.ticketList) return;
-        this.ticketList.innerHTML = tickets.map(t => {
+        if (!this.ui.list) return;
+        this.ui.list.innerHTML = tickets.map(t => {
             const userId = t.sender_id || t.user_id;
             const isActive = parseInt(this.activeUserId) === parseInt(userId);
-            const snippet = t.message || (t.file_path ? '📎 Attachment' : '...');
-            
             return `
                 <div onclick="AdminApp.selectUser(${userId})" 
-                     class="p-4 rounded-xl cursor-pointer transition-all border mb-2 ${isActive ? 'bg-[#4d7cfe]/10 border-[#4d7cfe]/30' : 'bg-black/20 border-white/5 hover:bg-white/5'}">
-                    <div class="flex justify-between items-start mb-1">
-                        <span class="text-xs font-black text-white uppercase tracking-wider">${t.realname || 'User #' + userId}</span>
-                        <span class="text-[9px] text-gray-500 font-bold">${this.formatTime(t.created_at)}</span>
+                     class="p-4 rounded-xl cursor-pointer mb-2 border transition-all ${isActive ? 'bg-blue-500/10 border-blue-500/50' : 'bg-white/5 border-transparent hover:bg-white/10'}">
+                    <div class="flex justify-between text-white text-[11px] font-bold uppercase tracking-tight">
+                        <span>${t.realname || 'User ' + userId}</span>
+                        <span class="opacity-40 text-[9px]">${this.formatTime(t.created_at)}</span>
                     </div>
-                    <div class="flex justify-between items-center">
-                        <p class="text-[11px] text-gray-500 truncate pr-4">${snippet}</p>
-                        ${t.unread_count > 0 ? `<span class="bg-[#4d7cfe] text-white text-[9px] font-black px-1.5 py-0.5 rounded-md shadow-sm">${t.unread_count}</span>` : ''}
-                    </div>
+                    <p class="text-[10px] text-gray-400 truncate mt-1">${t.message || '...'}</p>
                 </div>`;
         }).join('');
     }
 
-	renderBubble(msg, role) {
-	    // 1. Determine if it's the Admin (Right) or Customer (Left)
-	    const isMe = role === 'admin';
-	    
-	    // 2. Classes for alignment and colors
-	    // We use 'items-end' for Admin to push content to the right
-	    const alignmentClass = isMe ? 'items-end' : 'items-start';
-	    
-	    // Bubble styling
-	    const bubbleClass = isMe 
-	        ? 'bg-[#4d7cfe] text-white rounded-2xl rounded-tr-none' // Admin Blue
-	        : 'bg-[#1b222b] border border-white/10 text-gray-200 rounded-2xl rounded-tl-none'; // Customer Dark
-
-	    let mediaHtml = '';
-	    if (msg.file_path) {
-	        // ... (your existing media logic)
-	        mediaHtml = `<img src="${msg.file_path}" class="rounded-lg mb-2 max-w-xs">`;
-	    }
-
-	    const html = `
-	        <div class="flex flex-col ${alignmentClass} w-full mb-2">
-	            <div class="flex flex-col ${alignmentClass} max-w-[80%]">
-	                <div class="${bubbleClass} p-3 px-4 shadow-md">
-	                    ${mediaHtml}
-	                    <div class="text-[13px] leading-relaxed break-words">
-	                        ${parseMarkdown(msg.message || '')}
-	                    </div>
-	                    <div class="text-[9px] opacity-50 mt-1 font-medium ${isMe ? 'text-right' : 'text-left'}">
-	                        ${this.formatTime(msg.created_at)}
-	                    </div>
-	                </div>
-	            </div>
-	        </div>`;
-	        
-	    this.msgFlow.insertAdjacentHTML('beforeend', html);
-	    this.scrollToBottom();
-	}
-		
-    scrollToBottom() { 
-        this.msgFlow.scrollTo({ 
-            top: this.msgFlow.scrollHeight, 
-            behavior: 'smooth' 
-        }); 
+    renderBubble(msg, role) {
+        if (!this.ui.flow) return;
+        const isMe = role === 'admin';
+        const bubble = `
+            <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-4">
+                <div class="max-w-[85%] p-3 px-4 rounded-2xl ${isMe ? 'bg-[#4d7cfe] text-white rounded-tr-none' : 'bg-[#1b222b] border border-white/10 text-gray-200 rounded-tl-none'} shadow-lg">
+                    ${msg.file_path ? `<img src="${msg.file_path}" class="rounded-lg mb-2 max-w-full">` : ''}
+                    <div class="text-[13px] leading-relaxed">${parseMarkdown(msg.message || '')}</div>
+                    <div class="text-[9px] opacity-40 mt-1 font-bold ${isMe ? 'text-right' : 'text-left'}">
+                        ${this.formatTime(msg.created_at)}
+                    </div>
+                </div>
+            </div>`;
+        this.ui.flow.insertAdjacentHTML('beforeend', bubble);
     }
 
-    formatTime(d) { 
-        if(!d) return '';
-        try {
-            // Support for various date formats including SQL timestamps
-            const date = new Date(d.replace(/-/g, '/'));
-            return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); 
-        } catch(e) { return ''; }
+    scrollToBottom() { if(this.ui.flow) this.ui.flow.scrollTop = this.ui.flow.scrollHeight; }
+
+    formatTime(d) {
+        if (!d) return '';
+        const date = new Date(d.replace(/-/g, '/'));
+        return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     }
 }
 
-// Instantiate globally for onclick handlers in the sidebar
 window.AdminApp = new AdminSupport();
