@@ -1,5 +1,5 @@
 import WSClient from '../public/wsclient.js';
-import { parseMarkdown } from '../public/pwo-ui.js';
+import { render, parseMarkdown } from '../public/pwo-ui.js';
 import { Auth } from '../public/pwo-auth.js';
 import { 
     handleSend, 
@@ -137,22 +137,12 @@ class AdminSupport {
         }).join('');
     }
 
-    renderBubble(msg, role) {
+	renderBubble(msg) {
         if (!this.ui.flow) return;
-        const isMe = role === 'admin';
-        const bubble = `
-            <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-4">
-                <div class="max-w-[85%] p-3 px-4 rounded-2xl ${isMe ? 'bg-[#4d7cfe] text-white rounded-tr-none' : 'bg-[#1b222b] border border-white/10 text-gray-200 rounded-tl-none'} shadow-lg">
-                    ${msg.file_path ? `<img src="${msg.file_path}" class="rounded-lg mb-2 max-w-full">` : ''}
-                    <div class="text-[13px] leading-relaxed">${parseMarkdown(msg.message || '')}</div>
-                    <div class="text-[9px] opacity-40 mt-1 font-bold ${isMe ? 'text-right' : 'text-left'}">
-                        ${this.formatTime(msg.created_at)}
-                    </div>
-                </div>
-            </div>`;
-        this.ui.flow.insertAdjacentHTML('beforeend', bubble);
-    }
 
+        render(msg);
+    }
+		
     scrollToBottom() { if(this.ui.flow) this.ui.flow.scrollTop = this.ui.flow.scrollHeight; }
 
     formatTime(d) {

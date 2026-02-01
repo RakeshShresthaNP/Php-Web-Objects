@@ -32,8 +32,7 @@ final class cSupport extends cController
         $tickets = $m->selectRaw("mst_users.id as user_id, mst_users.realname, c.message, c.created_at, c.sender_id as last_sender_id, (SELECT COUNT(*) FROM chat_logs WHERE sender_id = mst_users.id AND is_read = 0) as unread_count")
             ->join('chat_logs c', 'c.id', '=', "(SELECT id FROM chat_logs WHERE (sender_id = mst_users.id OR target_id = mst_users.id) ORDER BY created_at DESC LIMIT 1)", 'INNER')
             ->whereNotIn('mst_users.perms', [
-            'superadmin',
-            'admin'
+            'superadmin'
         ])
             ->orderBy('c.created_at', 'DESC')
             ->find();
