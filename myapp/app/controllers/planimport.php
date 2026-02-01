@@ -47,7 +47,7 @@ final class cPlanImport extends cController
 
                 $all_rows_data_array = $xlsx->rows();
 
-                $d_created = date("Y-m-d H:i:s", time());
+                $created_at = date("Y-m-d H:i:s", time());
 
                 // We start our transaction.
                 $db->beginTransaction();
@@ -55,7 +55,7 @@ final class cPlanImport extends cController
                 $d_sql = "DELETE FROM pmis_hr_tracking WHERE n_package_id = ? AND d_date = ? ";
                 $d_stmt = $db->prepare($d_sql);
 
-                $i_sql = "INSERT INTO pmis_hr_tracking (n_plan_id, d_date, n_package_id, n_works_id, c_des, n_required_resource, n_available_resource, n_act_flg, n_user_id, d_created, d_modified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                $i_sql = "INSERT INTO pmis_hr_tracking (n_plan_id, d_date, n_package_id, n_works_id, c_des, n_required_resource, n_available_resource, n_act_flg, n_user_id, created_at, d_modified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 $i_stmt = $db->prepare($i_sql);
 
                 for ($i = 3; $i < $num_rows; $i ++) {
@@ -95,8 +95,8 @@ final class cPlanImport extends cController
                                     $i_stmt->bindValue(7, $n_available_resource);
                                     $i_stmt->bindValue(8, 0);
                                     $i_stmt->bindValue(9, $ses);
-                                    $i_stmt->bindValue(10, $d_created);
-                                    $i_stmt->bindValue(11, $d_created);
+                                    $i_stmt->bindValue(10, $created_at);
+                                    $i_stmt->bindValue(11, $created_at);
 
                                     $exec_query = $i_stmt->execute();
                                 } catch (Exception $e) {

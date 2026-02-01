@@ -61,7 +61,7 @@
                             <span class="text-sm text-gray-300"><?php echo $user->realname; ?></span>
                         </td>
                         <td class="px-6 py-4 text-center text-sm text-gray-500">
-                            <?php echo date('Y-m-d', strtotime($user->d_created)); ?>
+                            <?php echo date('Y-m-d', strtotime($user->created_at)); ?>
                         </td>
                         <td class="px-6 py-4 text-center">
                             <span class="inline-flex px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-tight <?php echo $user->status == 1 ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'; ?>">

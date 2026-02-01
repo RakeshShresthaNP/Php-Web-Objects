@@ -126,7 +126,7 @@ final class cChat extends cController
                 'reply_to' => $replyTo,
                 'is_read' => 0,
                 'time' => date('H:i'),
-                'd_created' => date('Y-m-d H:i:s')
+                'created_at' => date('Y-m-d H:i:s')
             ];
 
             // 3. REVERTED BROADCAST (Single broadcast as it was)
@@ -161,7 +161,7 @@ final class cChat extends cController
             $userId = (int) $this->user->id;
 
             $hmodel = new model('chat_logs');
-            $history = $hmodel->select('p.id, p.message, p.file_path, p.file_name, p.d_created as time, u.realname as sender, p.sender_id, p.is_read')
+            $history = $hmodel->select('p.id, p.message, p.file_path, p.file_name, p.created_at as time, u.realname as sender, p.sender_id, p.is_read')
                 ->join('mst_users u', 'u.id', '=', 'p.sender_id', 'LEFT')
                 ->
             // This RAW query ensures we get both sides of the conversation

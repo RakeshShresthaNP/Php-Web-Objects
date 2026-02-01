@@ -29,13 +29,13 @@ final class cSupportSystem extends cController
     {
         $m = new model('mst_users');
 
-        $tickets = $m->selectRaw("mst_users.id as user_id, mst_users.realname, c.message, c.d_created, c.sender_id as last_sender_id, (SELECT COUNT(*) FROM chat_logs WHERE sender_id = mst_users.id AND is_read = 0) as unread_count")
-            ->join('chat_logs c', 'c.id', '=', "(SELECT id FROM chat_logs WHERE (sender_id = mst_users.id OR target_id = mst_users.id) ORDER BY d_created DESC LIMIT 1)", 'INNER')
+        $tickets = $m->selectRaw("mst_users.id as user_id, mst_users.realname, c.message, c.created_at, c.sender_id as last_sender_id, (SELECT COUNT(*) FROM chat_logs WHERE sender_id = mst_users.id AND is_read = 0) as unread_count")
+            ->join('chat_logs c', 'c.id', '=', "(SELECT id FROM chat_logs WHERE (sender_id = mst_users.id OR target_id = mst_users.id) ORDER BY created_at DESC LIMIT 1)", 'INNER')
             ->whereNotIn('mst_users.perms', [
             'superadmin',
             'admin'
         ])
-            ->orderBy('c.d_created', 'DESC')
+            ->orderBy('c.created_at', 'DESC')
             ->find();
 
         $data = [
@@ -68,7 +68,7 @@ final class cSupportSystem extends cController
             $user_id
         ])
             ->where('chat_logs.status', 1)
-            ->orderBy('chat_logs.d_created', 'ASC')
+            ->orderBy('chat_logs.created_at', 'ASC')
             ->find();
 
         $m->where('sender_id', $user_id)

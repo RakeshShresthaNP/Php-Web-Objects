@@ -82,8 +82,8 @@ final class cUsers extends cController
             $vars['password'] = password_hash($vars['password'], PASSWORD_DEFAULT);
             $vars['c_name'] = explode('@', $vars['email'])[0];
             $vars['partner_id'] = $this->partner->id;
-            $vars['u_created'] = $this->user->id;
-            $vars['u_updated'] = $this->user->id;
+            $vars['created_by'] = $this->user->id;
+            $vars['updated_by'] = $this->user->id;
 
             unset($vars['confirm_password']);
             unset($vars['submit']);
@@ -146,7 +146,7 @@ final class cUsers extends cController
             } else {
                 $vars['password'] = $user->password;
             }
-            $vars['u_updated'] = $this->user->id;
+            $vars['updated_by'] = $this->user->id;
             unset($vars['confirm_password']);
             unset($vars['submit']);
 
@@ -165,7 +165,7 @@ final class cUsers extends cController
 
         $user = new user($userid);
         $user->status = 2;
-        $user->u_updated = $this->user->id;
+        $user->updated_by = $this->user->id;
         $user->update();
 
         $this->res->redirect('manage/users', _t('user_disabled'));
@@ -177,7 +177,7 @@ final class cUsers extends cController
 
         $user = new user($userid);
         $user->status = 1;
-        $user->u_updated = $this->user->id;
+        $user->updated_by = $this->user->id;
         $user->update();
 
         $this->res->redirect('manage/users', _t('user_enabled'));

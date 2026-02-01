@@ -43,11 +43,11 @@ class model
 
     protected bool $softDelete = false;
 
-    protected string $createdAtColumn = 'd_created';
+    protected string $createdAtColumn = 'created_at';
 
-    protected string $updatedAtColumn = 'd_updated';
+    protected string $updatedAtColumn = 'updated_at';
 
-    protected string $deletedAtColumn = 'd_deleted';
+    protected string $deletedAtColumn = 'deleted_at';
 
     protected array $casts = [];
 
