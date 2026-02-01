@@ -275,7 +275,7 @@ export function render(data, isNew = true, isTemp = false) {
 		    return; // Stop here for welcome messages
     } else {
         // Time formatting
-        const dateObj = data.d_created ? new Date(data.d_created) : new Date();
+        const dateObj = data.created_at ? new Date(data.created_at) : new Date();
         const msgTime = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
         div.className = `mb-4 flex ${isMe ? 'justify-end pr-4' : 'justify-start items-end'}`; 

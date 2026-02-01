@@ -54,7 +54,7 @@
                     <span class="sidebar-text font-medium whitespace-nowrap"><?php echo _t('transactions'); ?></span>
                 </a>
                 
-                <a href="<?php echo getUrl('manage/supportsystem'); ?>" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
+                <a href="<?php echo getUrl('manage/support'); ?>" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
                     <i class='bx bx-user-voice text-xl'></i>
                     <span class="sidebar-text font-medium whitespace-nowrap"><?php echo _t('live_support'); ?></span>
                 </a>

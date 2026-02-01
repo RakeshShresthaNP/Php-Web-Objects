@@ -68,7 +68,7 @@ class AdminSupport {
         this.activeUserId = userId;
         
         try {
-            const res = await fetch(`${servername}api/supportsystem/getmessages?user_id=${userId}`, {
+            const res = await fetch(`${servername}api/support/getmessages?user_id=${userId}`, {
                 headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
             });
             const response = await res.json();
@@ -113,7 +113,7 @@ class AdminSupport {
         this.renderBubble({
             message: txt,
             sender_id: Auth.getUserId(),
-            d_created: new Date().toISOString()
+            created_at: new Date().toISOString()
         }, 'admin');
         
         input.value = '';
@@ -122,14 +122,14 @@ class AdminSupport {
 
     async loadTickets() {
         try {
-            const res = await fetch(`${servername}api/supportsystem/gettickets?nocache=${Date.now()}`, {
+            const res = await fetch(`${servername}api/support/gettickets?nocache=${Date.now()}`, {
                 headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
             });
             const response = await res.json();
             if (response.code === 200) {
                 const ticketsArray = Object.values(response.data.tickets || {});
                 // Sort by most recent activity
-                ticketsArray.sort((a, b) => new Date(b.d_created) - new Date(a.d_created));
+                ticketsArray.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                 this.renderSidebar(ticketsArray);
             }
         } catch (err) { console.error("Ticket Load Error:", err); }
@@ -147,7 +147,7 @@ class AdminSupport {
                      class="p-4 rounded-xl cursor-pointer transition-all border mb-2 ${isActive ? 'bg-[#4d7cfe]/10 border-[#4d7cfe]/30' : 'bg-black/20 border-white/5 hover:bg-white/5'}">
                     <div class="flex justify-between items-start mb-1">
                         <span class="text-xs font-black text-white uppercase tracking-wider">${t.realname || 'User #' + userId}</span>
-                        <span class="text-[9px] text-gray-500 font-bold">${this.formatTime(t.d_created)}</span>
+                        <span class="text-[9px] text-gray-500 font-bold">${this.formatTime(t.created_at)}</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <p class="text-[11px] text-gray-500 truncate pr-4">${snippet}</p>
@@ -185,7 +185,7 @@ class AdminSupport {
 	                        ${parseMarkdown(msg.message || '')}
 	                    </div>
 	                    <div class="text-[9px] opacity-50 mt-1 font-medium ${isMe ? 'text-right' : 'text-left'}">
-	                        ${this.formatTime(msg.d_created)}
+	                        ${this.formatTime(msg.created_at)}
 	                    </div>
 	                </div>
 	            </div>

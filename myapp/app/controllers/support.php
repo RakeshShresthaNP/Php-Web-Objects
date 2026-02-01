@@ -10,7 +10,7 @@
  #
  # Redistributions must retain the above copyright notice.
  */
-final class cSupportSystem extends cController
+final class cSupport extends cController
 {
 
     public function __construct()

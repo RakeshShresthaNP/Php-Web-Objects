@@ -38,7 +38,7 @@ define('DEFAULT_LANG', 'en');
 define('CACHE_TYPE', 'NULL');
 
 define('SESS_TIMEOUT', 1800);
-define('SESS_TYPE', 'Native');
+define('SESS_TYPE', 'Database');
 
 define('CONT_DIR', APP_DIR . 'controllers/');
 define('LIBS_DIR', APP_DIR . 'libs/');

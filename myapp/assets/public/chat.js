@@ -52,8 +52,9 @@ console.log("CSS and JS are both loaded!");
 
 // 1. Initialize Global Database
 window.db = new Dexie("PWOChatDB");
-window.db.version(5).stores({
-    messages: '++id, server_id, sender_id, message, d_created, status'
+
+window.db.version(1).stores({
+    messages: '++id, server_id, sender_id, message, created_at, status'
 });
 
 window.db.open().then(() => {
@@ -66,8 +67,8 @@ const db = window.db;
 
 // Function to load local history immediately
 async function loadLocalHistory() {
-    // Consistency check: use 'd_created' NOT 'timestamp'
-    const localMsgs = await window.db.messages.orderBy('d_created').toArray();
+    // Consistency check: use 'created_at' NOT 'timestamp'
+    const localMsgs = await window.db.messages.orderBy('created_at').toArray();
     
     if (localMsgs.length > 0) {
         const chatBox = document.getElementById('chat-box');
@@ -297,7 +298,7 @@ window.addEventListener('ws_new_message', async (e) => {
         server_id: uiData.server_id,            
         sender_id: uiData.sender_id,     
         message: uiData.message,         
-        d_created: uiData.d_created || new Date().toISOString(), 
+        created_at: uiData.created_at || new Date().toISOString(), 
         status: uiData.status ?? 1,
         file_path: uiData.file_path || null,
         file_name: uiData.file_name || null
@@ -320,7 +321,7 @@ window.addEventListener('ws_chat_history', async (e) => {
             server_id: m.id,            
             sender_id: m.sender_id,     
             message: m.message,         
-            d_created: m.d_created || new Date().toISOString(), 
+            created_at: m.created_at || new Date().toISOString(), 
             status: m.status ?? 1,      
             file_path: m.file_path || null,
             file_name: m.file_name || null

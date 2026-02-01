@@ -161,12 +161,12 @@ final class cChat extends cController
             $userId = (int) $this->user->id;
 
             $hmodel = new model('chat_logs');
-            $history = $hmodel->select('p.id, p.message, p.file_path, p.file_name, p.created_at as time, u.realname as sender, p.sender_id, p.is_read')
-                ->join('mst_users u', 'u.id', '=', 'p.sender_id', 'LEFT')
+            $history = $hmodel->select('chat_logs.id, chat_logs.message, chat_logs.file_path, chat_logs.file_name, chat_logs.created_at as time, u.realname as sender, chat_logs.sender_id, chat_logs.is_read')
+                ->join('mst_users u', 'u.id', '=', 'chat_logs.sender_id', 'LEFT')
                 ->
             // This RAW query ensures we get both sides of the conversation
-            whereRaw("(p.sender_id = $userId OR p.target_id = $userId)")
-                ->orderBy('p.id', 'DESC')
+            whereRaw("(chat_logs.sender_id = $userId OR chat_logs.target_id = $userId)")
+                ->orderBy('chat_logs.id', 'DESC')
                 ->limit(50)
                 ->find();
 

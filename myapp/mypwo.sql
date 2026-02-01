@@ -232,9 +232,9 @@ CREATE TABLE IF NOT EXISTS `mst_users` (
 -- Dumping data for table pwo.mst_users: ~3 rows (approximately)
 DELETE FROM `mst_users`;
 INSERT INTO `mst_users` (`id`, `partner_id`, `c_name`, `email`, `phone`, `homepath`, `realname`, `password`, `perms`, `totp_secret`, `totp_enabled`, `d_lastlogin`, `status`, `created_at`, `created_by`, `updated_at`, `updated_by`) VALUES
-	(1, 1, 'superadmin', 'superadmin@gmail.com', NULL, NULL, 'Rakesh Shrestha', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'superadmin', NULL, 0, NULL, 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(2, 1, 'admin', 'admin@gmail.com', NULL, NULL, 'Rakesh Shrestha', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'admin', NULL, 0, NULL, 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(3, 1, 'user', 'user@gmail.com', NULL, NULL, 'Rakesh Shrestha', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'user', NULL, 0, NULL, 1, '2026-02-01 03:39:35', 1, NULL, NULL);
+	(1, 1, 'superadmin', 'superadmin@gmail.com', NULL, 'manage', 'Rakesh Shrestha', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'superadmin', NULL, 0, NULL, 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(2, 1, 'admin', 'admin@gmail.com', NULL, 'manage', 'Rakesh Shrestha', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'admin', NULL, 0, NULL, 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(3, 1, 'user', 'user@gmail.com', NULL, 'dashboard', 'Rakesh Shrestha', '$2y$12$6QXxO0iDsEmJlUCi0Or7E.QzvqzKonyvNAhJKOT3vPY5zOSlTwR42', 'user', NULL, 0, NULL, 1, '2026-02-01 03:39:35', 1, NULL, NULL);
 
 -- Dumping structure for table pwo.sys_auditlogs
 CREATE TABLE IF NOT EXISTS `sys_auditlogs` (
@@ -321,45 +321,47 @@ CREATE TABLE IF NOT EXISTS `sys_methods` (
   CONSTRAINT `fk_methods_module` FOREIGN KEY (`module_id`) REFERENCES `sys_modules` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table pwo.sys_methods: ~36 rows (approximately)
+-- Dumping data for table pwo.sys_methods: ~38 rows (approximately)
 DELETE FROM `sys_methods`;
 INSERT INTO `sys_methods` (`id`, `c_name`, `module_id`, `controllername`, `controllermethod`, `perms`, `status`, `created_at`, `created_by`, `updated_at`, `updated_by`) VALUES
-	(1, 'home_index', 2, 'home', 'index', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(2, 'login_index', 3, 'login', 'index', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(3, 'login_process', 3, 'login', 'process', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(4, 'login_logout', 3, 'login', 'logout', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(5, 'pages_index', 4, 'pages', 'index', 'admin,superadmin,user,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(6, 'pages_view', 4, 'pages', 'view', 'admin,superadmin,user,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(7, 'pages_add', 4, 'pages', 'add', 'admin,superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(8, 'pages_edit', 4, 'pages', 'edit', 'admin,superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(9, 'pages_delete', 4, 'pages', 'delete', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(10, 'user_profile', 6, 'user', 'profile', 'admin,superadmin,user,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(11, 'user_settings', 6, 'user', 'settings', 'admin,superadmin,user,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(12, 'users_manage_index', 5, 'users', 'manage_index', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(13, 'users_manage_add', 5, 'users', 'manage_add', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(14, 'users_manage_edit', 5, 'users', 'manage_edit', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(15, 'users_manage_delete', 5, 'users', 'manage_delete', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(16, 'settings_index', 7, 'settings', 'index', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(17, 'settings_update', 7, 'settings', 'update', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(18, 'logs_index', 8, 'logs', 'index', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(19, 'logs_view', 8, 'logs', 'view', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(20, 'api_v1_index', 9, 'api', 'v1_index', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(21, 'dashboard_index', 11, 'dashboard', 'index', 'admin,superadmin,user,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(22, 'notifications_list', 12, 'notifications', 'list', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(23, 'reports_generate', 13, 'reports', 'generate', 'superadmin,admin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(24, 'auth_verify', 1, 'auth', 'verify', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(25, 'auth_reset', 1, 'auth', 'reset', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(26, 'chat_index', 14, 'chat', 'index', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(1, 'auth_api_login', 1, 'auth', 'api_login', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(2, 'auth_api_verifyotp', 1, 'auth', 'api_verifyotp', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(3, 'home_index', 2, 'home', 'index', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(5, 'home_manage_index', 2, 'home', 'manage_index', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(4, 'login_index', 3, 'login', 'index', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(6, 'login_logout', 3, 'login', 'logout', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(7, 'pages_index', 4, 'pages', 'index', 'admin,superadmin,user,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(8, 'pages_view', 4, 'pages', 'view', 'admin,superadmin,user,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(9, 'pages_add', 4, 'pages', 'add', 'admin,superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(10, 'pages_edit', 4, 'pages', 'edit', 'admin,superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(11, 'pages_delete', 4, 'pages', 'delete', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(12, 'user_profile', 6, 'user', 'profile', 'admin,superadmin,user,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(13, 'user_settings', 6, 'user', 'settings', 'admin,superadmin,user,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(14, 'users_manage_index', 5, 'users', 'manage_index', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(15, 'users_manage_add', 5, 'users', 'manage_add', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(16, 'users_manage_edit', 5, 'users', 'manage_edit', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(17, 'users_manage_delete', 5, 'users', 'manage_delete', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(18, 'settings_index', 7, 'settings', 'index', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(19, 'settings_update', 7, 'settings', 'update', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(20, 'logs_index', 8, 'logs', 'index', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(21, 'logs_view', 8, 'logs', 'view', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(22, 'dashboard_index', 11, 'dashboard', 'index', 'admin,superadmin,user,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(23, 'notifications_list', 12, 'notifications', 'list', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(24, 'reports_generate', 13, 'reports', 'generate', 'superadmin,admin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(25, 'chat_uploadchunk', 14, 'chat', 'uploadchunk', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(26, 'chat_send', 14, 'chat', 'send', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
 	(27, 'chat_history', 14, 'chat', 'history', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(28, 'chat_send', 14, 'chat', 'send', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(29, 'support_ticket_list', 15, 'supportsystem', 'ticket_list', 'superadmin,admin,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(30, 'support_ticket_view', 15, 'supportsystem', 'ticket_view', 'superadmin,admin,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(31, 'support_ticket_add', 15, 'supportsystem', 'ticket_add', 'superadmin,admin,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(32, 'support_ticket_edit', 15, 'supportsystem', 'ticket_edit', 'superadmin,admin,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(33, 'support_ticket_delete', 15, 'supportsystem', 'ticket_delete', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(34, 'supportsystem_manage_index', 15, 'supportsystem', 'manage_index', 'superadmin,admin,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(35, 'support_config', 15, 'supportsystem', 'config', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(36, 'support_analytics', 15, 'supportsystem', 'analytics', 'superadmin,admin', 1, '2026-02-01 03:39:35', 1, NULL, NULL);
+	(28, 'chat_markread', 14, 'chat', 'markread', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(29, 'chat_typing', 14, 'chat', 'typing', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(30, 'chat_delete', 14, 'chat', 'delete', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(31, 'support_manage_index', 15, 'support', 'manage_index', 'superadmin,admin,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(32, 'support_api_gettickets', 15, 'support', 'api_gettickets', 'superadmin,admin,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(33, 'support_api_getmessages', 15, 'support', 'api_getmessages', 'superadmin,admin,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(34, 'support_ticket_add', 15, 'support', 'ticket_add', 'superadmin,admin,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(35, 'support_ticket_edit', 15, 'support', 'ticket_edit', 'superadmin,admin,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(36, 'support_ticket_delete', 15, 'support', 'ticket_delete', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(37, 'support_config', 15, 'support', 'config', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(38, 'support_analytics', 15, 'support', 'analytics', 'superadmin,admin', 1, '2026-02-01 03:39:35', 1, NULL, NULL);
 
 -- Dumping structure for table pwo.sys_modules
 CREATE TABLE IF NOT EXISTS `sys_modules` (
@@ -375,7 +377,7 @@ CREATE TABLE IF NOT EXISTS `sys_modules` (
   UNIQUE KEY `key_modulescname` (`c_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table pwo.sys_modules: ~15 rows (approximately)
+-- Dumping data for table pwo.sys_modules: ~14 rows (approximately)
 DELETE FROM `sys_modules`;
 INSERT INTO `sys_modules` (`id`, `c_name`, `perms`, `status`, `created_at`, `created_by`, `updated_at`, `updated_by`) VALUES
 	(1, 'auth', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
@@ -386,13 +388,12 @@ INSERT INTO `sys_modules` (`id`, `c_name`, `perms`, `status`, `created_at`, `cre
 	(6, 'user', 'admin,superadmin,user,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
 	(7, 'settings', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
 	(8, 'logs', 'superadmin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(9, 'api', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(10, 'profile', 'admin,superadmin,user,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(11, 'dashboard', 'admin,superadmin,user,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(12, 'notifications', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(13, 'reports', 'superadmin,admin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(14, 'chat', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
-	(15, 'supportsystem', 'superadmin,admin,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL);
+	(9, 'profile', 'admin,superadmin,user,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(10, 'dashboard', 'admin,superadmin,user,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(11, 'notifications', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(12, 'reports', 'superadmin,admin', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(13, 'chat', 'none', 1, '2026-02-01 03:39:35', 1, NULL, NULL),
+	(14, 'support', 'superadmin,admin,demo', 1, '2026-02-01 03:39:35', 1, NULL, NULL);
 
 -- Dumping structure for table pwo.sys_sessions
 CREATE TABLE IF NOT EXISTS `sys_sessions` (
