@@ -16,7 +16,6 @@ class AdminSupport {
         this.activeUserId = null;
         this.state = { activeUserId: null, pendingFile: null };
 
-        // --- MAP TO YOUR HTML IDs ---
         this.ui = {
             flow:    document.getElementById('chat-box'),
             list:    document.getElementById('chat-list'),
@@ -42,7 +41,7 @@ class AdminSupport {
     }
 
     attachEventListeners() {
-        // Websocket Updates
+
         window.addEventListener('ws_new_message', (e) => {
             const msg = e.detail;
             const myId = Auth.getUserId();
@@ -60,18 +59,29 @@ class AdminSupport {
         // File Selection
         if (this.ui.fileIn) this.ui.fileIn.onchange = (e) => handleFile(e.target.files[0], this.state);
         
-        // Mic / Voice
-        if (this.ui.mic) this.ui.mic.onclick = () => handleMic(this.ws, this.state);
+		// Mic / Voice
+		if (this.ui.mic) {
+		    this.ui.mic.onclick = () => {
+		        handleMic(this.state); 
+		    };
+		}
 
-        // Send Click
-        if (this.ui.sendBtn) {
-            this.ui.sendBtn.onclick = () => {
-                this.state.activeUserId = this.activeUserId;
-                handleSend(this.state, this.ws);
-            };
-        }
+		// Send Click
+		if (this.ui.sendBtn) {
+		    this.ui.sendBtn.onclick = async () => {
 
-        // Enter Key
+		        this.state.activeUserId = this.activeUserId;
+
+		        await handleSend(this.state, this.ws);
+		        
+		        if (!this.state.pendingFile) {
+		            const preview = document.getElementById('pwo-preview');
+		            if (preview) preview.classList.add('hidden');
+		        }
+		    };
+		}
+		
+		// Enter Key
         if (this.ui.input) {
             this.ui.input.onkeypress = (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -120,23 +130,38 @@ class AdminSupport {
         } catch (err) { console.error("Sidebar Load Error:", err); }
     }
 
-    renderSidebar(tickets) {
-        if (!this.ui.list) return;
-        this.ui.list.innerHTML = tickets.map(t => {
-            const userId = t.sender_id || t.user_id;
-            const isActive = parseInt(this.activeUserId) === parseInt(userId);
-            return `
-                <div onclick="AdminApp.selectUser(${userId})" 
-                     class="p-4 rounded-xl cursor-pointer mb-2 border transition-all ${isActive ? 'bg-blue-500/10 border-blue-500/50' : 'bg-white/5 border-transparent hover:bg-white/10'}">
-                    <div class="flex justify-between text-white text-[11px] font-bold uppercase tracking-tight">
-                        <span>${t.realname || 'User ' + userId}</span>
-                        <span class="opacity-40 text-[9px]">${this.formatTime(t.created_at)}</span>
-                    </div>
-                    <p class="text-[10px] text-gray-400 truncate mt-1">${t.message || '...'}</p>
-                </div>`;
-        }).join('');
-    }
+	renderSidebar(tickets) {
+	    if (!this.ui.list) return;
 
+	    // 1. Sort: Put the most recent activity at the top
+	    const sortedTickets = tickets.sort((a, b) => 
+	        new Date(b.created_at) - new Date(a.created_at)
+	    );
+
+	    this.ui.list.innerHTML = sortedTickets.map(t => {
+	        const userId = t.sender_id || t.user_id;
+	        const isActive = parseInt(this.activeUserId) === parseInt(userId);
+	        
+	        const isUnread = t.is_read === 0 && parseInt(t.sender_id) !== parseInt(Auth.getUserId());
+
+	        return `
+	            <div onclick="AdminApp.selectUser(${userId})" 
+	                 class="p-4 rounded-xl cursor-pointer mb-2 border transition-all relative
+	                 ${isActive ? 'bg-blue-500/10 border-blue-500/50' : 'bg-white/5 border-transparent hover:bg-white/10'}">
+	                
+	                ${isUnread ? '<div class="absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>' : ''}
+
+	                <div class="flex justify-between text-white text-[11px] font-bold uppercase tracking-tight pr-4">
+	                    <span class="${isUnread ? 'text-blue-400' : ''}">${t.realname || 'User ' + userId}</span>
+	                    <span class="opacity-40 text-[9px]">${this.formatTime(t.created_at)}</span>
+	                </div>
+	                <p class="text-[10px] ${isUnread ? 'text-gray-200 font-medium' : 'text-gray-400'} truncate mt-1">
+	                    ${t.message || '...'}
+	                </p>
+	            </div>`;
+	    }).join('');
+	}
+	
 	renderBubble(msg) {
         if (!this.ui.flow) return;
 

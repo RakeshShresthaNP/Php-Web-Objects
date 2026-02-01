@@ -20,7 +20,7 @@ define('DB_CON', [
     'mysql',
     'localhost',
     'root',
-    'Nepal@123',
+    '',
     'pwo'
 ]);
 

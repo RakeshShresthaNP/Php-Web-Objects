@@ -137,6 +137,7 @@ final class WSSocket
             $req->getPartner($hostname);
             $user = $req->getPayloadData();
             if ($user) {
+                $this->clients[$id]['user_id'] = (int) $user->id; // Store ID here
                 $req->user = $user;
                 $req->cusertype = $user->perms ?? 'none';
             }
@@ -177,6 +178,18 @@ final class WSSocket
             if ($excludeId !== null && $id === $excludeId)
                 continue;
             @socket_write($client['socket'], $maskedData, strlen($maskedData));
+        }
+    }
+
+    public function sendToUser(int $userId, array|string $data): void
+    {
+        $text = is_array($data) ? json_encode($data) : $data;
+        $maskedData = $this->mask($text);
+
+        foreach ($this->clients as $client) {
+            if (isset($client['user_id']) && $client['user_id'] === $userId) {
+                @socket_write($client['socket'], $maskedData, strlen($maskedData));
+            }
         }
     }
 

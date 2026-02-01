@@ -129,14 +129,20 @@ final class cChat extends cController
                 'created_at' => date('Y-m-d H:i:s')
             ];
 
-            // 3. REVERTED BROADCAST (Single broadcast as it was)
             if ($server) {
-                $server->broadcast([
+                $payload = [
                     'type' => 'new_message',
                     'data' => $data
-                ]);
-            }
+                ];
 
+                if ($targetId) {
+                    $server->sendToUser((int) $data['target_id'], $payload);
+                    $server->sendToUser((int) $data['sender_id'], $payload);
+                } else {
+                    $server->sendToUser((int) $data['sender_id'], $payload);
+                    $server->sendToUser(1, $payload);
+                }
+            }
             return [
                 'status' => 'success',
                 'type' => 'chat_confirmation',
@@ -157,15 +163,12 @@ final class cChat extends cController
             if (! $this->user)
                 throw new ApiException(_t('identity_verification_required'), 401);
 
-            // The ID of the user the admin is currently chatting with
             $userId = (int) $this->user->id;
 
             $hmodel = new model('chat_logs');
             $history = $hmodel->select('chat_logs.id, chat_logs.message, chat_logs.file_path, chat_logs.file_name, chat_logs.created_at as time, u.realname as sender, chat_logs.sender_id, chat_logs.is_read')
                 ->join('mst_users u', 'u.id', '=', 'chat_logs.sender_id', 'LEFT')
-                ->
-            // This RAW query ensures we get both sides of the conversation
-            whereRaw("(chat_logs.sender_id = $userId OR chat_logs.target_id = $userId)")
+                ->whereRaw("(chat_logs.sender_id = $userId OR chat_logs.target_id = $userId)")
                 ->orderBy('chat_logs.id', 'DESC')
                 ->limit(50)
                 ->find();
@@ -189,41 +192,44 @@ final class cChat extends cController
         try {
             if (! $this->user || ! $server)
                 return;
+
             $userRole = $this->user->perms ?? 'user';
-            $partnerId = ($userRole === 'admin' || $userRole === 'superadmin') ? (int) ($params['target_user_id'] ?? 0) : 0;
+            $partnerId = ($userRole === 'admin' || $userRole === 'superadmin') ? (int) ($params['target_user_id'] ?? 0) : 1;
 
             $hmodel = new model('chat_logs');
             $hmodel->where('sender_id', '=', $partnerId)
+                ->where('target_id', '=', (int) $this->user->id)
                 ->where('is_read', '=', 0)
                 ->updateWhere([
                 'is_read' => 1
             ]);
 
-            $server->broadcast([
+            // Notify the person who SENT the messages that they are now read
+            $server->sendToUser($partnerId, [
                 'type' => 'message_read',
                 'data' => [
-                    'reader_id' => (int) $this->user->id,
-                    'target_id' => $partnerId
+                    'reader_id' => (int) $this->user->id
                 ]
             ]);
-        } catch (Throwable $t) {
-            writeLog('chat_read_error_' . date('Y_m_d'), $t->getMessage());
+        } catch (Throwable $t) { /* log error */
         }
     }
 
     public function typing(array $params = [], ?WSSocket $server = null, ?int $senderId = null): void
     {
         try {
-            if (! $this->user || ! $server || ! $senderId)
+            if (! $this->user || ! $server)
                 return;
-            $server->broadcast([
+
+            $targetId = (int) ($params['target_id'] ?? 1); // Who are we typing to?
+
+            $server->sendToUser($targetId, [
                 'type' => 'typing',
                 'data' => [
                     'sender_id' => (int) $this->user->id
                 ]
-            ], $senderId);
-        } catch (Throwable $t) {
-            writeLog('chat_typing_error_' . date('Y_m_d'), $t->getMessage());
+            ]);
+        } catch (Throwable $t) { /* log error */
         }
     }
 
