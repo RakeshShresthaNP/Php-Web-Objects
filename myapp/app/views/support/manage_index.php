@@ -32,10 +32,10 @@
 				<button id="pwo-clear" class="ml-2 text-white">✕</button>
 			</div>
 
-			<div id="pwo-voice-ui"
-				class="hidden px-6 py-2 bg-red-500/10 text-red-500 text-[10px]">
-				Recording... <span id="pwo-voice-time">00:00</span>
-			</div>
+            <div id="pwo-rec-panel" class="hidden bg-emerald-50 p-3 border-t border-emerald-100 flex flex-col items-center">
+                <canvas id="pwo-waveform" width="300" height="40" class="w-full h-10 mb-1"></canvas>
+                <span id="pwo-timer" class="text-[10px] font-mono text-emerald-600 font-bold">● 0:00</span>
+            </div>
             
             <footer class="p-6 border-t border-white/5 bg-black/20">
                 <div class="flex items-center gap-3 bg-black/40 border border-white/10 rounded-2xl p-2 pl-4 min-h-[56px] w-full">
@@ -72,6 +72,39 @@
 		</section>
 	</div>
 </div>
+
+<div id="pwo-lightbox" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex flex-col items-center justify-center p-4">
+    <div class="absolute top-5 right-5 flex gap-4">
+        <a id="pwo-lightbox-download" href="" download class="text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors" title="Download">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-width="2"></path></svg>
+        </a>
+        <button id="pwo-lightbox-close" class="text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2"></path></svg>
+        </button>
+    </div>
+    <img id="pwo-lightbox-img" src="" class="max-w-full max-h-[85vh] rounded-lg shadow-2xl object-contain cursor-zoom-out">
+</div>	
+<div id="pdf-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex flex-col items-center justify-center p-4">
+    <div class="w-full max-w-5xl h-[90vh] bg-white rounded-2xl overflow-hidden flex flex-col">
+        <div class="flex justify-between items-center p-4 border-b">
+            <h3 class="font-bold text-gray-700">PDF Viewer</h3>
+            <button onclick="document.getElementById('pdf-modal').classList.add('hidden')" class="text-gray-500 hover:text-red-500 text-2xl font-bold">&times;</button>
+        </div>
+        <div class="flex-1 w-full h-full">
+            <iframe id="pdf-frame" src="" class="w-full h-full border-none"></iframe>
+        </div>
+    </div>
+</div>
+<div id="video-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-[10000] flex items-center justify-center p-4">
+    <button onclick="window.closeVideoModal()" class="absolute top-6 right-6 text-white/70 hover:text-white text-4xl">&times;</button>
+    
+    <div class="w-full max-w-5xl h-auto max-h-[85vh] flex items-center justify-center">
+        <video id="modal-video-player" controls class="w-full h-full rounded-xl shadow-2xl">
+            <source src="" type="video/mp4">
+        </video>
+    </div>
+</div>
+
 
 <script type="module"
 	src="<?php echo getUrl('assets/manage/admin-support.js') ?>"></script>
