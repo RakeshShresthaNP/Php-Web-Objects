@@ -281,10 +281,7 @@ export function render(data, isNew = true, isTemp = false) {
         div.className = `mb-4 flex ${isMe ? 'justify-end pr-4' : 'justify-start items-end'}`; 
         if (isTemp) div.id = `temp-${data.temp_id}`;
 
-        const avatarHTML = (!isMe) ? `
-            <div class="w-8 h-8 rounded-full bg-slate-400 flex items-center justify-center shrink-0 mr-2 mb-1 border border-white">
-                <span class="text-[10px] font-bold text-white uppercase">AI</span>
-            </div>` : '';
+        const avatarHTML = (!isMe) ? `` : '';
 
 			div.innerHTML = `
 			    ${avatarHTML}

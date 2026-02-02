@@ -191,7 +191,7 @@ final class cChat extends cController
                 return;
 
             $userRole = $this->user->perms ?? 'user';
-            $partnerId = ($userRole === 'admin' || $userRole === 'superadmin') ? (int) ($params['target_user_id'] ?? 0) : 1;
+            $partnerId = ($userRole === 'admin' || $userRole === 'superadmin') ? (int) ($params['target_id'] ?? 0) : 1;
 
             $hmodel = new model('chat_logs');
             $hmodel->where('sender_id', '=', $partnerId)
@@ -251,12 +251,19 @@ final class cChat extends cController
                 $hmodel->where('id', '=', $messageId)->deleteWhere();
 
                 if ($server) {
-                    $server->broadcast([
+                    $payload = [
                         'type' => 'message_deleted',
                         'data' => [
-                            'id' => $messageId
+                            'id' => $messageId,
+                            'target_id' => (int) $message->target_id,
+                            'sender_id' => (int) $message->sender_id
                         ]
-                    ]);
+                    ];
+                    
+                    if ($message->target_id)
+                        $server->sendToUser((int) $message->target_id, $payload);
+                    
+                    $server->sendToUser((int) $message->sender_id, $payload);
                 }
             }
 

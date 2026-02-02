@@ -36,6 +36,20 @@
 	background: #dc2626 !important;
 	transform: scale(1.15) !important;
 }
+
+.pwo-typing-dot {
+    animation: pwo-bounce 1.4s infinite ease-in-out both;
+}
+
+@keyframes pwo-bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1.0); }
+}
+
+#typing-indicator.show {
+    display: block !important;
+    opacity: 1 !important;
+}
 </style>
 <div class="w-full px-4 md:px-8 pb-10">
 	<div
@@ -78,7 +92,16 @@
 				<span id="pwo-timer"
 					class="text-[10px] font-mono text-emerald-600 font-bold">● 0:00</span>
 			</div>
-
+            <div id="typing-indicator" class="hidden opacity-0 transition-opacity duration-300 px-6 py-2 bg-transparent">
+                <div class="flex items-center gap-2">
+                    <div class="flex gap-1">
+                        <span class="pwo-typing-dot w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                        <span class="pwo-typing-dot w-1.5 h-1.5 bg-blue-500 rounded-full" style="animation-delay: 0.2s"></span>
+                        <span class="pwo-typing-dot w-1.5 h-1.5 bg-blue-500 rounded-full" style="animation-delay: 0.4s"></span>
+                    </div>
+                    <span class="text-[10px] text-blue-400 font-medium uppercase tracking-wider">User is typing...</span>
+                </div>
+            </div>
 			<footer class="p-6 border-t border-white/5 bg-black/20">
 				<div
 					class="flex items-center gap-3 bg-black/40 border border-white/10 rounded-2xl p-2 pl-4 min-h-[56px] w-full">

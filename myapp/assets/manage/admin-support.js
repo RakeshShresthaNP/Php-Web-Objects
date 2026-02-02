@@ -12,6 +12,11 @@ import {
 
 const servername = window.location.protocol + '//' + window.location.hostname + '/pwo/myapp/';
 
+const playNotificationSound = () => {
+    const audio = new Audio('../public/2354-preview.mp3');
+    audio.play().catch(err => console.log("Autoplay blocked: Audio will play after first user interaction."));
+};
+
 class AdminSupport {
     constructor() {
         this.activeUserId = null;
@@ -54,6 +59,50 @@ class AdminSupport {
         const handleIncoming = (e) => {
             this.processIncoming(e.detail);
         };
+		
+		const searchInput = document.getElementById('user-search');
+		if (searchInput) {
+		    searchInput.oninput = (e) => {
+		        const query = e.target.value.toLowerCase().trim();
+		        this.filterSidebar(query);
+		    };
+		}
+				
+		window.addEventListener('ws_typing', (e) => {
+		    const data = e.detail;
+		    const incomingId = Number(data.sender_id);
+		    const indicator = document.getElementById('typing-indicator');
+
+		    if (!indicator) return;
+
+		    if (incomingId === Number(this.activeUserId)) {
+		        indicator.classList.add('show');
+
+		        clearTimeout(this.typingTimer);
+
+		        this.typingTimer = setTimeout(() => {
+		            indicator.classList.remove('show');
+
+		            setTimeout(() => {
+		                if (!indicator.classList.contains('show')) {
+		                    indicator.classList.add('hidden');
+		                }
+		            }, 300); 
+		        }, 3000);
+		        
+		        indicator.classList.remove('hidden');
+		    }
+		});
+		
+		window.addEventListener('ws_message_deleted', (e) => {
+		    const { id } = e.detail;
+		    const msgElement = document.querySelector(`[data-id="${id}"]`);
+		    if (msgElement) {
+		        msgElement.classList.add('opacity-0', 'scale-95'); // Nice fade out
+		        setTimeout(() => msgElement.remove(), 300);
+		    }
+		});
+								
         window.addEventListener('ws_message', handleIncoming);
         window.addEventListener('ws_new_message', handleIncoming);
 
@@ -81,14 +130,25 @@ class AdminSupport {
 
         if (this.ui.sendBtn) this.ui.sendBtn.onclick = executeSend;
 
-        if (this.ui.input) {
-            this.ui.input.onkeypress = (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    executeSend();
-                }
-            };
-        }
+		if (this.ui.input) {
+		    this.ui.input.oninput = () => {
+		        if (!this.isTypingSent) {
+		            this.ws.call('chat', 'typing', { 
+		                target_id: Number(this.activeUserId),
+		                status: true,
+						token: Auth.getToken()
+		            });
+		            this.isTypingSent = true;
+		            setTimeout(() => { this.isTypingSent = false; }, 2000);
+		        }
+		    };
+			this.ui.input.onkeypress = (e) => {
+				if (e.key === 'Enter' && !e.shiftKey) {
+					e.preventDefault();
+					executeSend();
+				}
+			};
+		}
     }
 
     processIncoming(msg) {
@@ -106,7 +166,11 @@ class AdminSupport {
             render(msg, isMe ? 'admin' : 'user');
             this.scrollToBottom();
         }
-
+		
+		if (incomingSenderId !== myId) {
+			playNotificationSound();
+		}
+			
         const ticketIndex = this.state.tickets.findIndex(t => 
             Number(t.user_id || t.sender_id) === customerId
         );
@@ -202,7 +266,7 @@ class AdminSupport {
                     render(m, role);
                 });
                 this.scrollToBottom();
-                this.ws.call('chat', 'markread', { target_user_id: parseInt(userId), token: Auth.getToken() });
+                this.ws.call('chat', 'markread', { target_id: parseInt(userId), token: Auth.getToken() });
             }
         } catch (err) { console.error("Message Load Error:", err); }
     }
@@ -216,7 +280,22 @@ class AdminSupport {
         const date = new Date(d.replace(/-/g, '/'));
         return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     }
+	
+	filterSidebar(query) {
+	    if (!query) {
+	        this.renderSidebar(this.state.tickets);
+	        return;
+	    }
 
+	    const filtered = this.state.tickets.filter(t => {
+	        const name = (t.realname || '').toLowerCase();
+	        const id = String(t.user_id || t.sender_id);
+	        return name.includes(query) || id.includes(query);
+	    });
+
+	    this.renderSidebar(filtered);
+	}
+	
     clearPreview() {
         const preview = document.getElementById('pwo-preview');
         if (preview) preview.classList.add('hidden');
