@@ -90,6 +90,9 @@
         </div>
     </div>
 
+    <?php echo $links ?>
+	
+	<br>
     <div class="mb-6 flex flex-col gap-1">
         <h3 class="text-xl font-bold text-white pl-1"><?php echo _t('partner_configuration'); ?></h3>
         <p class="text-[10px] text-gray-500 pl-1 uppercase tracking-wider font-bold"><?php echo _t('manage_integrated_partners'); ?></p>

@@ -31,7 +31,7 @@
                     <span class="sidebar-text font-bold whitespace-nowrap"><?php echo _t('dashboard'); ?></span>
                 </a>
                 
-                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">
+                <!-- div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">
                     <?php echo _t('lending_ops'); ?>
                 </div>
                 
@@ -43,7 +43,7 @@
                 <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
                     <i class='bx bx-calendar-check text-xl'></i>
                     <span class="sidebar-text font-medium whitespace-nowrap"><?php echo _t('repayment_schedule'); ?></span>
-                </a>    
+                </a-->    
         
                 <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">
                     <?php echo _t('operations'); ?>
@@ -59,7 +59,7 @@
                     <span class="sidebar-text font-medium whitespace-nowrap"><?php echo _t('live_support'); ?></span>
                 </a>
             
-                <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">
+                <!-- div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">
                     <?php echo _t('treasury'); ?>
                 </div>
             
@@ -88,7 +88,7 @@
                 <a href="#" class="flex items-center gap-3 p-3 text-gray-400 hover:bg-white/5 hover:text-white rounded-xl transition-all">
                     <i class='bx bx-error-alt text-xl'></i>
                     <span class="sidebar-text font-medium whitespace-nowrap"><?php echo _t('aml_alerts'); ?></span>
-                </a>
+                </a-->
             
                 <div class="sidebar-text pt-6 pb-2 px-3 text-[10px] uppercase font-bold text-gray-500 tracking-[0.2em]">
                     <?php echo _t('management'); ?>

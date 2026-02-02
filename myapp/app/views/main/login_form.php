@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?php echo _t('admin_authorization'); ?> | PWO</title>
-<link rel="stylesheet" href="<?php echo getUrl('assets/manage/tailwind.css'); ?>">
+<link rel="stylesheet"
+	href="<?php echo getUrl('assets/manage/tailwind.css'); ?>">
 <style>
 body {
 	background-color: #0b0e11;
@@ -69,13 +70,14 @@ body {
             </p>
 		</div>
 
-		<div id="responseMsg" class="mt-6 text-center text-[10px] font-bold uppercase min-h-[15px]"></div>
+		<div id="responseMsg"
+			class="mt-6 text-center text-[10px] font-bold uppercase min-h-[15px]"></div>
 
 		<form id="form-password" class="space-y-6">
-			<input type="email" id="username" required
+			<input type="email" id="username" name="username" required
 				placeholder="<?php echo _t('admin_email'); ?>"
 				class="w-full p-4 text-sm text-white bg-black/40 border border-white/5 rounded-2xl outline-none focus:border-blue-500 transition-all">
-			<input type="password" id="password" required
+			<input type="password" id="password" name="password" required
 				placeholder="<?php echo _t('password'); ?>"
 				class="w-full p-4 text-sm text-white bg-black/40 border border-white/5 rounded-2xl outline-none focus:border-blue-500 transition-all">
 			<button type="submit"
@@ -120,17 +122,14 @@ body {
 
     document.querySelector('#form-password').addEventListener('submit', async (e) => {
         e.preventDefault();
-        
-        const payload = {
-            username: document.querySelector('#username').value,
-            password: document.querySelector('#password').value
-        };
 
+        const formData = new FormData(e.target);
+        
         const res = await fetch('api/auth/login', { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload) 
+            method: 'POST',
+            body: formData 
         });
+
         const result = await res.json();
 
         if (result.code === 200) {
@@ -143,8 +142,25 @@ body {
             }
         } else {
             const msg = document.querySelector('#responseMsg');
-            // Fallback string also wrapped for JS safety
-            msg.innerHTML = result.error +"<br><br>";
+
+            let displayError = "Authorization Failed";
+
+            if (result.error) {
+                if (typeof result.error === 'string') {
+                    displayError = result.error;
+                } else if (typeof result.error === 'object') {
+                    displayError = Object.entries(result.error)
+                        .map(([field, details]) => {
+                            const val = typeof details === 'object' ? Object.values(details)[0] : details;
+                            return `${field} ${val}`;
+                        })
+                        .join('<br>');
+                }
+            } else if (result.message) {
+                displayError = result.message;
+            }
+
+            msg.innerHTML = displayError +'<br><br>';
             msg.className = "text-red-500 text-center text-[10px] font-bold uppercase";
         }
     });

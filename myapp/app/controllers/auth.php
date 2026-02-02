@@ -156,7 +156,7 @@ final class cAuth extends cController
         }
 
         $user = new user($_SESSION['pending_auth_id']);
-        $secret = $_SESSION['temp_secret'] ?? $user->totp_secret;
+        $secret = $_SESSION['temp_secret'] ?? atob($user->totp_secret);
 
         if (! $secret) {
             throw new ApiException(_t('no_secret_found'), 401);
@@ -165,7 +165,7 @@ final class cAuth extends cController
         if (Totp::verify($otp_code, $secret, 6, 30, 1)) {
 
             if (isset($_SESSION['temp_secret'])) {
-                $user->totp_secret = $secret;
+                $user->totp_secret = btoa($secret);
                 $user->save();
                 unset($_SESSION['temp_secret']);
             }

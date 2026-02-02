@@ -276,3 +276,13 @@ function my_mime_content_type(string $filename): string
         return 'application/octet-stream';
     }
 }
+
+function btoa(string $data): string
+{
+    return base64_encode($data);
+}
+
+function atob(string $base64): string|false
+{
+    return base64_decode($base64, true);
+}

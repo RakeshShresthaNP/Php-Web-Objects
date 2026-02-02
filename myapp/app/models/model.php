@@ -86,7 +86,7 @@ class model
         $this->_rs[$key] = $val;
     }
 
-    public function getData(): object
+    public function getData(): array
     {
         return $this->_rs;
     }
