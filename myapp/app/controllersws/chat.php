@@ -78,7 +78,6 @@ final class cChat extends cController
 
             $finalUrl = null;
 
-            // --- File Handling Logic ---
             if ($fileId && $fileName) {
                 $tempDir = DIR_TEMP . $fileId . DIRECTORY_SEPARATOR;
                 $dateSub = date('Y') . DIRECTORY_SEPARATOR . date('m') . DIRECTORY_SEPARATOR;
@@ -102,7 +101,6 @@ final class cChat extends cController
                 }
             }
 
-            // 1. Save to Database
             $chatLog = new model('chat_logs');
             $chatLog->sender_id = $this->user->id;
             $chatLog->target_id = $targetId;
@@ -114,7 +112,6 @@ final class cChat extends cController
 
             $newId = $chatLog->save();
 
-            // 2. Prepare the data payload
             $data = [
                 'id' => $newId,
                 'message' => $message,
@@ -204,14 +201,13 @@ final class cChat extends cController
                 'is_read' => 1
             ]);
 
-            // Notify the person who SENT the messages that they are now read
             $server->sendToUser($partnerId, [
                 'type' => 'message_read',
                 'data' => [
                     'reader_id' => (int) $this->user->id
                 ]
             ]);
-        } catch (Throwable $t) { /* log error */
+        } catch (Throwable $t) {
         }
     }
 
@@ -221,7 +217,7 @@ final class cChat extends cController
             if (! $this->user || ! $server)
                 return;
 
-            $targetId = (int) ($params['target_id'] ?? 1); // Who are we typing to?
+            $targetId = (int) ($params['target_id'] ?? 1);
 
             $server->sendToUser($targetId, [
                 'type' => 'typing',
@@ -229,7 +225,7 @@ final class cChat extends cController
                     'sender_id' => (int) $this->user->id
                 ]
             ]);
-        } catch (Throwable $t) { /* log error */
+        } catch (Throwable $t) {
         }
     }
 
@@ -239,15 +235,11 @@ final class cChat extends cController
             $messageId = (int) ($params['message_id'] ?? 0);
             $hmodel = new model('chat_logs');
 
-            // 1. Find the message data first so we can get the file path
             $message = $hmodel->where('id', '=', $messageId)->first();
 
-            // 2. Check ownership before doing anything
             if ($message && (int) $message->sender_id === (int) $this->user->id) {
 
-                // 3. Handle Physical File Deletion
                 if (! empty($message->file_path)) {
-                    // Adjust base path to your 'public' folder
                     $base = APP_DIR . "../public/";
                     $physical = $base . str_replace('/', DIRECTORY_SEPARATOR, $message->file_path);
 
@@ -256,8 +248,6 @@ final class cChat extends cController
                     }
                 }
 
-                // 4. Delete the Database Record using deleteWhere
-                // This is safer because it doesn't rely on the object's internal state
                 $hmodel->where('id', '=', $messageId)->deleteWhere();
 
                 if ($server) {

@@ -64,7 +64,7 @@ final class cLogin extends cController
         if ($this->req->isPost()) {
             try {
                 $muser = new user();
-                $params = getRequestData();
+                $params = getPostData();
                 $rules = [
                     'username' => 'required|email'
                 ];

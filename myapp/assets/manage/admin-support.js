@@ -1,12 +1,13 @@
 import WSClient from '../public/wsclient.js';
-import { render, parseMarkdown } from '../public/pwo-ui.js';
+import { render } from '../public/pwo-ui.js';
 import { Auth } from '../public/pwo-auth.js';
 import { 
     handleSend, 
     handleFile, 
     handleMic, 
     initAutoExpand, 
-    initEmojiPicker 
+    initEmojiPicker,
+	initDeleteHandler
 } from '../public/pwo-logic.js';
 
 const servername = window.location.protocol + '//' + window.location.hostname + '/pwo/myapp/';
@@ -14,7 +15,7 @@ const servername = window.location.protocol + '//' + window.location.hostname + 
 class AdminSupport {
     constructor() {
         this.activeUserId = null;
-        this.state = { activeUserId: null, pendingFile: null };
+        this.state = { activeUserId: null, pendingFile: null, tickets: [] };
 
         this.ui = {
             flow:    document.getElementById('chat-box'),
@@ -27,95 +28,111 @@ class AdminSupport {
         };
         
         const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-        this.ws = new WSClient(`${protocol}://${window.location.hostname}:8080`, 'pwoToken');
+        const wsUrl = `${protocol}://${window.location.hostname}:8080`;
         
+        this.ws = new WSClient(wsUrl, 'pwoToken');
         this.init();
     }
 
     async init() {
         this.ws.connect();
+
+        setTimeout(() => {
+            if (this.ws) {
+                this.ws.call('chat', 'history', { token: Auth.getToken() });
+            }
+        }, 500);
+                    
         initAutoExpand();
         initEmojiPicker();
+		initDeleteHandler(this.ws);
         this.attachEventListeners();
         await this.loadTickets();
     }
 
     attachEventListeners() {
+        const handleIncoming = (e) => {
+            this.processIncoming(e.detail);
+        };
+        window.addEventListener('ws_message', handleIncoming);
+        window.addEventListener('ws_new_message', handleIncoming);
 
-        window.addEventListener('ws_new_message', (e) => {
-            const msg = e.detail;
-            const myId = Auth.getUserId();
-            // If the message belongs to the current open chat
-            if (this.activeUserId && (parseInt(msg.sender_id) === parseInt(this.activeUserId) || parseInt(msg.sender_id) === parseInt(myId))) {
-                this.renderBubble(msg, parseInt(msg.sender_id) === parseInt(myId) ? 'admin' : 'user');
-                this.scrollToBottom();
-            }
-            this.loadTickets(); // Refresh sidebar
-        });
-
-        // Click Attach Icon -> Triggers Hidden File Input
-        if (this.ui.attach) this.ui.attach.onclick = () => this.ui.fileIn.click();
-        
-        // File Selection
-        if (this.ui.fileIn) this.ui.fileIn.onchange = (e) => handleFile(e.target.files[0], this.state);
-        
-		// Mic / Voice
-		if (this.ui.mic) {
-		    this.ui.mic.onclick = () => {
-		        handleMic(this.state); 
-		    };
-		}
-
-		// Send Click
-		if (this.ui.sendBtn) {
-		    this.ui.sendBtn.onclick = async () => {
-
-		        this.state.activeUserId = this.activeUserId;
-
-		        await handleSend(this.state, this.ws);
-		        
-		        if (!this.state.pendingFile) {
-		            const preview = document.getElementById('pwo-preview');
-		            if (preview) preview.classList.add('hidden');
-		        }
-		    };
-		}
+        if (this.ui.attach) {
+            this.ui.attach.onclick = () => this.ui.fileIn.click();
+        }
 		
-		// Enter Key
+        if (this.ui.fileIn) {
+            this.ui.fileIn.onchange = (e) => {
+                if (e.target.files[0]) {
+                    handleFile(e.target.files[0], this.state);
+                }
+            };
+        }
+
+        if (this.ui.mic) {
+            this.ui.mic.onclick = () => handleMic(this.state);
+        }
+
+        const executeSend = async () => {
+            this.state.activeUserId = this.activeUserId;
+            await handleSend(this.state, this.ws);
+            this.clearPreview();
+        };
+
+        if (this.ui.sendBtn) this.ui.sendBtn.onclick = executeSend;
+
         if (this.ui.input) {
             this.ui.input.onkeypress = (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    this.state.activeUserId = this.activeUserId;
-                    handleSend(this.state, this.ws);
+                    executeSend();
                 }
             };
         }
     }
 
-    async selectUser(userId) {
-        this.activeUserId = userId;
-        this.state.activeUserId = userId;
+    processIncoming(msg) {
+        const myId = Number(Auth.getUserId());
+        const incomingSenderId = Number(msg.sender_id || msg.user_id);
+        const targetId = Number(msg.target_id || msg.target_user_id);
+        const currentActiveId = this.activeUserId ? Number(this.activeUserId) : null;
 
-        try {
-            const res = await fetch(`${servername}api/support/getmessages?user_id=${userId}`, {
-                headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
-            });
-            const response = await res.json();
+        const isMe = incomingSenderId === myId;
+        const customerId = isMe ? targetId : incomingSenderId;
+
+        if (!customerId) return;
+
+        if (currentActiveId === customerId) {
+            render(msg, isMe ? 'admin' : 'user');
+            this.scrollToBottom();
+        }
+
+        const ticketIndex = this.state.tickets.findIndex(t => 
+            Number(t.user_id || t.sender_id) === customerId
+        );
+
+        const previewText = msg.message || (msg.file_path ? '📁 Attachment' : '...');
+
+        if (ticketIndex !== -1) {
+            const updatedTicket = this.state.tickets.splice(ticketIndex, 1)[0];
+            updatedTicket.message = previewText;
+            updatedTicket.created_at = msg.created_at || new Date().toISOString();
             
-            if (response.code === 200 && this.ui.flow) {
-                this.ui.flow.innerHTML = ''; // Clears the SVG placeholder
-                
-                const messages = response.data.messages ? Object.values(response.data.messages) : [];
-                messages.forEach(m => {
-                    const role = (parseInt(m.sender_id) === parseInt(Auth.getUserId())) ? 'admin' : 'user';
-                    this.renderBubble(m, role);
-                });
-                
-                this.scrollToBottom();
-                this.ws.call('chat', 'markread', { target_user_id: parseInt(userId), token: Auth.getToken() });
+            if (!isMe && currentActiveId !== customerId) {
+                updatedTicket.is_read = 0;
             }
-        } catch (err) { console.error("Message Load Error:", err); }
+            
+            this.state.tickets.unshift(updatedTicket); // Move to top
+        } else {
+            this.state.tickets.unshift({
+                user_id: customerId,
+                realname: msg.sender_name || msg.realname || `Customer ${customerId}`,
+                message: previewText,
+                created_at: msg.created_at || new Date().toISOString(),
+                is_read: isMe ? 1 : 0
+            });
+        }
+        this.renderSidebar(this.state.tickets);
     }
 
     async loadTickets() {
@@ -125,55 +142,86 @@ class AdminSupport {
             });
             const response = await res.json();
             if (response.code === 200) {
-                this.renderSidebar(Object.values(response.data.tickets || {}));
+                this.state.tickets = Object.values(response.data.tickets || {});
+                this.renderSidebar(this.state.tickets);
             }
-        } catch (err) { console.error("Sidebar Load Error:", err); }
+        } catch (err) { console.error("❌ Sidebar Load Error:", err); }
     }
 
-	renderSidebar(tickets) {
-	    if (!this.ui.list) return;
+    renderSidebar(tickets) {
+        if (!this.ui.list || !tickets) return;
 
-	    // 1. Sort: Put the most recent activity at the top
-	    const sortedTickets = tickets.sort((a, b) => 
-	        new Date(b.created_at) - new Date(a.created_at)
-	    );
+        const sortedTickets = [...tickets].sort((a, b) => {
+            return new Date(b.created_at) - new Date(a.created_at);
+        });
 
-	    this.ui.list.innerHTML = sortedTickets.map(t => {
-	        const userId = t.sender_id || t.user_id;
-	        const isActive = parseInt(this.activeUserId) === parseInt(userId);
-	        
-	        const isUnread = t.is_read === 0 && parseInt(t.sender_id) !== parseInt(Auth.getUserId());
+        this.ui.list.innerHTML = sortedTickets.map(t => {
+            const userId = t.user_id || t.sender_id;
+            const myId = parseInt(Auth.getUserId());
+            const isActive = parseInt(this.activeUserId) === parseInt(userId);
+            const isUnread = parseInt(t.is_read) === 0 && parseInt(t.sender_id) !== myId;
 
-	        return `
-	            <div onclick="AdminApp.selectUser(${userId})" 
-	                 class="p-4 rounded-xl cursor-pointer mb-2 border transition-all relative
-	                 ${isActive ? 'bg-blue-500/10 border-blue-500/50' : 'bg-white/5 border-transparent hover:bg-white/10'}">
-	                
-	                ${isUnread ? '<div class="absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>' : ''}
-
-	                <div class="flex justify-between text-white text-[11px] font-bold uppercase tracking-tight pr-4">
-	                    <span class="${isUnread ? 'text-blue-400' : ''}">${t.realname || 'User ' + userId}</span>
-	                    <span class="opacity-40 text-[9px]">${this.formatTime(t.created_at)}</span>
-	                </div>
-	                <p class="text-[10px] ${isUnread ? 'text-gray-200 font-medium' : 'text-gray-400'} truncate mt-1">
-	                    ${t.message || '...'}
-	                </p>
-	            </div>`;
-	    }).join('');
-	}
-	
-	renderBubble(msg) {
-        if (!this.ui.flow) return;
-
-        render(msg);
+            return `
+                <div onclick="AdminApp.selectUser(${userId})" 
+                     class="p-4 rounded-xl cursor-pointer mb-2 border transition-all relative
+                     ${isActive ? 'bg-blue-500/10 border-blue-500/50' : 'bg-white/5 border-transparent hover:bg-white/10'}">
+                    
+                    ${isUnread ? '<div class="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>' : ''}
+                    
+                    <div class="flex justify-between text-white text-[11px] font-bold uppercase tracking-tight pr-6">
+                        <span class="truncate pr-2">${t.realname || 'Customer ' + userId}</span>
+                        <span class="opacity-40 text-[9px] whitespace-nowrap">${this.formatTime(t.created_at)}</span>
+                    </div>
+                    <p class="text-[10px] ${isUnread ? 'text-gray-200 font-medium' : 'text-gray-400'} truncate mt-1">
+                        ${t.message || (t.file_path ? '📁 Attachment' : '...')}
+                    </p>
+                </div>`;
+        }).join('');
     }
-		
-    scrollToBottom() { if(this.ui.flow) this.ui.flow.scrollTop = this.ui.flow.scrollHeight; }
+
+    async selectUser(userId) {
+        this.activeUserId = userId;
+        this.state.activeUserId = userId;
+        
+        const ticket = this.state.tickets.find(t => Number(t.user_id || t.sender_id) === Number(userId));
+        if (ticket) { 
+            ticket.is_read = 1; 
+            this.renderSidebar(this.state.tickets); 
+        }
+
+        try {
+            const res = await fetch(`${servername}api/support/getmessages?user_id=${userId}`, {
+                headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+            });
+            const response = await res.json();
+            if (response.code === 200 && this.ui.flow) {
+                this.ui.flow.innerHTML = ''; 
+                const messages = response.data.messages ? Object.values(response.data.messages) : [];
+                messages.forEach(m => {
+                    const role = (parseInt(m.sender_id) === parseInt(Auth.getUserId())) ? 'admin' : 'user';
+                    render(m, role);
+                });
+                this.scrollToBottom();
+                this.ws.call('chat', 'markread', { target_user_id: parseInt(userId), token: Auth.getToken() });
+            }
+        } catch (err) { console.error("Message Load Error:", err); }
+    }
+
+    scrollToBottom() { 
+        if(this.ui.flow) this.ui.flow.scrollTop = this.ui.flow.scrollHeight; 
+    }
 
     formatTime(d) {
         if (!d) return '';
         const date = new Date(d.replace(/-/g, '/'));
         return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    }
+
+    clearPreview() {
+        const preview = document.getElementById('pwo-preview');
+        if (preview) preview.classList.add('hidden');
+        this.state.pendingFile = null;
+        if (this.ui.fileIn) this.ui.fileIn.value = '';
     }
 }
 

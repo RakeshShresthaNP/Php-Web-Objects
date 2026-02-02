@@ -37,7 +37,7 @@ function cache(): object
     return Cache::getContext(CACHE_TYPE);
 }
 
-function getRequestData(): array
+function getPostData(): array
 {
     $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
 
@@ -85,15 +85,6 @@ function _t(string $key): string
     }
 
     return $translations[$key] ?? $key;
-}
-
-function _t_json(array $keys): string
-{
-    $translations = [];
-    foreach ($keys as $key) {
-        $translations[$key] = _t($key);
-    }
-    return json_encode($translations, JSON_UNESCAPED_UNICODE);
 }
 
 function genUID(): string
@@ -283,17 +274,5 @@ function my_mime_content_type(string $filename): string
         return $mime_types[$ext];
     } else {
         return 'application/octet-stream';
-    }
-}
-
-if (! function_exists('array_map_recursive')) {
-
-    function array_map_recursive(array &$arr, string $fn): array
-    {
-        $rarr = array();
-        foreach ($arr as $k => $v) {
-            $rarr[$k] = is_array($v) ? array_map_recursive($v, $fn) : $fn($v);
-        }
-        return $rarr;
     }
 }

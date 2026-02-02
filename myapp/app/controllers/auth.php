@@ -59,7 +59,7 @@ final class cAuth extends cController
             throw new ApiException(_t('invalid_request_method'), 400);
         }
 
-        $fdata = getRequestData();
+        $fdata = getPostData();
 
         $rules = [
             'username' => 'required|email',
@@ -144,7 +144,7 @@ final class cAuth extends cController
 
     public function api_verifyotp()
     {
-        $fdata = getRequestData();
+        $fdata = getPostData();
         $otp_code = $fdata['otp_code'] ?? null;
 
         if (! $otp_code) {

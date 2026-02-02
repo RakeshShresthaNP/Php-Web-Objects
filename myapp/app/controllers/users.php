@@ -49,7 +49,7 @@ final class cUsers extends cController
 
         if ($this->req->isPost()) {
 
-            $vars = getRequestData();
+            $vars = getPostData();
 
             $rules = [
                 'realname' => 'required|alpha_space',
@@ -111,7 +111,7 @@ final class cUsers extends cController
 
         if ($this->req->isPost()) {
 
-            $vars = getRequestData();
+            $vars = getPostData();
 
             $userId = $user->id;
 
