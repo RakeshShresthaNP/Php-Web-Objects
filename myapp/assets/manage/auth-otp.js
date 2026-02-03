@@ -9,7 +9,7 @@ export const OTPHandler = {
             const qrBox = document.querySelector('#qrcode');
             qrBox.innerHTML = ""; 
             new QRCode(qrBox, {
-                text: data.qr_url,
+                text: atob(data.qr_url),
                 width: 180,
                 height: 180,
                 colorDark: "#000000",

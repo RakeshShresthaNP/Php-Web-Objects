@@ -21,7 +21,7 @@ it("Query Building (where, orWhere, whereNull)", function () {
     $m = new model('users');
     $m->where('id', 1)
         ->orWhere('name', 'Test')
-        ->whereNull('d_deleted');
+        ->whereNull('deleted_at');
     $sql = $m->toSql();
 
     echo $sql;
@@ -40,7 +40,7 @@ it("Advanced Filters (whereIn, whereBetween, whereRaw)", function () {
 
     // 1. Prepare the query
     $m->whereIn('id', $ids)
-        ->whereBetween('d_created', $range)
+        ->whereBetween('created_at', $range)
         ->whereRaw("id > ?", [
         0
     ]);
@@ -71,8 +71,8 @@ it("Subquery: Manual whereRaw Exists Test", function () {
 
     // We manually write the "EXISTS" logic
     // 'p' is the default alias for the main table in your model
-    $results = $m->select("p.name")
-        ->whereRaw("EXISTS (SELECT 1 FROM orders sub WHERE sub.user_id = p.id)")
+    $results = $m->select("users.name")
+        ->whereRaw("EXISTS (SELECT 1 FROM orders sub WHERE sub.user_id = users.id)")
         ->find();
 
     $data = is_array($results) ? $results : ($results ? [
@@ -90,10 +90,10 @@ it("Subquery: whereExists Method Test", function () {
     $m = new model('users');
 
     // Assign the result of the query builder to $results
-    $results = $m->select("p.name")
+    $results = $m->select("users.name")
         ->whereExists('orders', function ($sub) {
         // Use 'sub' as the alias for the subquery table to avoid naming conflicts
-        $sub->whereRaw("sub.user_id = p.id");
+        $sub->whereRaw("sub.user_id = users.id");
     })
         ->find();
 
@@ -112,9 +112,9 @@ it("Subquery: whereExists Method Test", function () {
 it("Subquery: whereNotExists (Inactive Users)", function () {
     $m = new model('users');
 
-    $results = $m->select("p.name")
+    $results = $m->select("users.name")
         ->whereExists('orders', function ($sub) {
-        $sub->whereRaw("sub.user_id = p.id");
+        $sub->whereRaw("sub.user_id = users.id");
     }, 'AND', true)
         ->
     // Setting $not = true
@@ -147,11 +147,11 @@ it("Pagination: Standard User List", function () {
 it("Joins (INNER, LEFT, selectRaw, groupBy, having)", function () {
     $m = new model('orders');
 
-    $results = $m->selectRaw("p.*, u.name as uname")
-        ->join('users u', 'u.id', '=', 'p.user_id', 'LEFT')
-        ->where('p.total_amount', '>', 0)
-        ->groupBy('p.id')
-        ->having('p.total_amount', '>', 0)
+    $results = $m->selectRaw("orders.*, u.name as uname")
+        ->join('users u', 'u.id', '=', 'orders.user_id', 'LEFT')
+        ->where('orders.total_amount', '>', 0)
+        ->groupBy('orders.id')
+        ->having('orders.total_amount', '>', 0)
         ->find();
 
     $target = is_array($results) ? $results[0] : $results;
@@ -179,9 +179,9 @@ it("Final Validation: Joins and Persistence", function () {
 
     // --- 2. TEST JOINS ---
     $orderModel = new model('orders');
-    $order = $orderModel->selectRaw("p.*, u.name as uname")
-        ->join('users u', 'u.id', '=', 'p.user_id', 'LEFT')
-        ->where('p.id', 1)
+    $order = $orderModel->selectRaw("orders.*, u.name as uname")
+        ->join('users u', 'u.id', '=', 'orders.user_id', 'LEFT')
+        ->where('orders.id', 1)
         ->first();
 
     if (! $order || $order->uname !== 'Alpha User') {

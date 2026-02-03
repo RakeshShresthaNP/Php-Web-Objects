@@ -55,7 +55,7 @@ $megaSchema = [
                 'foreign_key' => 'order_id',
                 'fields' => [
                     'text' => 'comment_text',
-                    'date' => 'd_created'
+                    'date' => 'created_at'
                 ]
             ]
         ]
@@ -119,7 +119,7 @@ it("Integrity: Soft Delete Filtering", function () use ($megaSchema) {
     $m = new model('users');
     $m->softDelete = true; // Enable soft delete logic
 
-    // This query should automatically exclude rows where d_deleted is NOT NULL
+    // This query should automatically exclude rows where deleted_at is NOT NULL
     $results = $m->paginateGraph($megaSchema, 1, 5);
 
     echo "   - Soft Delete: Verified that Graph excludes deleted records.\n<br>";
@@ -279,7 +279,7 @@ $timeSchema = [
         'table' => 'orders',
         'column' => 'total_amount',
         'foreign_key' => 'user_id',
-        'where' => "d_created >= '2024-01-01'"
+        'where' => "created_at >= '2024-01-01'"
     ],
     // Filtered count: Successful orders only
     'successful_orders' => [

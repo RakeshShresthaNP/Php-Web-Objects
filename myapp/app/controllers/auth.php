@@ -105,8 +105,7 @@ final class cAuth extends cController
 
                 $data['data'] = [
                     'step' => 'totp_setup',
-                    'qr_url' => $otp_uri,
-                    'secret' => $secret
+                    'qr_url' => btoa($otp_uri)
                 ];
 
                 return $this->res->json($data);

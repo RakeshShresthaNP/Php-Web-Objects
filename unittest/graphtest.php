@@ -27,13 +27,11 @@ it("Graph Engine (findGraph, paginateGraph)", function () {
 it("Analytics: Revenue by Product Category", function () {
     $m = new model('order_items');
 
-    // 1. Correct the alias to pr.category
-    // 2. Use find() instead of toSql() to get the actual data
-    $data = $m->selectRaw("pr.category, SUM(p.quantity * p.unit_price) as total_revenue")
-        ->join('products pr', 'pr.id', '=', 'p.product_id')
+    $data = $m->selectRaw("pr.category, SUM(order_items.quantity * order_items.unit_price) as total_revenue")
+        ->join('products pr', 'pr.id', '=', 'order_items.product_id')
         ->groupBy('pr.category')
         ->orderBy('total_revenue', 'DESC')
-        ->find(); // This executes the SQL and returns array|model|null
+        ->find();
 
     if (empty($data)) {
         throw new Exception("Analytics failed: No data returned.");
@@ -71,7 +69,7 @@ it("Mega-Graph: Advanced Aggregates", function () {
 it("Analytics: Daily Active Users (DAU)", function () {
     $m = new model('site_analytics');
 
-    $data = $m->selectRaw("DATE(d_created) as log_date, COUNT(DISTINCT user_id) as unique_users")
+    $data = $m->selectRaw("DATE(created_at) as log_date, COUNT(DISTINCT user_id) as unique_users")
         ->groupBy("log_date")
         ->orderBy("log_date", "DESC")
         ->limit(7)
@@ -127,7 +125,7 @@ it("Window Function: Running Total & Partition By", function () {
         'amount' => 'total_amount',
         'user_id' => 'user_id',
         // This calculates total spent by THIS user across all their orders
-        'user_cumulative_total' => 'SUM(total_amount) OVER (PARTITION BY user_id ORDER BY d_created)',
+        'user_cumulative_total' => 'SUM(total_amount) OVER (PARTITION BY user_id ORDER BY created_at)',
         // This calculates the average order size for the entire table as a comparison
         'global_avg' => 'AVG(total_amount) OVER ()'
     ];
@@ -218,16 +216,16 @@ it("Window Function: LEAD (Next Order Date) Test", function () {
     // Schema to show current order and the date of the order following it
     $leadSchema = [
         'order_id' => 'id',
-        'current_order_date' => 'd_created',
+        'current_order_date' => 'created_at',
         'current_amount' => 'total_amount',
         // LEAD(column, offset) looks forward. We partition by user
         // so we don't see another user's order dates.
-        'next_order_date' => 'LEAD(d_created, 1) OVER (PARTITION BY user_id ORDER BY d_created ASC)'
+        'next_order_date' => 'LEAD(created_at, 1) OVER (PARTITION BY user_id ORDER BY created_at ASC)'
     ];
 
     // Sort by user and date so the LEAD logic follows a timeline
     $results = $m->orderBy('user_id')
-        ->orderBy('d_created')
+        ->orderBy('created_at')
         ->findGraph($leadSchema, 'o');
 
     if (! $results)
@@ -259,7 +257,7 @@ it("Schema Config: Inline Row Number Test", function () {
         'user_rank' => [
             'type' => 'rownumber',
             'partition_by' => 'status', // Resets count for each status group
-            'order_by' => 'd_created DESC'
+            'order_by' => 'created_at DESC'
         ]
     ];
 
@@ -284,9 +282,9 @@ it("Analytics: Growth and Time-Series", function () {
 
     // REMOVED THE ",0" FROM LAG. 11.8 handles LAG(col, 1) much more cleanly.
     $subQuery = "SELECT id,
-        LAG(total_amount, 1) OVER (PARTITION BY user_id ORDER BY d_created) as prev_val,
-        ROUND(((total_amount - LAG(total_amount, 1) OVER (PARTITION BY user_id ORDER BY d_created)) /
-        NULLIF(LAG(total_amount, 1) OVER (PARTITION BY user_id ORDER BY d_created), 0)) * 100, 2) as pct
+        LAG(total_amount, 1) OVER (PARTITION BY user_id ORDER BY created_at) as prev_val,
+        ROUND(((total_amount - LAG(total_amount, 1) OVER (PARTITION BY user_id ORDER BY created_at)) /
+        NULLIF(LAG(total_amount, 1) OVER (PARTITION BY user_id ORDER BY created_at), 0)) * 100, 2) as pct
         FROM orders";
 
     $results = $m->withAnalytics('stats', $subQuery, 'id', 'id', 'u')->findGraph($schema, 'u');
@@ -309,8 +307,8 @@ it("Schema Config: Lead/Lag Multi-Directional", function () {
 
     // Simple 2-argument LAG/LEAD
     $subQuery = "SELECT id,
-        LAG(total_amount, 1) OVER (PARTITION BY user_id ORDER BY d_created) as prev_sale,
-        LEAD(total_amount, 1) OVER (PARTITION BY user_id ORDER BY d_created) as next_sale
+        LAG(total_amount, 1) OVER (PARTITION BY user_id ORDER BY created_at) as prev_sale,
+        LEAD(total_amount, 1) OVER (PARTITION BY user_id ORDER BY created_at) as next_sale
         FROM orders";
 
     $results = $m->withAnalytics('stats', $subQuery, 'id', 'id', 'u')->findGraph($schema, 'u');

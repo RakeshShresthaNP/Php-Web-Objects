@@ -377,17 +377,17 @@ class model
         return true;
     }
 
-    public function chunkById(int $count, callable $callback, ?string $alias = 'p'): bool
+    public function chunkById(int $count, callable $callback): bool
     {
         $lastId = null;
         while (true) {
             $clone = clone $this;
             if ($lastId !== null) {
-                $clone->where("{$alias}.{$this->pk}", '>', $lastId);
+                $clone->where("{$this->pk}", '>', $lastId);
             }
 
             // find() now always returns an array
-            $results = $clone->orderBy("{$alias}.{$this->pk}", 'ASC')
+            $results = $clone->orderBy("{$this->pk}", 'ASC')
                 ->limit($count)
                 ->find();
 
