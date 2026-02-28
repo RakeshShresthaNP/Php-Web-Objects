@@ -581,7 +581,9 @@ abstract class cController
         $this->partner = $this->req->partner;
 
         $this->user = $this->req->user;
-        $this->cusertype = isset($this->user->perms) ? $this->user->perms : 'none';
+        if ($request->user) {
+            $request->cusertype = $this->user->perms ?? 'none';
+        }
 
         $this->currenthost = $this->headers->Host ?? 'localhost';
         $this->currentuserip = getRequestIP();

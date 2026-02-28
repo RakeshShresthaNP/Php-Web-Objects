@@ -66,15 +66,11 @@ final class DeviceInfo
 
     private int $result_64bits_mode = 0;
 
-    /**
-     * Efficient UA Matching using str_contains or Preg
-     */
     private function match_ua(string $data, bool $case_insensitive = false): bool|array
     {
         if (empty($data))
             return false;
 
-        // Check if $data is a Regex pattern
         if (str_starts_with($data, '/') && str_ends_with($data, '/')) {
             $pattern = $case_insensitive ? $data . 'i' : $data;
             if (preg_match($pattern, $this->useragent, $matches)) {
@@ -83,7 +79,6 @@ final class DeviceInfo
             return false;
         }
 
-        // String matching (multiple parts separated by |)
         $needles = explode('|', $data);
         foreach ($needles as $needle) {
             if ($case_insensitive) {
@@ -102,9 +97,22 @@ final class DeviceInfo
         return $this->match_ua($data, true);
     }
 
-    private function macos_codename(int $version): string
+    private function macos_codename(int $major, int $minor = 0): string
     {
-        return match ($version) {
+        // Handle modern macOS (11+)
+        if ($major >= 11) {
+            return match ($major) {
+                11 => 'Big Sur',
+                12 => 'Monterey',
+                13 => 'Ventura',
+                14 => 'Sonoma',
+                15 => 'Sequoia',
+                default => 'New'
+            };
+        }
+        
+        // Legacy OS X (10.x)
+        return match ($minor) {
             0 => 'Cheetah',
             1 => 'Puma',
             2 => 'Jaguar',
@@ -121,10 +129,7 @@ final class DeviceInfo
             13 => 'High Sierra',
             14 => 'Mojave',
             15 => 'Catalina',
-            16 => 'Big Sur',
-            17 => 'Monterey',
-            18 => 'Ventura',
-            default => 'New'
+            default => 'OS X'
         };
     }
 
@@ -134,14 +139,11 @@ final class DeviceInfo
             'NT 11.0' => '11',
             'NT 10.1' => '11',
             'NT 10.0' => '10',
-            'NT 6.4' => '10',
             'NT 6.3' => '8.1',
             'NT 6.2' => '8',
             'NT 6.1' => '7',
             'NT 6.0' => 'Vista',
-            'NT 5.2' => 'XP',
-            'NT 5.1' => 'XP',
-            'NT 5.0' => '2000'
+            'NT 5.1' => 'XP'
         ];
         return $map[$version_str] ?? '';
     }
@@ -160,13 +162,11 @@ final class DeviceInfo
             $this->result_64bits_mode = 1;
         }
 
-        if ($this->match_ua('Windows NT') || $this->match_ua('QtEmbedded;') || $this->match_ua('Mac OS X')) {}
-
         if ($this->match_ua('Android') || $this->match_ios()) {
             $this->result_mobile = 1;
         }
 
-        $mobile_indicators = 'mobile|tablet|BlackBerry|BB10;|MIDP|PlayBook|Windows Phone|IEMobile|Opera Mini|Kindle|Silk/|Bada|Tizen|Lumia|Symbian';
+        $mobile_indicators = 'mobile|tablet|BlackBerry|BB10;|Kindle|Silk/|Bada|Tizen|Lumia|Symbian|Opera Mini';
         if ($this->matchi_ua($mobile_indicators) || $this->matchi_ua('nokia|playstation|watch')) {
             $this->result_mobile = 1;
         }
@@ -177,17 +177,13 @@ final class DeviceInfo
         if ($this->get_mode === 'browser')
             return;
 
-        $this->result_os_type = 'mixed';
-
         // 1. Windows Detection
         if ($this->match_ua('Windows|Win32') && ! $this->match_ua('Windows Phone|WPDesktop')) {
             $this->result_os_name = 'Windows';
             $matches = $this->match_ua('/Windows ([ .a-zA-Z0-9]+)[;\\)]/');
             $this->result_os_version = is_array($matches) ? $this->get_windows_version($matches[1]) : '';
-
-            $this->result_os_title = $this->result_os_version ? "Windows {$this->result_os_version}" : "Windows (unknown version)";
             $this->result_os_family = 'windows';
-            $this->result_os_type = (intval($this->result_os_version) < 7) ? 'desktop' : 'mixed';
+            $this->result_os_title = "Windows " . ($this->result_os_version ?: 'NT');
             return;
         }
 
@@ -197,53 +193,53 @@ final class DeviceInfo
             $this->result_os_family = 'macintosh';
             $matches = $this->match_ua('/Mac OS X (\d+)[_.](\d+)/');
             if ($matches) {
+                $major = (int) $matches[1];
                 $minor = (int) $matches[2];
-                $this->result_os_version = $this->macos_codename($minor);
+                $this->result_os_version = $this->macos_codename($major, $minor);
                 $this->result_os_title = "MacOS {$this->result_os_version}";
             }
             return;
         }
 
-        if ($this->match_ua('Android') && $this->result_mobile) {
-            $this->result_os_version = 0;
+        // 3. Android Detection
+        if ($this->match_ua('Android')) {
             $this->result_os_name = 'Android';
-            $matches = $this->match_ua('/Android(?: |\-)([0-9]+\.[0-9]+)/');
-            $this->result_os_version = is_array($matches) ? (float) $matches[1] : 0;
-            if (empty($this->result_os_version)) {
-                $matches = $this->match_ua('/Android(?: |\-)(\d+)/');
-                $this->result_os_version = is_array($matches) ? (float) $matches[1] : 0;
-            }
             $this->result_os_family = 'android';
+            if ($matches = $this->match_ua('/Android(?: |\-)([0-9]+(?:\.[0-9]+)?)/')) {
+                $this->result_os_version = $matches[1];
+            }
             $this->result_os_title = "Android {$this->result_os_version}";
+            return;
         }
 
-        if ($this->match_ua('iPhone') && $this->result_mobile) {
-            $this->result_os_version = 0;
-            $this->result_os_name = 'iPhone';
-            $matches = $this->match_ua('/iPhone(?: |\-)([0-9]+\.[0-9]+)/');
-            $this->result_os_version = is_array($matches) ? (float) $matches[1] : 0;
-            if (empty($this->result_os_version)) {
-                $matches = $this->match_ua('/iPhone(?: |\-)(\d+)/');
-                $this->result_os_version = is_array($matches) ? (float) $matches[1] : 0;
+        // 4. iOS Detection
+        if ($this->match_ios()) {
+            $this->result_os_name = 'iOS';
+            $this->result_os_family = 'iOS';
+            if ($matches = $this->match_ua('/OS ([0-9]+(?:[_.] [0-9]+)?)/')) {
+                $this->result_os_version = str_replace('_', '.', $matches[1]);
             }
-            $this->result_os_family = 'iPhone';
-            $this->result_os_title = "iPhone {$this->result_os_version}";
+            $this->result_os_title = "iOS {$this->result_os_version}";
+            return;
         }
 
-        // 3. Linux/Unix logic simplified via loop
-        $linux_distros = [
-            'Ubuntu',
-            'Kubuntu',
-            'Linux Mint',
-            'CentOS',
-            'Red Hat'
-        ];
-        foreach ($linux_distros as $distro) {
-            if ($this->match_ua($distro)) {
-                $this->result_os_name = $distro;
-                $this->result_os_family = 'linux';
-                return;
+        // 5. Linux Distros
+        if ($this->match_ua('Linux')) {
+            $this->result_os_family = 'linux';
+            $this->result_os_name = 'Linux';
+            foreach ([
+                'Ubuntu',
+                'Mint',
+                'CentOS',
+                'Debian',
+                'Fedora'
+            ] as $distro) {
+                if ($this->matchi_ua($distro)) {
+                    $this->result_os_name = $distro;
+                    break;
+                }
             }
+            $this->result_os_title = $this->result_os_name;
         }
     }
 
@@ -252,25 +248,28 @@ final class DeviceInfo
         if ($this->get_mode === 'device')
             return;
 
-        // Logic for Chrome/Firefox/Safari...
-        // Use a loop with configuration arrays for specific browsers to avoid deep nesting
-        $this->detectChromeFirefox();
-    }
-
-    private function detectChromeFirefox(): void
-    {
-        if ($matches = $this->match_ua('/(Firefox|Safari|Chrome|Chromium|CriOS)\/([0-9]+)\./')) {
-            $this->result_browser_name = $matches[1];
+        // Detect Edge, Opera, then Chrome/Firefox/Safari
+        if ($matches = $this->match_ua('/Edg\/([0-9]+)/')) {
+            $this->result_browser_name = 'Edge';
+            $this->result_browser_version = (int) $matches[1];
+        } elseif ($matches = $this->match_ua('/OPR\/([0-9]+)/')) {
+            $this->result_browser_name = 'Opera';
+            $this->result_browser_version = (int) $matches[1];
+        } elseif ($matches = $this->match_ua('/(Firefox|Chrome|Chromium|CriOS)\/([0-9]+)\./')) {
+            $this->result_browser_name = ($matches[1] === 'CriOS') ? 'Chrome' : $matches[1];
             $this->result_browser_version = (int) $matches[2];
-            $this->result_browser_chromium_version = $this->result_browser_version;
-            $this->result_browser_title = "{$this->result_browser_name} {$this->result_browser_version}";
+        } elseif ($this->match_ua('Safari') && $matches = $this->match_ua('/Version\/([0-9]+)/')) {
+            $this->result_browser_name = 'Safari';
+            $this->result_browser_version = (int) $matches[1];
         }
+
+        $this->result_browser_title = "{$this->result_browser_name} {$this->result_browser_version}";
     }
 
     private function detectDeviceType(): void
     {
         if ($this->result_mobile) {
-            $this->result_device_type = 'mobile';
+            $this->result_device_type = ($this->matchi_ua('tablet|ipad|playbook|silk')) ? 'tablet' : 'mobile';
         } elseif ($this->match_ua('TV|HDMI|SmartTV|Roku')) {
             $this->result_device_type = 'tv';
         } elseif ($this->matchi_ua('playstation|xbox|nintendo')) {

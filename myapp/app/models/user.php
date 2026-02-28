@@ -20,7 +20,7 @@ final class user extends model
         parent::__construct('mst_users', 'id');
 
         if ($id > 0) {
-            $res = $this->where('id', $id)->first();
+            $this->where('id', $id)->first();
         }
     }
 

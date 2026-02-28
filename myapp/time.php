@@ -18,7 +18,7 @@ echo "Real World UTC: " . date('Y-m-d H:i:s', $trueTime) . " (Timestamp: $trueTi
 
 if (abs($diff) > 5) {
     echo "<b style='color:red'>OFFSET DETECTED: Your server is " . abs($diff) . " seconds " . ($diff > 0 ? "ahead" : "behind") . "</b><br>";
-    echo "This is why your OTP is failing. Please sync your OS Clock.";
+    echo "This is the reason OTP is failing. Please sync your OS Clock.";
 } else {
     echo "<b style='color:green'>TIME IS SYNCED: Difference is only $diff seconds.</b><br>";
 }

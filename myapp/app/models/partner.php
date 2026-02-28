@@ -20,7 +20,7 @@ final class partner extends model
         parent::__construct('mst_partners', 'id');
 
         if ($id > 0) {
-            $res = $this->where('id', $id)->first();
+            $this->where('id', $id)->first();
         }
     }
 

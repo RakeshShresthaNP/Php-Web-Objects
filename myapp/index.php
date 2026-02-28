@@ -36,11 +36,7 @@ try {
 
     $msg = (json_decode((string) $e->getMessage()));
 
-    if ($msg !== null) {
-        $data['error'] = $msg;
-    } else {
-        $data['error'] = $e->getMessage();
-    }
+    $data['error'] = $msg ?? $e->getMessage();
 
     writeLog('apiexception_' . date('Y_m_d'), $data);
 
@@ -56,4 +52,3 @@ try {
 }
 
 exit();
-
